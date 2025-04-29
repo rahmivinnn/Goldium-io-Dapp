@@ -1,0 +1,321 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --radius: 0.75rem;
+  --gold-primary: 45 80% 48%;
+  --gold-secondary: 45 100% 70%;
+  --gold-accent: 45 100% 90%;
+  --dark-primary: 0 0% 7%;
+  --dark-secondary: 0 0% 10%;
+  --dark-accent: 0 0% 15%;
+}
+
+@layer base {
+  body {
+    @apply bg-black text-white antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
+
+  /* Modern scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-black;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gold-500/50 rounded-full transition-colors;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gold-500/70;
+  }
+}
+
+@layer components {
+  /* Modern card styling */
+  .modern-card {
+    @apply bg-black backdrop-blur-sm border border-gold-500/20 rounded-xl shadow-lg transition-all duration-300 hover:shadow-gold-md;
+    background: linear-gradient(145deg, rgba(10, 10, 10, 0.8), rgba(0, 0, 0, 0.9));
+  }
+
+  /* Glass effect */
+  .glass-effect {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-xl;
+  }
+
+  /* Gold gradient text */
+  .gold-gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-gold-500 via-amber-400 to-gold-500;
+  }
+
+  /* Modern gold button */
+  .gold-button {
+    background: linear-gradient(to right, #d6ab00, #f5c400, #d6ab00);
+    color: #050505;
+    font-weight: bold;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .gold-button:hover {
+    box-shadow: 0 4px 12px rgba(245, 196, 0, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .gold-button:active {
+    transform: translateY(1px);
+  }
+
+  .gold-button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Black gold card */
+  .black-gold-card {
+    @apply bg-black border border-gold-500/30 rounded-lg p-4 transition-all duration-300;
+  }
+
+  .black-gold-card:hover {
+    @apply border-gold-500 shadow-lg;
+    box-shadow: 0 4px 20px rgba(245, 196, 0, 0.15);
+  }
+
+  /* Gold glow effect */
+  .gold-glow {
+    box-shadow: 0 0 15px rgba(245, 196, 0, 0.3);
+  }
+
+  /* Animated border */
+  .animated-border {
+    @apply relative overflow-hidden;
+  }
+
+  .animated-border::before {
+    content: "";
+    @apply absolute inset-0 rounded-xl p-[1px];
+    background: linear-gradient(
+      90deg,
+      rgba(245, 196, 0, 0) 0%,
+      rgba(245, 196, 0, 0.8) 25%,
+      rgba(245, 196, 0, 0.8) 75%,
+      rgba(245, 196, 0, 0) 100%
+    );
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: border-shine 3s linear infinite;
+  }
+
+  @keyframes border-shine {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Hero section with modern styling */
+  .hero-section {
+    @apply relative overflow-hidden;
+    background-image: url("/images/hero-bg.png");
+    background-size: cover;
+    background-position: center;
+    background-color: #000000;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-blend-mode: overlay;
+  }
+
+  .hero-section::before {
+    content: "";
+    @apply absolute inset-0 bg-gradient-to-b from-black/70 to-black/90;
+  }
+
+  /* Modern NFT card */
+  .nft-card {
+    @apply relative overflow-hidden rounded-lg border border-gold-500/20 bg-black transition-all duration-300;
+  }
+
+  .nft-card:hover {
+    @apply shadow-lg border-gold-500/50 transform scale-[1.02];
+    box-shadow: 0 5px 20px rgba(245, 196, 0, 0.2);
+  }
+
+  /* Rarity badges with modern styling */
+  .rarity-badge {
+    @apply absolute top-2 right-2 px-2 py-1 rounded-md text-xs font-bold z-10 backdrop-blur-sm;
+  }
+
+  .rarity-common {
+    @apply bg-gray-500/80 text-white;
+  }
+
+  .rarity-uncommon {
+    @apply bg-green-500/80 text-white;
+  }
+
+  .rarity-rare {
+    @apply bg-blue-500/80 text-white;
+  }
+
+  .rarity-epic {
+    @apply bg-purple-500/80 text-white;
+  }
+
+  .rarity-legendary {
+    @apply bg-gold-500/80 text-black;
+  }
+
+  /* Modern tooltip */
+  .tooltip {
+    @apply absolute z-50 rounded-lg bg-black border border-gold-500/20 p-3 text-sm text-white shadow-lg backdrop-blur-sm;
+    width: max-content;
+    max-width: 250px;
+  }
+
+  /* Modern notification badge */
+  .notification-badge {
+    @apply absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white;
+  }
+
+  /* Modern countdown timer */
+  .countdown-timer {
+    @apply flex gap-2 text-center;
+  }
+
+  .countdown-item {
+    @apply flex flex-col items-center justify-center bg-black border border-gold-500/20 rounded-lg p-2;
+  }
+
+  .countdown-value {
+    @apply text-xl font-bold text-gold-500;
+  }
+
+  .countdown-label {
+    @apply text-xs text-gold-500/70;
+  }
+
+  /* Shimmer effect */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 2s infinite linear;
+  }
+
+  /* Floating animation for cards */
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Pulse animation for buttons */
+  .pulse-animation {
+    animation: pulse-gold 2s infinite;
+  }
+
+  /* Fade in animation for content */
+  .fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  /* Slide in animation for content */
+  .slide-in {
+    animation: slide-in-bottom 0.5s ease-out forwards;
+  }
+
+  /* Perspective for card flip */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    background-attachment: scroll;
+    background-position: top center;
+  }
+}
+
+/* Animation keyframes */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-gold {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 196, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(245, 196, 0, 0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-bottom {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
