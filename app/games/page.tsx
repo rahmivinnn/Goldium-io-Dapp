@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -15,19 +15,41 @@ import CardBattleGame from "@/components/games/card-battle-game"
 export default function Games() {
   const { connected } = useWallet()
   const [activeTab, setActiveTab] = useState("battle")
+  // Add state for active game and game loading
+  const [gameLoading, setGameLoading] = useState(false)
+  const [demoMode, setDemoMode] = useState(!connected)
 
-  if (!connected) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-6">Connect Your Wallet</h1>
-        <p className="text-gray-400 mb-8">Please connect your wallet to access games.</p>
-        <ConnectWalletButton className="gold-button" />
-      </div>
-    )
+  useEffect(() => {
+    if (connected) {
+      setDemoMode(false)
+    }
+  }, [connected])
+
+  // Update the tab change handler to simulate loading
+  const handleTabChange = (value) => {
+    setGameLoading(true)
+    setActiveTab(value)
+
+    // Simulate loading delay
+    setTimeout(() => {
+      setGameLoading(false)
+    }, 1000)
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {demoMode && (
+        <div className="bg-gold/10 border border-gold rounded-lg p-4 mb-6 flex justify-between items-center">
+          <div>
+            <h3 className="font-bold text-gold">Demo Mode</h3>
+            <p className="text-sm text-gray-300">
+              You're viewing games in demo mode. Connect your wallet to earn real GOLD tokens.
+            </p>
+          </div>
+          <ConnectWalletButton className="gold-button" />
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Games</h1>
@@ -82,7 +104,7 @@ export default function Games() {
         </Card>
       </div>
 
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid grid-cols-3 mb-8">
           <TabsTrigger value="battle" className="data-[state=active]:bg-gold data-[state=active]:text-black">
             <Sword className="mr-2 h-5 w-5" />
@@ -107,7 +129,14 @@ export default function Games() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <CardBattleGame />
+              {gameLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-gold">Loading Card Battle...</p>
+                </div>
+              ) : (
+                <CardBattleGame demoMode={demoMode} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -121,7 +150,14 @@ export default function Games() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <CoinFlipGame />
+              {gameLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-gold">Loading Coin Flip...</p>
+                </div>
+              ) : (
+                <CoinFlipGame demoMode={demoMode} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -135,7 +171,14 @@ export default function Games() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <CardFlipGame />
+              {gameLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="text-gold">Loading Card Flip...</p>
+                </div>
+              ) : (
+                <CardFlipGame demoMode={demoMode} />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

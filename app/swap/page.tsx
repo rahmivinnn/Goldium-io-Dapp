@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Repeat, ArrowDownUp, Info, RefreshCw, Clock } from "lucide-react"
+import { Repeat, ArrowDownUp, Info, RefreshCw, Clock, Check } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
 import { ConnectWalletButton } from "@/components/connect-wallet-button"
 import { useToast } from "@/hooks/use-toast"
@@ -21,7 +21,7 @@ const TOKENS = [
     symbol: "ETH",
     balance: 1.25,
     price: 3200,
-    icon: "/placeholder.svg?height=32&width=32&query=ethereum logo",
+    icon: "/ethereum-crystal.png",
   },
   {
     id: "btc",
@@ -29,7 +29,7 @@ const TOKENS = [
     symbol: "BTC",
     balance: 0.05,
     price: 62000,
-    icon: "/placeholder.svg?height=32&width=32&query=bitcoin logo",
+    icon: "/bitcoin-symbol-gold.png",
   },
   {
     id: "usdt",
@@ -37,7 +37,7 @@ const TOKENS = [
     symbol: "USDT",
     balance: 2500,
     price: 1,
-    icon: "/placeholder.svg?height=32&width=32&query=tether logo",
+    icon: "/abstract-tether.png",
   },
   {
     id: "usdc",
@@ -45,7 +45,7 @@ const TOKENS = [
     symbol: "USDC",
     balance: 1800,
     price: 1,
-    icon: "/placeholder.svg?height=32&width=32&query=usdc logo",
+    icon: "/usdc-digital-currency.png",
   },
 ]
 
@@ -94,6 +94,21 @@ export default function Swap() {
   const [swapping, setSwapping] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
 
+  // Add animation and loading states for swap functionality
+  const [swapLoading, setSwapLoading] = useState(false)
+  const [swapComplete, setSwapComplete] = useState(false)
+
+  // Add state for transaction history
+  const [transactionHistory, setTransactionHistory] = useState(TRANSACTION_HISTORY)
+
+  const [demoMode, setDemoMode] = useState(!connected)
+
+  useEffect(() => {
+    if (connected) {
+      setDemoMode(false)
+    }
+  }, [connected])
+
   // Calculate exchange rate
   const getExchangeRate = (from, to) => {
     const fromTokenData = TOKENS.find((t) => t.id === from.id)
@@ -132,7 +147,7 @@ export default function Swap() {
     setToAmount(fromAmount)
   }
 
-  // Execute swap
+  // Update the executeSwap function to show animation
   const executeSwap = () => {
     if (!fromAmount || !toAmount || isNaN(Number.parseFloat(fromAmount)) || isNaN(Number.parseFloat(toAmount))) {
       toast({
@@ -153,22 +168,66 @@ export default function Swap() {
     }
 
     setSwapping(true)
+    setSwapLoading(true)
+
     toast({
       title: "Swap Initiated",
       description: "Processing your swap request...",
     })
 
-    // Simulate swap delay
+    // Simulate swap delay with progress animation
     setTimeout(() => {
-      setSwapping(false)
-      toast({
-        title: "Swap Successful",
-        description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}.`,
-      })
+      setSwapLoading(false)
+      setSwapComplete(true)
 
-      // Reset form
-      setFromAmount("")
-      setToAmount("")
+      // Show completion after a brief delay
+      setTimeout(() => {
+        setSwapping(false)
+        setSwapComplete(false)
+
+        toast({
+          title: "Swap Successful",
+          description: `Successfully swapped ${fromAmount} ${fromToken.symbol} for ${toAmount} ${toToken.symbol}.`,
+        })
+
+        // Update token balances to reflect the swap
+        const updatedTokens = [...TOKENS]
+        const fromTokenIndex = updatedTokens.findIndex((t) => t.id === fromToken.id)
+        const toTokenIndex = updatedTokens.findIndex((t) => t.id === toToken.id)
+
+        if (fromTokenIndex >= 0) {
+          updatedTokens[fromTokenIndex] = {
+            ...updatedTokens[fromTokenIndex],
+            balance: updatedTokens[fromTokenIndex].balance - Number.parseFloat(fromAmount),
+          }
+        }
+
+        if (toTokenIndex >= 0) {
+          updatedTokens[toTokenIndex] = {
+            ...updatedTokens[toTokenIndex],
+            balance: updatedTokens[toTokenIndex].balance + Number.parseFloat(toAmount),
+          }
+        }
+
+        // Reset form
+        setFromAmount("")
+        setToAmount("")
+
+        // Add to transaction history
+        setTransactionHistory([
+          {
+            id: `tx${Date.now()}`,
+            type: "swap",
+            fromToken: fromToken.symbol,
+            toToken: toToken.symbol,
+            fromAmount: Number.parseFloat(fromAmount),
+            toAmount: Number.parseFloat(toAmount),
+            status: "completed",
+            timestamp: new Date().toISOString(),
+          },
+          ...transactionHistory.slice(0, 2),
+        ])
+      }, 1000)
     }, 2000)
   }
 
@@ -178,18 +237,20 @@ export default function Swap() {
     return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
   }
 
-  if (!connected) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-6">Connect Your Wallet</h1>
-        <p className="text-gray-400 mb-8">Please connect your wallet to access the token swap feature.</p>
-        <ConnectWalletButton className="gold-button" />
-      </div>
-    )
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
+      {demoMode && (
+        <div className="bg-gold/10 border border-gold rounded-lg p-4 mb-6 flex justify-between items-center">
+          <div>
+            <h3 className="font-bold text-gold">Demo Mode</h3>
+            <p className="text-sm text-gray-300">
+              You're viewing swap features in demo mode. Connect your wallet to perform real token swaps.
+            </p>
+          </div>
+          <ConnectWalletButton className="gold-button" />
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Token Swap</h1>
@@ -452,8 +513,22 @@ export default function Swap() {
               >
                 {swapping ? (
                   <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Swapping...
+                    {swapLoading ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Processing Swap...
+                      </>
+                    ) : swapComplete ? (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Swap Complete!
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Swapping...
+                      </>
+                    )}
                   </>
                 ) : (
                   "Swap"
@@ -472,9 +547,9 @@ export default function Swap() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {TRANSACTION_HISTORY.length > 0 ? (
+              {transactionHistory.length > 0 ? (
                 <div className="space-y-4">
-                  {TRANSACTION_HISTORY.map((tx) => (
+                  {transactionHistory.map((tx) => (
                     <div
                       key={tx.id}
                       className="flex flex-col p-3 border border-gold/20 rounded-lg hover:bg-gold/5 transition-colors"

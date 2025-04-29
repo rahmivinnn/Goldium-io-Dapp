@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,6 +19,13 @@ export default function Staking() {
   const [stakeAmount, setStakeAmount] = useState(500)
   const [selectedPeriod, setSelectedPeriod] = useState("flexible")
   const [showTooltip, setShowTooltip] = useState(false)
+  const [demoMode, setDemoMode] = useState(!connected)
+
+  useEffect(() => {
+    if (connected) {
+      setDemoMode(false)
+    }
+  }, [connected])
 
   const maxStakeAmount = 2000
   const goldBalance = 1850
@@ -55,6 +62,14 @@ export default function Staking() {
     setStakeAmount(Math.min(goldBalance, maxStakeAmount))
   }
 
+  // Add a new state for staking status
+  const [isStaking, setIsStaking] = useState(false)
+  const [stakingStats, setStakingStats] = useState({
+    totalStaked: 1250,
+    rewards: 24.6,
+    apr: 8.2,
+  })
+
   // Ensure staking functionality works properly
   const handleStake = () => {
     if (stakeAmount < selectedOption.minAmount || stakeAmount > goldBalance) {
@@ -66,7 +81,8 @@ export default function Staking() {
       return
     }
 
-    // Simulate staking process
+    // Simulate staking process with loading state
+    setIsStaking(true)
     toast({
       title: "Staking in Progress",
       description: "Processing your staking request...",
@@ -74,25 +90,37 @@ export default function Staking() {
 
     // Simulate successful staking after a delay
     setTimeout(() => {
+      setIsStaking(false)
       toast({
         title: "Staking Successful",
         description: `You have successfully staked ${stakeAmount} GOLD at ${selectedOption.apr}% APR.`,
       })
-    }, 2000)
-  }
 
-  if (!connected) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-6">Connect Your Wallet</h1>
-        <p className="text-gray-400 mb-8">Please connect your wallet to access staking features.</p>
-        <ConnectWalletButton className="gold-button" />
-      </div>
-    )
+      // Update the UI to reflect the new stake
+      setStakingStats((prev) => ({
+        ...prev,
+        totalStaked: prev.totalStaked + stakeAmount,
+      }))
+
+      // Reset the input
+      setStakeAmount(selectedOption.minAmount)
+    }, 2000)
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {demoMode && (
+        <div className="bg-gold/10 border border-gold rounded-lg p-4 mb-6 flex justify-between items-center">
+          <div>
+            <h3 className="font-bold text-gold">Demo Mode</h3>
+            <p className="text-sm text-gray-300">
+              You're viewing staking features in demo mode. Connect your wallet to access full functionality.
+            </p>
+          </div>
+          <ConnectWalletButton className="gold-button" />
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">GOLD Staking</h1>
@@ -231,10 +259,36 @@ export default function Staking() {
 
                     <Button
                       className="gold-button w-full"
-                      disabled={stakeAmount < selectedOption.minAmount || stakeAmount > goldBalance}
+                      disabled={stakeAmount < selectedOption.minAmount || stakeAmount > goldBalance || isStaking}
                       onClick={handleStake}
                     >
-                      Stake Now
+                      {isStaking ? (
+                        <>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-black"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Staking...
+                        </>
+                      ) : (
+                        "Stake Now"
+                      )}
                     </Button>
                   </div>
                 </TabsContent>
@@ -335,7 +389,7 @@ export default function Staking() {
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-400">Total Value Staked</span>
-                    <span className="font-bold text-gold">1,250 GOLD</span>
+                    <span className="font-bold text-gold">{stakingStats.totalStaked} GOLD</span>
                   </div>
                   <Progress value={62.5} className="h-2 bg-gold/20" indicatorClassName="bg-gold" />
                   <div className="flex justify-between mt-1">

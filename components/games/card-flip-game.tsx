@@ -1,270 +1,462 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { CreditCard, Clock } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Slider } from "@/components/ui/slider"
+import { CreditCard, Clock, Trophy } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { motion, AnimatePresence } from "framer-motion"
 
-interface Card {
-  id: number
-  value: string
-  flipped: boolean
-  matched: boolean
-}
+// Card symbols
+const CARD_SYMBOLS = ["🗡️", "🛡️", "🔮", "🏆", "💎", "🔥", "⚡", "🧙‍♂️"]
 
-export default function CardFlipGame() {
+// Add this prop to the component
+export default function CardFlipGame({ demoMode = false }) {
+  const { toast } = useToast()
   const [betAmount, setBetAmount] = useState(25)
-  const [gameStarted, setGameStarted] = useState(false)
-  const [cards, setCards] = useState<Card[]>([])
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [gameOver, setGameOver] = useState(false)
+  const [cards, setCards] = useState<Array<{ id: number; symbol: string; flipped: boolean; matched: boolean }>>([])
   const [flippedCards, setFlippedCards] = useState<number[]>([])
   const [matchedPairs, setMatchedPairs] = useState(0)
   const [moves, setMoves] = useState(0)
-  const [timer, setTimer] = useState(0)
-  const [gameOver, setGameOver] = useState(false)
-  const [winnings, setWinnings] = useState(0)
-  const { toast } = useToast()
+  const [gameTime, setGameTime] = useState(0)
+  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null)
+  const [gameHistory, setGameHistory] = useState<
+    Array<{ bet: number; pairs: number; moves: number; time: number; won: boolean; reward: number }>
+  >([])
+  const [balance, setBalance] = useState(1850)
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy")
 
-  const maxBet = 100
-  const minBet = 25
-  const totalPairs = 6
-  const cardValues = ["🗡️", "🛡️", "🧙", "🏆", "💎", "🔮"]
+  const maxBet = 200
 
-  const handleBetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseInt(e.target.value)
-    if (isNaN(value)) {
-      setBetAmount(minBet)
-    } else {
-      setBetAmount(Math.min(Math.max(value, minBet), maxBet))
-    }
+  // Game configurations based on difficulty
+  const difficultySettings = {
+    easy: { pairs: 6, timeLimit: 60, multiplier: 1.5 },
+    medium: { pairs: 8, timeLimit: 90, multiplier: 2 },
+    hard: { pairs: 12, timeLimit: 120, multiplier: 3 },
   }
 
+  const handleBetAmountChange = (value: number[]) => {
+    setBetAmount(value[0])
+  }
+
+  const handleMaxBet = () => {
+    setBetAmount(Math.min(balance, maxBet))
+  }
+
+  // Modify the startGame function to handle demo mode
   const startGame = () => {
-    // Create and shuffle cards
-    const newCards: Card[] = []
-    for (let i = 0; i < totalPairs; i++) {
-      newCards.push({ id: i * 2, value: cardValues[i], flipped: false, matched: false })
-      newCards.push({ id: i * 2 + 1, value: cardValues[i], flipped: false, matched: false })
+    if (betAmount <= 0 || betAmount > balance) {
+      toast({
+        title: "Invalid Bet",
+        description: `Please enter a bet between 1 and ${balance} GOLD.`,
+        variant: "destructive",
+      })
+      return
     }
 
-    // Fisher-Yates shuffle
-    for (let i = newCards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[newCards[i], newCards[j]] = [newCards[j], newCards[i]]
+    // If in demo mode, show a toast
+    if (demoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Connect your wallet to earn real GOLD tokens!",
+        variant: "default",
+      })
     }
 
-    setCards(newCards)
+    // Deduct bet amount
+    setBalance((prev) => prev - betAmount)
+
+    // Reset game state
+    setIsPlaying(true)
+    setGameOver(false)
     setFlippedCards([])
     setMatchedPairs(0)
     setMoves(0)
-    setTimer(0)
-    setGameOver(false)
-    setWinnings(0)
-    setGameStarted(true)
+    setGameTime(0)
 
-    // Notify game start
+    // Create cards
+    const pairs = difficultySettings[difficulty].pairs
+    const symbols = [...CARD_SYMBOLS].slice(0, pairs)
+    const cardDeck = [...symbols, ...symbols]
+      .sort(() => Math.random() - 0.5)
+      .map((symbol, index) => ({
+        id: index,
+        symbol,
+        flipped: false,
+        matched: false,
+      }))
+
+    setCards(cardDeck)
+
+    // Start timer
+    if (timer) clearInterval(timer)
+    const newTimer = setInterval(() => {
+      setGameTime((prev) => {
+        if (prev >= difficultySettings[difficulty].timeLimit - 1) {
+          clearInterval(newTimer)
+          endGame(false)
+          return difficultySettings[difficulty].timeLimit
+        }
+        return prev + 1
+      })
+    }, 1000)
+    setTimer(newTimer)
+
     toast({
       title: "Game Started",
-      description: "Find all matching pairs to win!",
+      description: `Find all ${pairs} pairs before time runs out!`,
     })
   }
 
+  // Handle card flip
   const flipCard = (id: number) => {
-    // Don't allow flipping if already two cards are flipped or card is already flipped/matched
+    // Prevent flipping if already two cards are flipped or card is already flipped/matched
     if (flippedCards.length >= 2) return
-
-    const card = cards.find((c) => c.id === id)
-    if (!card || card.flipped || card.matched) return
-
-    // Play flip sound effect (simulated)
-    const playFlipSound = () => {
-      // In a real implementation, this would play a sound
-      console.log("Card flip sound played")
-    }
-    playFlipSound()
+    if (cards.find((card) => card.id === id)?.flipped) return
+    if (cards.find((card) => card.id === id)?.matched) return
 
     // Flip the card
-    setCards(cards.map((c) => (c.id === id ? { ...c, flipped: true } : c)))
-    setFlippedCards([...flippedCards, id])
-  }
+    setCards((prev) => prev.map((card) => (card.id === id ? { ...card, flipped: true } : card)))
 
-  // Check for matches when two cards are flipped
-  useEffect(() => {
-    if (flippedCards.length === 2) {
-      setMoves(moves + 1)
+    // Add to flipped cards
+    setFlippedCards((prev) => [...prev, id])
 
-      const [first, second] = flippedCards
-      const firstCard = cards.find((c) => c.id === first)
-      const secondCard = cards.find((c) => c.id === second)
+    // If two cards are flipped, check for match
+    if (flippedCards.length === 1) {
+      setMoves((prev) => prev + 1)
 
-      if (firstCard?.value === secondCard?.value) {
+      const firstCardId = flippedCards[0]
+      const secondCardId = id
+      const firstCard = cards.find((card) => card.id === firstCardId)
+      const secondCard = cards.find((card) => card.id === secondCardId)
+
+      if (firstCard?.symbol === secondCard?.symbol) {
         // Match found
-        setCards(cards.map((c) => (c.id === first || c.id === second ? { ...c, matched: true } : c)))
-        setMatchedPairs(matchedPairs + 1)
-        setFlippedCards([])
-      } else {
-        // No match, flip back after delay
         setTimeout(() => {
-          setCards(cards.map((c) => (c.id === first || c.id === second ? { ...c, flipped: false } : c)))
+          setCards((prev) =>
+            prev.map((card) =>
+              card.id === firstCardId || card.id === secondCardId ? { ...card, matched: true } : card,
+            ),
+          )
+          setMatchedPairs((prev) => {
+            const newMatchedPairs = prev + 1
+            if (newMatchedPairs === difficultySettings[difficulty].pairs) {
+              endGame(true)
+            }
+            return newMatchedPairs
+          })
+          setFlippedCards([])
+        }, 500)
+      } else {
+        // No match
+        setTimeout(() => {
+          setCards((prev) =>
+            prev.map((card) =>
+              card.id === firstCardId || card.id === secondCardId ? { ...card, flipped: false } : card,
+            ),
+          )
           setFlippedCards([])
         }, 1000)
       }
     }
-  }, [flippedCards])
+  }
 
-  // Timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout
+  // End game
+  const endGame = (won: boolean) => {
+    setIsPlaying(false)
+    setGameOver(true)
+    if (timer) clearInterval(timer)
+    setTimer(null)
 
-    if (gameStarted && !gameOver) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev + 1)
-      }, 1000)
+    const reward = won
+      ? Math.round(
+          betAmount *
+            difficultySettings[difficulty].multiplier *
+            (1 - moves / (difficultySettings[difficulty].pairs * 3)),
+        )
+      : 0
+
+    // Update balance if won
+    if (won) {
+      setBalance((prev) => prev + reward)
     }
 
-    return () => clearInterval(interval)
-  }, [gameStarted, gameOver])
+    // Add to history
+    setGameHistory((prev) => [
+      {
+        bet: betAmount,
+        pairs: matchedPairs,
+        moves,
+        time: gameTime,
+        won,
+        reward,
+      },
+      ...prev.slice(0, 4),
+    ])
 
-  // Check for game over
-  useEffect(() => {
-    if (matchedPairs === totalPairs && gameStarted) {
-      setGameOver(true)
+    // Show toast
+    toast({
+      title: won ? "You Won!" : "Game Over",
+      description: won
+        ? `Congratulations! You found all pairs and won ${reward} GOLD.`
+        : `Better luck next time. You lost ${betAmount} GOLD.`,
+      variant: won ? "default" : "destructive",
+    })
+  }
 
-      // Calculate winnings based on speed and moves
-      const timeBonus = Math.max(0, 120 - timer) * 0.5
-      const moveBonus = Math.max(0, 20 - moves) * 2
-      const totalWinnings = Math.round(betAmount + (betAmount * (timeBonus + moveBonus)) / 100)
-
-      setWinnings(totalWinnings)
-
-      toast({
-        title: "Game Completed!",
-        description: `You won ${totalWinnings} GOLD!`,
-      })
-    }
-  }, [matchedPairs, gameStarted])
-
+  // Format time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`
   }
 
-  if (!gameStarted) {
-    return (
-      <div className="max-w-md mx-auto">
-        <h3 className="text-xl font-bold mb-4">Memory Card Game</h3>
-        <p className="text-gray-400 mb-6">
-          Flip cards to find matching pairs. The faster you complete the game with fewer moves, the more GOLD you win!
-        </p>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Entry Fee (GOLD)</label>
-          <div className="flex items-center">
-            <Input
-              type="number"
-              value={betAmount}
-              onChange={handleBetChange}
-              min={minBet}
-              max={maxBet}
-              className="bg-black border-gold/50 focus:border-gold"
-            />
-          </div>
-          <div className="text-xs text-gray-400 mt-1">
-            Min: {minBet} GOLD | Max: {maxBet} GOLD
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <div className="bg-gold/5 rounded-lg p-4">
-            <div className="flex justify-between mb-2">
-              <span className="text-gray-400">Entry Fee</span>
-              <span className="font-bold text-gold">{betAmount} GOLD</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Potential Win</span>
-              <span className="font-bold text-green-500">Up to {betAmount * 3} GOLD</span>
-            </div>
-          </div>
-        </div>
-
-        <Button className="gold-button w-full" onClick={startGame}>
-          Start Game
-        </Button>
-      </div>
-    )
-  }
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timer) clearInterval(timer)
+    }
+  }, [timer])
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center">
-          <Clock className="h-5 w-5 text-gold mr-2" />
-          <span className="font-bold">{formatTime(timer)}</span>
-        </div>
-        <div>
-          <span className="text-gray-400 mr-2">Moves:</span>
-          <span className="font-bold">{moves}</span>
-        </div>
-        <div>
-          <span className="text-gray-400 mr-2">Pairs:</span>
-          <span className="font-bold">
-            {matchedPairs}/{totalPairs}
-          </span>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="md:col-span-2">
+        <div className="flex flex-col items-center">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold mb-2">Memory Card Game</h2>
+            <p className="text-gray-400">Match pairs of cards before time runs out</p>
+          </div>
+
+          {!isPlaying && !gameOver && (
+            <div className="w-full max-w-md mb-6">
+              <div className="mb-6">
+                <h3 className="text-lg font-bold mb-3">Select Difficulty</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <Button
+                    variant={difficulty === "easy" ? "default" : "outline"}
+                    className={
+                      difficulty === "easy" ? "bg-gold text-black" : "border-gold/50 text-white hover:bg-gold/10"
+                    }
+                    onClick={() => setDifficulty("easy")}
+                  >
+                    Easy
+                  </Button>
+                  <Button
+                    variant={difficulty === "medium" ? "default" : "outline"}
+                    className={
+                      difficulty === "medium" ? "bg-gold text-black" : "border-gold/50 text-white hover:bg-gold/10"
+                    }
+                    onClick={() => setDifficulty("medium")}
+                  >
+                    Medium
+                  </Button>
+                  <Button
+                    variant={difficulty === "hard" ? "default" : "outline"}
+                    className={
+                      difficulty === "hard" ? "bg-gold text-black" : "border-gold/50 text-white hover:bg-gold/10"
+                    }
+                    onClick={() => setDifficulty("hard")}
+                  >
+                    Hard
+                  </Button>
+                </div>
+                <div className="mt-2 text-sm text-gray-400">
+                  <div>Easy: 6 pairs, 60 seconds, 1.5x multiplier</div>
+                  <div>Medium: 8 pairs, 90 seconds, 2x multiplier</div>
+                  <div>Hard: 12 pairs, 120 seconds, 3x multiplier</div>
+                </div>
+              </div>
+
+              <div className="flex justify-between mb-2">
+                <label className="text-sm font-medium">Bet Amount</label>
+                <span className="text-sm text-gray-400">Balance: {balance} GOLD</span>
+              </div>
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-2xl font-bold text-gold">{betAmount} GOLD</div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-gold/50 text-gold hover:bg-gold/10"
+                    onClick={handleMaxBet}
+                  >
+                    MAX
+                  </Button>
+                </div>
+                <Slider
+                  defaultValue={[25]}
+                  max={maxBet}
+                  step={5}
+                  value={[betAmount]}
+                  onValueChange={handleBetAmountChange}
+                />
+                <div className="flex justify-between mt-2 text-xs text-gray-400">
+                  <span>Min: 5</span>
+                  <span>Max: {maxBet}</span>
+                </div>
+              </div>
+
+              <Button
+                className="gold-button w-full"
+                disabled={betAmount <= 0 || betAmount > balance}
+                onClick={startGame}
+              >
+                Start Game
+              </Button>
+            </div>
+          )}
+
+          {(isPlaying || gameOver) && (
+            <div className="w-full max-w-xl mb-6">
+              <div className="flex justify-between mb-4">
+                <div className="flex items-center">
+                  <Clock className="h-5 w-5 text-gold mr-2" />
+                  <span className="font-bold">{formatTime(difficultySettings[difficulty].timeLimit - gameTime)}</span>
+                </div>
+                <div className="flex items-center">
+                  <CreditCard className="h-5 w-5 text-gold mr-2" />
+                  <span className="font-bold">
+                    {matchedPairs}/{difficultySettings[difficulty].pairs} Pairs
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <Trophy className="h-5 w-5 text-gold mr-2" />
+                  <span className="font-bold">{moves} Moves</span>
+                </div>
+              </div>
+
+              <div className={`grid grid-cols-${difficulty === "hard" ? "6" : "4"} gap-2 mb-4`}>
+                <AnimatePresence>
+                  {cards.map((card) => (
+                    <motion.div
+                      key={card.id}
+                      initial={{ rotateY: 0 }}
+                      animate={{ rotateY: card.flipped || card.matched ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={`aspect-square cursor-pointer ${isPlaying ? "hover:border-gold" : ""} ${
+                        card.matched ? "border-green-500" : "border-gold/30"
+                      } border-2 rounded-lg overflow-hidden perspective-500`}
+                      onClick={() => isPlaying && flipCard(card.id)}
+                    >
+                      <div className="relative w-full h-full transform-style-3d">
+                        <div
+                          className={`absolute w-full h-full flex items-center justify-center bg-black backface-hidden ${
+                            card.flipped || card.matched ? "rotate-y-180" : ""
+                          }`}
+                        >
+                          <CreditCard className="h-8 w-8 text-gold" />
+                        </div>
+                        <div
+                          className={`absolute w-full h-full flex items-center justify-center bg-gold text-black text-3xl backface-hidden rotate-y-180 ${
+                            card.flipped || card.matched ? "rotate-y-0" : ""
+                          }`}
+                        >
+                          {card.symbol}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {gameOver && (
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold mb-2">
+                    {matchedPairs === difficultySettings[difficulty].pairs ? "You Won!" : "Game Over"}
+                  </h3>
+                  <p className="text-gray-400 mb-4">
+                    {matchedPairs === difficultySettings[difficulty].pairs
+                      ? `You found all pairs in ${moves} moves and ${formatTime(gameTime)}!`
+                      : `You found ${matchedPairs} out of ${difficultySettings[difficulty].pairs} pairs.`}
+                  </p>
+                  <Button
+                    className="gold-button"
+                    onClick={() => {
+                      setGameOver(false)
+                      setCards([])
+                    }}
+                  >
+                    Play Again
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            className={`aspect-square rounded-lg cursor-pointer transition-all duration-300 transform ${
-              card.flipped || card.matched ? "rotate-y-180" : ""
-            }`}
-            onClick={() => !gameOver && flipCard(card.id)}
-          >
-            <div className="relative w-full h-full perspective-1000">
-              <div
-                className={`absolute inset-0 backface-hidden transition-all duration-300 ${
-                  card.flipped || card.matched ? "opacity-0" : "opacity-100"
-                }`}
-              >
-                <div className="w-full h-full bg-black border-2 border-gold rounded-lg flex items-center justify-center">
-                  <CreditCard className="h-8 w-8 text-gold" />
-                </div>
+      <div>
+        <Card className="border-gold bg-black">
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-bold mb-4">Game Stats</h3>
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Balance</span>
+                <span className="font-bold text-gold">{balance} GOLD</span>
               </div>
-              <div
-                className={`absolute inset-0 backface-hidden transition-all duration-300 ${
-                  card.flipped || card.matched ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                <div
-                  className={`w-full h-full bg-gold rounded-lg flex items-center justify-center text-black text-4xl ${
-                    card.matched ? "bg-green-500" : ""
-                  }`}
-                >
-                  {card.value}
-                </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Games Played</span>
+                <span className="font-bold">{gameHistory.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Win Rate</span>
+                <span className="font-bold text-green-500">
+                  {gameHistory.length > 0
+                    ? `${Math.round((gameHistory.filter((g) => g.won).length / gameHistory.length) * 100)}%`
+                    : "0%"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Best Time</span>
+                <span className="font-bold text-gold">
+                  {gameHistory.filter((g) => g.won).length > 0
+                    ? formatTime(Math.min(...gameHistory.filter((g) => g.won).map((g) => g.time)))
+                    : "-"}
+                </span>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
 
-      {gameOver && (
-        <div className="bg-gold/10 border border-gold rounded-lg p-4 text-center mb-6">
-          <h3 className="text-xl font-bold mb-2">Game Completed!</h3>
-          <p className="mb-2">
-            Time: {formatTime(timer)} | Moves: {moves}
-          </p>
-          <p className="text-2xl font-bold text-gold mb-4">You won {winnings} GOLD!</p>
-          <Button className="gold-button" onClick={startGame}>
-            Play Again
-          </Button>
-        </div>
-      )}
+            <h3 className="text-lg font-bold mb-4">Game History</h3>
+            {gameHistory.length > 0 ? (
+              <div className="space-y-3">
+                {gameHistory.map((game, index) => (
+                  <div key={index} className="flex justify-between items-center p-2 border border-gold/20 rounded-lg">
+                    <div>
+                      <div className="flex items-center">
+                        <div className={`w-2 h-2 rounded-full ${game.won ? "bg-green-500" : "bg-red-500"} mr-2`}></div>
+                        <span className="font-medium">{game.pairs} pairs</span>
+                        <span className="text-xs text-gray-400 ml-2">({game.moves} moves)</span>
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">{formatTime(game.time)}</div>
+                    </div>
+                    <div className={`font-bold ${game.won ? "text-green-500" : "text-red-500"}`}>
+                      {game.won ? "+" + game.reward : "-" + game.bet} GOLD
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-400">No games played yet</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-gold bg-black mt-4">
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-bold mb-4">How to Play</h3>
+            <div className="space-y-3 text-sm">
+              <p>1. Select difficulty and place your bet</p>
+              <p>2. Click cards to flip them and find matching pairs</p>
+              <p>3. Match all pairs before time runs out to win</p>
+              <p>4. The faster you match with fewer moves, the higher your reward</p>
+              <p className="text-gold">Tip: Try to remember card positions to make fewer moves!</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
