@@ -8,46 +8,43 @@ import { Gift, Check } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface DailyRewardCardProps {
-  loading: boolean
+  loading?: boolean
 }
 
-export default function DailyRewardCard({ loading }: DailyRewardCardProps) {
+export default function DailyRewardCard({ loading = false }: DailyRewardCardProps) {
   const [claimed, setClaimed] = useState(false)
   const { toast } = useToast()
 
   const handleClaim = () => {
+    // Set claimed state to true
     setClaimed(true)
 
-    // Update user's balance in a real implementation
-    // For now, we'll just show a toast notification
+    // Show success toast
     toast({
       title: "Daily Reward Claimed!",
       description: "You've received 50 GOLD tokens.",
     })
 
     // In a real implementation, this would call an API to update the user's balance
-    // For now, we'll just simulate the reward
-    setTimeout(() => {
-      console.log("User balance updated with daily reward")
-    }, 1000)
+    console.log("User balance updated with daily reward")
   }
 
   return (
-    <Card className="border-gold bg-black">
+    <Card className="border-gold-500 bg-black">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
-          <Gift className="mr-2 h-5 w-5 text-gold" />
+          <Gift className="mr-2 h-5 w-5 text-gold-500" />
           Daily Reward
         </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <Skeleton className="h-16 w-full bg-gold/10" />
+          <Skeleton className="h-16 w-full bg-gold-500/10" />
         ) : (
           <div>
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-gold/20 flex items-center justify-center">
-                {claimed ? <Check className="h-8 w-8 text-green-500" /> : <Gift className="h-8 w-8 text-gold" />}
+              <div className="w-16 h-16 rounded-full bg-gold-500/20 flex items-center justify-center">
+                {claimed ? <Check className="h-8 w-8 text-green-500" /> : <Gift className="h-8 w-8 text-gold-500" />}
               </div>
             </div>
 
@@ -59,7 +56,11 @@ export default function DailyRewardCard({ loading }: DailyRewardCardProps) {
             </div>
 
             <Button
-              className={claimed ? "w-full bg-green-500 hover:bg-green-600 text-white" : "gold-button w-full"}
+              className={
+                claimed
+                  ? "w-full bg-green-500 hover:bg-green-600 text-white"
+                  : "w-full bg-gold-500 hover:bg-gold-600 text-black"
+              }
               disabled={claimed}
               onClick={handleClaim}
             >

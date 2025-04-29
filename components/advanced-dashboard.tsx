@@ -96,6 +96,17 @@ export default function AdvancedDashboard() {
     }))
   }
 
+  const handleDailyBonus = () => {
+    toast({
+      title: "Daily Bonus",
+      description: "Redirecting to daily bonus page...",
+    })
+
+    // In a real implementation, this would navigate to the daily bonus page
+    // or open a modal with the daily bonus
+    console.log("Navigate to daily bonus")
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
@@ -109,7 +120,7 @@ export default function AdvancedDashboard() {
             <span className="hidden sm:inline">Notifications</span>
             <span className="notification-badge">5</span>
           </Button>
-          <Button className="gold-button">
+          <Button className="bg-gold-500 hover:bg-gold-600 text-black" onClick={handleDailyBonus}>
             <Gift className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">Daily Bonus</span>
           </Button>
@@ -283,7 +294,7 @@ export default function AdvancedDashboard() {
                           <span className="font-bold text-gold-500">{stakingStats.rewards} GOLD</span>
                         </div>
                         <Button
-                          className="gold-button w-full"
+                          className="w-full bg-gold-500 hover:bg-gold-600 text-black"
                           disabled={stakingStats.rewards === 0}
                           onClick={claimStakingRewards}
                         >
@@ -322,7 +333,16 @@ export default function AdvancedDashboard() {
                             <span className="countdown-label">Secs</span>
                           </div>
                         </div>
-                        <Button variant="outline" className="w-full border-gold-500 text-gold-500 hover:bg-gold-500/10">
+                        <Button
+                          variant="outline"
+                          className="w-full border-gold-500 text-gold-500 hover:bg-gold-500/10"
+                          onClick={() => {
+                            toast({
+                              title: "Reminder Set",
+                              description: "You'll be notified when the event starts",
+                            })
+                          }}
+                        >
                           Set Reminder
                         </Button>
                       </div>
@@ -378,7 +398,10 @@ export default function AdvancedDashboard() {
                       <span className="text-gray-400">Total Earned</span>
                       <span className="font-bold text-gold-500">156.8 GOLD</span>
                     </div>
-                    <Button className="gold-button w-full mt-2" onClick={claimStakingRewards}>
+                    <Button
+                      className="w-full bg-gold-500 hover:bg-gold-600 text-black mt-2"
+                      onClick={claimStakingRewards}
+                    >
                       Claim All Rewards
                     </Button>
                   </div>
@@ -399,7 +422,17 @@ export default function AdvancedDashboard() {
                       <span className="text-gray-400">90-Day Lock</span>
                       <span className="font-bold text-green-500">12.5% APR</span>
                     </div>
-                    <Button className="gold-button w-full mt-2">Stake More GOLD</Button>
+                    <Button
+                      className="w-full bg-gold-500 hover:bg-gold-600 text-black mt-2"
+                      onClick={() => {
+                        toast({
+                          title: "Staking",
+                          description: "Opening staking modal...",
+                        })
+                      }}
+                    >
+                      Stake More GOLD
+                    </Button>
                   </div>
                 </div>
               </div>

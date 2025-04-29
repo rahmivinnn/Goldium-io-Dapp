@@ -13,21 +13,18 @@ import { Menu, Home, ShoppingBag, Coins, Sword, Repeat, User, Bell, Settings } f
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
-  { name: "Dashboard", href: "/dashboard", icon: User, requiresAuth: true },
-  { name: "Marketplace", href: "/marketplace", icon: ShoppingBag, requiresAuth: true },
-  { name: "Staking", href: "/staking", icon: Coins, requiresAuth: true },
-  { name: "Games", href: "/games", icon: Sword, requiresAuth: true },
-  { name: "Swap", href: "/swap", icon: Repeat, requiresAuth: true },
+  { name: "Dashboard", href: "/dashboard", icon: User },
+  { name: "Marketplace", href: "/marketplace", icon: ShoppingBag },
+  { name: "Staking", href: "/staking", icon: Coins },
+  { name: "Games", href: "/games", icon: Sword },
+  { name: "Swap", href: "/swap", icon: Repeat },
 ]
-
-// Initialize state outside the component to avoid conditional hook call
-const initialMobileMenuOpen = false
 
 export default function Header() {
   const pathname = usePathname()
   const { connected } = useWallet()
   const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(initialMobileMenuOpen)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Close mobile menu after navigation
   const handleMobileNavigation = useCallback((href: string) => {
@@ -61,7 +58,7 @@ export default function Header() {
           >
             <Link href="/" className="flex items-center">
               <div className="relative h-10 w-10 mr-2">
-                <Image src="/golden-g-logo.png" alt="Goldium.io" width={40} height={40} className="object-contain" />
+                <Image src="/gold-logo.png" alt="Goldium.io" width={40} height={40} className="object-contain" />
               </div>
               <span className="text-xl font-bold gold-gradient-text">Goldium.io</span>
             </Link>
@@ -69,27 +66,23 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navigation.map((item) => {
-              if (item.requiresAuth && !connected) return null
-
-              return (
-                <motion.div key={item.name} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link
-                    href={item.href}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                      pathname === item.href
-                        ? "bg-gradient-to-r from-gold-600 via-gold-500 to-gold-600 text-dark-900"
-                        : "text-gray-300 hover:bg-dark-300 hover:text-gold-400"
-                    }`}
-                  >
-                    <span className="flex items-center">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {item.name}
-                    </span>
-                  </Link>
-                </motion.div>
-              )
-            })}
+            {navigation.map((item) => (
+              <motion.div key={item.name} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Link
+                  href={item.href}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    pathname === item.href
+                      ? "bg-dark-300 text-gold-500"
+                      : "text-gray-300 hover:bg-dark-300 hover:text-gold-500"
+                  }`}
+                >
+                  <span className="flex items-center">
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.name}
+                  </span>
+                </Link>
+              </motion.div>
+            ))}
           </nav>
 
           <div className="flex items-center space-x-2">
@@ -147,32 +140,28 @@ export default function Header() {
                   transition={{ delay: 0.1, staggerChildren: 0.1 }}
                   className="flex flex-col space-y-4 mt-8"
                 >
-                  {navigation.map((item, index) => {
-                    if (item.requiresAuth && !connected) return null
-
-                    return (
-                      <motion.div
-                        key={item.name}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        whileHover={{ x: 5 }}
+                  {navigation.map((item, index) => (
+                    <motion.div
+                      key={item.name}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ x: 5 }}
+                    >
+                      <Link
+                        href={item.href}
+                        onClick={() => handleMobileNavigation(item.href)}
+                        className={`flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
+                          pathname === item.href
+                            ? "bg-dark-300 text-gold-500"
+                            : "text-gray-300 hover:bg-dark-300 hover:text-gold-500"
+                        }`}
                       >
-                        <Link
-                          href={item.href}
-                          onClick={() => handleMobileNavigation(item.href)}
-                          className={`flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-                            pathname === item.href
-                              ? "bg-gradient-to-r from-gold-600 via-gold-500 to-gold-600 text-dark-900"
-                              : "text-gray-300 hover:bg-dark-300 hover:text-gold-400"
-                          }`}
-                        >
-                          <item.icon className="mr-3 h-5 w-5" />
-                          {item.name}
-                        </Link>
-                      </motion.div>
-                    )
-                  })}
+                        <item.icon className="mr-3 h-5 w-5" />
+                        {item.name}
+                      </Link>
+                    </motion.div>
+                  ))}
 
                   {connected && (
                     <>
@@ -185,7 +174,7 @@ export default function Header() {
                         <Link
                           href="/notifications"
                           onClick={() => handleMobileNavigation("/notifications")}
-                          className="flex items-center px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-300 hover:text-gold-400"
+                          className="flex items-center px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-300 hover:text-gold-500"
                         >
                           <Bell className="mr-3 h-5 w-5" />
                           Notifications
@@ -200,7 +189,7 @@ export default function Header() {
                         <Link
                           href="/settings"
                           onClick={() => handleMobileNavigation("/settings")}
-                          className="flex items-center px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-300 hover:text-gold-400"
+                          className="flex items-center px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-300 hover:text-gold-500"
                         >
                           <Settings className="mr-3 h-5 w-5" />
                           Settings

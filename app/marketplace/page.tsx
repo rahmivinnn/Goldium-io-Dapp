@@ -1,40 +1,20 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState, useEffect } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Slider } from "@/components/ui/slider"
-import { Search, Filter, ShoppingBag, Tag, Sword, Shield, Wand2, Crown, Gem } from "lucide-react"
 import NFTCard from "@/components/nft-card"
-import { useWallet } from "@/hooks/use-wallet"
-import { ConnectWalletButton } from "@/components/connect-wallet-button"
-import { toast } from "@/components/ui/use-toast"
+import MarketplaceHeader from "@/components/marketplace-header"
+import FilterSidebar from "@/components/filter-sidebar"
+import { useToast } from "@/hooks/use-toast"
 
-const RARITY_COLORS = {
-  common: "bg-gray-500",
-  uncommon: "bg-green-500",
-  rare: "bg-blue-500",
-  epic: "bg-purple-500",
-  legendary: "bg-gold text-black",
-}
-
-const CATEGORIES = [
-  { id: "all", name: "All Items", icon: ShoppingBag },
-  { id: "weapons", name: "Weapons", icon: Sword },
-  { id: "armor", name: "Armor", icon: Shield },
-  { id: "spells", name: "Spells", icon: Wand2 },
-  { id: "artifacts", name: "Artifacts", icon: Crown },
-  { id: "gems", name: "Gems", icon: Gem },
-]
-
-// Sample NFT data
+// Expanded Sample NFT data with more items
 const SAMPLE_NFTS = [
   {
     id: "1",
     name: "Dragon's Breath Sword",
-    image: "/flame-forged-blade.png",
+    image: "/dragon-breath-blade.png",
     price: 1250,
     rarity: "legendary",
     category: "weapons",
@@ -43,7 +23,7 @@ const SAMPLE_NFTS = [
   {
     id: "2",
     name: "Ethereal Shield",
-    image: "/arcane-aegis.png",
+    image: "/shimmering-aegis.png",
     price: 850,
     rarity: "epic",
     category: "armor",
@@ -52,7 +32,7 @@ const SAMPLE_NFTS = [
   {
     id: "3",
     name: "Arcane Fireball",
-    image: "/arcane-inferno.png",
+    image: "/arcane-explosion.png",
     price: 550,
     rarity: "rare",
     category: "spells",
@@ -61,7 +41,7 @@ const SAMPLE_NFTS = [
   {
     id: "4",
     name: "Crown of Wisdom",
-    image: "/jeweled-regalia.png",
+    image: "/serpent-king's-regalia.png",
     price: 1800,
     rarity: "legendary",
     category: "artifacts",
@@ -79,7 +59,7 @@ const SAMPLE_NFTS = [
   {
     id: "6",
     name: "Leather Gauntlets",
-    image: "/placeholder.svg?height=400&width=300&query=fantasy leather gauntlets",
+    image: "/placeholder.svg?height=400&width=400&query=leather+armor+gauntlets+fantasy",
     price: 120,
     rarity: "common",
     category: "armor",
@@ -88,7 +68,7 @@ const SAMPLE_NFTS = [
   {
     id: "7",
     name: "Ice Shard Spell",
-    image: "/placeholder.svg?height=400&width=300&query=ice magic spell fantasy",
+    image: "/placeholder.svg?height=400&width=400&query=ice+shard+magic+spell+fantasy",
     price: 380,
     rarity: "uncommon",
     category: "spells",
@@ -97,19 +77,216 @@ const SAMPLE_NFTS = [
   {
     id: "8",
     name: "Ancient Amulet",
-    image: "/placeholder.svg?height=400&width=300&query=fantasy amulet with runes",
+    image: "/placeholder.svg?height=400&width=400&query=ancient+magic+amulet+fantasy+artifact",
     price: 920,
     rarity: "epic",
     category: "artifacts",
     owner: "0x1234...5678",
   },
+  {
+    id: "9",
+    name: "Enchanted Bow",
+    image: "/placeholder.svg?height=400&width=400&query=enchanted+bow+fantasy+weapon",
+    price: 750,
+    rarity: "rare",
+    category: "weapons",
+    owner: "0x7531...2468",
+  },
+  {
+    id: "10",
+    name: "Mystic Orb",
+    image: "/placeholder.svg?height=400&width=400&query=mystic+orb+glowing+gem+fantasy",
+    price: 1100,
+    rarity: "epic",
+    category: "gems",
+    owner: "0x2468...7531",
+  },
+  {
+    id: "11",
+    name: "Dragonscale Armor",
+    image: "/placeholder.svg?height=400&width=400&query=dragonscale+armor+fantasy+rpg",
+    price: 1600,
+    rarity: "legendary",
+    category: "armor",
+    owner: "0x1357...8642",
+  },
+  {
+    id: "12",
+    name: "Thunderbolt Spell",
+    image: "/placeholder.svg?height=400&width=400&query=thunderbolt+lightning+spell+magic",
+    price: 480,
+    rarity: "rare",
+    category: "spells",
+    owner: "0x8642...1357",
+  },
+  {
+    id: "13",
+    name: "Golden Chalice",
+    image: "/placeholder.svg?height=400&width=400&query=golden+chalice+artifact+fantasy",
+    price: 1350,
+    rarity: "legendary",
+    category: "artifacts",
+    owner: "0x9753...1357",
+  },
+  {
+    id: "14",
+    name: "Emerald of Life",
+    image: "/placeholder.svg?height=400&width=400&query=emerald+gem+fantasy+glowing",
+    price: 720,
+    rarity: "epic",
+    category: "gems",
+    owner: "0x3579...7531",
+  },
+  {
+    id: "15",
+    name: "Obsidian Dagger",
+    image: "/placeholder.svg?height=400&width=400&query=obsidian+dagger+fantasy+weapon",
+    price: 580,
+    rarity: "rare",
+    category: "weapons",
+    owner: "0x2468...1357",
+  },
+  {
+    id: "16",
+    name: "Celestial Plate",
+    image: "/placeholder.svg?height=400&width=400&query=celestial+plate+armor+fantasy",
+    price: 1450,
+    rarity: "legendary",
+    category: "armor",
+    owner: "0x8642...1357",
+  },
+  {
+    id: "17",
+    name: "Healing Potion",
+    image: "/placeholder.svg?height=400&width=400&query=healing+potion+spell+fantasy+rpg",
+    price: 220,
+    rarity: "common",
+    category: "spells",
+    owner: "0x1357...2468",
+  },
+  {
+    id: "18",
+    name: "Sapphire Pendant",
+    image: "/placeholder.svg?height=400&width=400&query=sapphire+pendant+fantasy+gem+jewelry",
+    price: 890,
+    rarity: "epic",
+    category: "gems",
+    owner: "0x7531...2468",
+  },
+  {
+    id: "19",
+    name: "War Hammer",
+    image: "/placeholder.svg?height=400&width=400&query=fantasy+war+hammer+weapon",
+    price: 980,
+    rarity: "rare",
+    category: "weapons",
+    owner: "0x3579...7531",
+  },
+  {
+    id: "20",
+    name: "Phoenix Feather",
+    image: "/placeholder.svg?height=400&width=400&query=phoenix+feather+magical+artifact+fantasy",
+    price: 1750,
+    rarity: "legendary",
+    category: "artifacts",
+    owner: "0x9753...1357",
+  },
+  {
+    id: "21",
+    name: "Shadow Cloak",
+    image: "/placeholder.svg?height=400&width=400&query=shadow+cloak+dark+fantasy+armor",
+    price: 760,
+    rarity: "epic",
+    category: "armor",
+    owner: "0x2468...1357",
+  },
+  {
+    id: "22",
+    name: "Frost Nova Spell",
+    image: "/placeholder.svg?height=400&width=400&query=frost+nova+ice+magic+spell+fantasy",
+    price: 420,
+    rarity: "uncommon",
+    category: "spells",
+    owner: "0x8642...1357",
+  },
+  {
+    id: "23",
+    name: "Diamond of Truth",
+    image: "/placeholder.svg?height=400&width=400&query=glowing+diamond+fantasy+gem",
+    price: 1200,
+    rarity: "legendary",
+    category: "gems",
+    owner: "0x1357...2468",
+  },
+  {
+    id: "24",
+    name: "Ancient Scroll",
+    image: "/placeholder.svg?height=400&width=400&query=ancient+magical+scroll+artifact",
+    price: 680,
+    rarity: "rare",
+    category: "artifacts",
+    owner: "0x7531...2468",
+  },
+  {
+    id: "25",
+    name: "Flaming Axe",
+    image: "/placeholder.svg?height=400&width=400&query=flaming+axe+fire+weapon+fantasy",
+    price: 950,
+    rarity: "epic",
+    category: "weapons",
+    owner: "0x3579...7531",
+  },
+  {
+    id: "26",
+    name: "Mithril Chainmail",
+    image: "/placeholder.svg?height=400&width=400&query=mithril+chainmail+armor+fantasy",
+    price: 820,
+    rarity: "rare",
+    category: "armor",
+    owner: "0x9753...1357",
+  },
+  {
+    id: "27",
+    name: "Teleportation Rune",
+    image: "/placeholder.svg?height=400&width=400&query=teleportation+rune+magic+spell+fantasy",
+    price: 1100,
+    rarity: "epic",
+    category: "spells",
+    owner: "0x2468...1357",
+  },
+  {
+    id: "28",
+    name: "Amethyst Crystal",
+    image: "/placeholder.svg?height=400&width=400&query=amethyst+crystal+purple+gem+fantasy",
+    price: 540,
+    rarity: "uncommon",
+    category: "gems",
+    owner: "0x8642...1357",
+  },
+  {
+    id: "29",
+    name: "Dragon Egg",
+    image: "/placeholder.svg?height=400&width=400&query=dragon+egg+fantasy+artifact",
+    price: 2200,
+    rarity: "legendary",
+    category: "artifacts",
+    owner: "0x1357...2468",
+  },
+  {
+    id: "30",
+    name: "Vorpal Blade",
+    image: "/placeholder.svg?height=400&width=400&query=vorpal+blade+fantasy+legendary+sword",
+    price: 1650,
+    rarity: "legendary",
+    category: "weapons",
+    owner: "0x7531...2468",
+  },
 ]
 
 export default function Marketplace() {
-  const { connected } = useWallet()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [priceRange, setPriceRange] = useState([0, 2000])
+  const [priceRange, setPriceRange] = useState([0, 2500])
   const [selectedRarities, setSelectedRarities] = useState({
     common: true,
     uncommon: true,
@@ -117,7 +294,17 @@ export default function Marketplace() {
     epic: true,
     legendary: true,
   })
-  const [displayedNFTs, setDisplayedNFTs] = useState(6)
+  const [displayedNFTs, setDisplayedNFTs] = useState(12) // Increased from 6 to 12
+  const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Filter NFTs based on search, category, price range, and rarity
   const filteredNFTs = SAMPLE_NFTS.filter((nft) => {
@@ -129,33 +316,10 @@ export default function Marketplace() {
     return matchesSearch && matchesCategory && matchesPrice && matchesRarity
   })
 
-  const toggleRarity = (rarity) => {
-    setSelectedRarities((prev) => ({
-      ...prev,
-      [rarity]: !prev[rarity],
-    }))
-  }
-
-  const handleListNFT = () => {
-    if (!connected) {
-      toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to list an NFT for sale.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "List NFT",
-      description: "NFT listing functionality will be available soon!",
-    })
-  }
-
   const loadMoreNFTs = () => {
-    setDisplayedNFTs(Math.min(displayedNFTs + 3, filteredNFTs.length))
+    setDisplayedNFTs(Math.min(displayedNFTs + 6, filteredNFTs.length)) // Increased from 3 to 6
 
-    if (displayedNFTs + 3 >= filteredNFTs.length) {
+    if (displayedNFTs + 6 >= filteredNFTs.length) {
       toast({
         title: "All NFTs Loaded",
         description: "You've reached the end of the available NFTs.",
@@ -163,157 +327,56 @@ export default function Marketplace() {
     }
   }
 
-  if (!connected) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-6">Connect Your Wallet</h1>
-        <p className="text-gray-400 mb-8">Please connect your wallet to access the marketplace.</p>
-        <ConnectWalletButton className="gold-button" />
-      </div>
-    )
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">NFT Marketplace</h1>
-          <p className="text-gray-400">Buy, sell, and trade unique fantasy NFTs using GOLD</p>
-        </div>
-        <div className="flex gap-2 mt-4 md:mt-0">
-          <Button className="gold-button" onClick={handleListNFT}>
-            <Tag className="mr-2 h-4 w-4" />
-            List NFT for Sale
-          </Button>
-        </div>
-      </div>
+      <MarketplaceHeader />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
         {/* Filters Sidebar */}
-        <div className="lg:col-span-1">
-          <Card className="border-gold bg-black sticky top-4">
-            <CardContent className="pt-6">
-              <h2 className="text-xl font-bold mb-4 flex items-center">
-                <Filter className="mr-2 h-5 w-5 text-gold" />
-                Filters
-              </h2>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search NFTs..."
-                    className="pl-10 bg-black border-gold/50 focus:border-gold"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Category</label>
-                <div className="space-y-2">
-                  {CATEGORIES.map((category) => (
-                    <Button
-                      key={category.id}
-                      variant={selectedCategory === category.id ? "default" : "outline"}
-                      className={`w-full justify-start ${
-                        selectedCategory === category.id
-                          ? "bg-gold text-black"
-                          : "border-gold/50 text-white hover:bg-gold/10"
-                      }`}
-                      onClick={() => setSelectedCategory(category.id)}
-                    >
-                      <category.icon className="mr-2 h-4 w-4" />
-                      {category.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Price Range (GOLD)</label>
-                <div className="px-2">
-                  <Slider
-                    defaultValue={[0, 2000]}
-                    max={2000}
-                    step={50}
-                    value={priceRange}
-                    onValueChange={setPriceRange}
-                    className="my-6"
-                  />
-                  <div className="flex justify-between">
-                    <span>{priceRange[0]} GOLD</span>
-                    <span>{priceRange[1]} GOLD</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Rarity</label>
-                <div className="space-y-2">
-                  {Object.entries(selectedRarities).map(([rarity, isSelected]) => (
-                    <div key={rarity} className="flex items-center cursor-pointer" onClick={() => toggleRarity(rarity)}>
-                      <div className={`w-4 h-4 mr-2 rounded ${isSelected ? RARITY_COLORS[rarity] : "bg-gray-700"}`}>
-                        {isSelected && (
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                          >
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                          </svg>
-                        )}
-                      </div>
-                      <span className="capitalize">{rarity}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full border-gold text-gold hover:bg-gold/10"
-                onClick={() => {
-                  setSearchQuery("")
-                  setSelectedCategory("all")
-                  setPriceRange([0, 2000])
-                  setSelectedRarities({
-                    common: true,
-                    uncommon: true,
-                    rare: true,
-                    epic: true,
-                    legendary: true,
-                  })
-                }}
-              >
-                Reset Filters
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <FilterSidebar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+          selectedRarities={selectedRarities}
+          setSelectedRarities={setSelectedRarities}
+        />
 
         {/* NFT Grid */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="all">
             <div className="flex justify-between items-center mb-6">
-              <TabsList className="bg-black border border-gold/50">
-                <TabsTrigger value="all" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+              <TabsList className="bg-black border border-gold-500/50">
+                <TabsTrigger value="all" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
                   All NFTs
                 </TabsTrigger>
-                <TabsTrigger value="buy-now" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                <TabsTrigger value="buy-now" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
                   Buy Now
                 </TabsTrigger>
-                <TabsTrigger value="auctions" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                <TabsTrigger
+                  value="auctions"
+                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-black"
+                >
                   Auctions
                 </TabsTrigger>
-                <TabsTrigger value="new" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                <TabsTrigger value="new" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
                   New
                 </TabsTrigger>
               </TabsList>
@@ -322,12 +385,31 @@ export default function Marketplace() {
             </div>
 
             <TabsContent value="all" className="mt-0">
-              {filteredNFTs.length > 0 ? (
+              {isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredNFTs.slice(0, displayedNFTs).map((nft) => (
-                    <NFTCard key={nft.id} nft={nft} />
+                  {[...Array(12)].map((_, index) => (
+                    <div key={index} className="animate-pulse">
+                      <div className="bg-gray-800 rounded-lg h-64 mb-2"></div>
+                      <div className="bg-gray-800 h-4 rounded w-3/4 mb-2"></div>
+                      <div className="bg-gray-800 h-4 rounded w-1/2"></div>
+                    </div>
                   ))}
                 </div>
+              ) : filteredNFTs.length > 0 ? (
+                <motion.div
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                  variants={container}
+                  initial="hidden"
+                  animate="show"
+                >
+                  <AnimatePresence>
+                    {filteredNFTs.slice(0, displayedNFTs).map((nft) => (
+                      <motion.div key={nft.id} variants={item}>
+                        <NFTCard nft={nft} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-gray-400">No NFTs found matching your filters.</p>
@@ -336,34 +418,61 @@ export default function Marketplace() {
             </TabsContent>
 
             <TabsContent value="buy-now" className="mt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredNFTs.slice(0, 6).map((nft) => (
-                  <NFTCard key={nft.id} nft={nft} />
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                variants={container}
+                initial="hidden"
+                animate="show"
+              >
+                {filteredNFTs.slice(0, 12).map((nft) => (
+                  <motion.div key={nft.id} variants={item}>
+                    <NFTCard nft={nft} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </TabsContent>
 
             <TabsContent value="auctions" className="mt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredNFTs.slice(2, 5).map((nft) => (
-                  <NFTCard key={nft.id} nft={nft} isAuction={true} />
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                variants={container}
+                initial="hidden"
+                animate="show"
+              >
+                {filteredNFTs.slice(2, 14).map((nft) => (
+                  <motion.div key={nft.id} variants={item}>
+                    <NFTCard nft={nft} isAuction={true} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </TabsContent>
 
             <TabsContent value="new" className="mt-0">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredNFTs.slice(4, 8).map((nft) => (
-                  <NFTCard key={nft.id} nft={nft} isNew={true} />
+              <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                variants={container}
+                initial="hidden"
+                animate="show"
+              >
+                {filteredNFTs.slice(15, 27).map((nft) => (
+                  <motion.div key={nft.id} variants={item}>
+                    <NFTCard nft={nft} isNew={true} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </TabsContent>
           </Tabs>
 
           <div className="mt-8 text-center">
-            <Button variant="outline" className="border-gold text-gold hover:bg-gold/10" onClick={loadMoreNFTs}>
-              Load More
-            </Button>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="outline"
+                className="border-gold-500 text-gold-500 hover:bg-gold-500/10"
+                onClick={loadMoreNFTs}
+              >
+                Load More
+              </Button>
+            </motion.div>
           </div>
         </div>
       </div>
