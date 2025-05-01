@@ -11,8 +11,7 @@ import { motion, AnimatePresence } from "framer-motion"
 // Card symbols
 const CARD_SYMBOLS = ["🗡️", "🛡️", "🔮", "🏆", "💎", "🔥", "⚡", "🧙‍♂️"]
 
-// Add this prop to the component
-export default function CardFlipGame({ demoMode = false }) {
+export default function CardFlipGame() {
   const { toast } = useToast()
   const [betAmount, setBetAmount] = useState(25)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -46,7 +45,7 @@ export default function CardFlipGame({ demoMode = false }) {
     setBetAmount(Math.min(balance, maxBet))
   }
 
-  // Modify the startGame function to handle demo mode
+  // Initialize game
   const startGame = () => {
     if (betAmount <= 0 || betAmount > balance) {
       toast({
@@ -55,15 +54,6 @@ export default function CardFlipGame({ demoMode = false }) {
         variant: "destructive",
       })
       return
-    }
-
-    // If in demo mode, show a toast
-    if (demoMode) {
-      toast({
-        title: "Demo Mode",
-        description: "Connect your wallet to earn real GOLD tokens!",
-        variant: "default",
-      })
     }
 
     // Deduct bet amount

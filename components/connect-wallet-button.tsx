@@ -2,35 +2,57 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Wallet } from 'lucide-react'
-import { motion } from "framer-motion"
+import { Loader2, Wallet } from "lucide-react"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 
 export function ConnectWalletButton() {
-  const [connected, setConnected] = useState(false)
-  const [address, setAddress] = useState("")
+  const { connected, connecting, walletAddress, connect, disconnect } = useSolanaWallet()
+  const [isHovering, setIsHovering] = useState(false)
 
-  const connectWallet = () => {
-    if (connected) {
-      setConnected(false)
-      setAddress("")
-      return
+  // Initialize walletModal outside the try-catch block
+  let walletModal
+  try {
+    walletModal = useWalletModal()
+  } catch (error) {
+    console.warn("WalletModalContext not available, using direct connect method")
+    walletModal = { setVisible: () => {} }
+  }
+
+  const handleConnect = () => {
+    try {
+      // Try to use the modal first
+      walletModal.setVisible(true)
+    } catch (error) {
+      // Fall back to direct connect method if modal fails
+      connect()
     }
+  }
 
-    // Simulate wallet connection
-    setConnected(true)
-    setAddress("0x71C7...F9E2")
+  if (connected && walletAddress) {
+    return (
+      <Button
+        variant="outline"
+        className="border-gold-500/50 text-gold-500 hover:bg-gold-500/10"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onClick={disconnect}
+      >
+        <Wallet className="mr-2 h-4 w-4" />
+        {isHovering ? "Disconnect" : `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`}
+      </Button>
+    )
   }
 
   return (
-    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-      <Button
-        onClick={connectWallet}
-        className={connected ? "border-gold-500/50 text-gold-500" : "gold-button"}
-        variant={connected ? "outline" : "default"}
-      >
-        <Wallet className="mr-2 h-4 w-4" />
-        {connected ? address : "Connect Wallet"}
-      </Button>
-    </motion.div>
+    <Button
+      variant="outline"
+      className="border-gold-500/50 text-gold-500 hover:bg-gold-500/10"
+      onClick={handleConnect}
+      disabled={connecting}
+    >
+      {connecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wallet className="mr-2 h-4 w-4" />}
+      {connecting ? "Connecting..." : "Connect Wallet"}
+    </Button>
   )
 }

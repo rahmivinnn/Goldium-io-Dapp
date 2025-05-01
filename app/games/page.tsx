@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sword, Coins, Trophy, Users, Clock, CreditCard } from "lucide-react"
 import { useWallet } from "@/hooks/use-wallet"
-import { ConnectWalletButton } from "@/components/connect-wallet-button"
 import GoldBalance from "@/components/gold-balance"
 import CoinFlipGame from "@/components/games/coin-flip-game"
 import CardFlipGame from "@/components/games/card-flip-game"
@@ -17,13 +16,6 @@ export default function Games() {
   const [activeTab, setActiveTab] = useState("battle")
   // Add state for active game and game loading
   const [gameLoading, setGameLoading] = useState(false)
-  const [demoMode, setDemoMode] = useState(!connected)
-
-  useEffect(() => {
-    if (connected) {
-      setDemoMode(false)
-    }
-  }, [connected])
 
   // Update the tab change handler to simulate loading
   const handleTabChange = (value) => {
@@ -38,18 +30,6 @@ export default function Games() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {demoMode && (
-        <div className="bg-gold/10 border border-gold rounded-lg p-4 mb-6 flex justify-between items-center">
-          <div>
-            <h3 className="font-bold text-gold">Demo Mode</h3>
-            <p className="text-sm text-gray-300">
-              You're viewing games in demo mode. Connect your wallet to earn real GOLD tokens.
-            </p>
-          </div>
-          <ConnectWalletButton className="gold-button" />
-        </div>
-      )}
-
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Games</h1>
@@ -135,7 +115,7 @@ export default function Games() {
                   <p className="text-gold">Loading Card Battle...</p>
                 </div>
               ) : (
-                <CardBattleGame demoMode={demoMode} />
+                <CardBattleGame />
               )}
             </CardContent>
           </Card>
@@ -156,7 +136,7 @@ export default function Games() {
                   <p className="text-gold">Loading Coin Flip...</p>
                 </div>
               ) : (
-                <CoinFlipGame demoMode={demoMode} />
+                <CoinFlipGame />
               )}
             </CardContent>
           </Card>
@@ -177,7 +157,7 @@ export default function Games() {
                   <p className="text-gold">Loading Card Flip...</p>
                 </div>
               ) : (
-                <CardFlipGame demoMode={demoMode} />
+                <CardFlipGame />
               )}
             </CardContent>
           </Card>

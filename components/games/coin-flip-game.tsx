@@ -10,8 +10,7 @@ import { Coins, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
 
-// Add this prop to the component
-export default function CoinFlipGame({ demoMode = false }) {
+export default function CoinFlipGame() {
   const { toast } = useToast()
   const [betAmount, setBetAmount] = useState(50)
   const [selectedSide, setSelectedSide] = useState<"heads" | "tails" | null>(null)
@@ -50,7 +49,7 @@ export default function CoinFlipGame({ demoMode = false }) {
     setBetAmount(minBet)
   }
 
-  // Modify the flipCoin function to handle demo mode
+  // Ensure the coin flip game works properly
   const flipCoin = () => {
     if (!selectedSide) {
       toast({
@@ -68,15 +67,6 @@ export default function CoinFlipGame({ demoMode = false }) {
         variant: "destructive",
       })
       return
-    }
-
-    // If in demo mode and not connected, show a toast
-    if (demoMode) {
-      toast({
-        title: "Demo Mode",
-        description: "Connect your wallet to earn real GOLD tokens!",
-        variant: "default",
-      })
     }
 
     setIsFlipping(true)

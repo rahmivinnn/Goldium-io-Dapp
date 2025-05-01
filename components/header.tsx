@@ -1,208 +1,206 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { ConnectWalletButton } from "@/components/connect-wallet-button"
-import { useWallet } from "@/hooks/use-wallet"
-import { Menu, Home, ShoppingBag, Coins, Sword, Repeat, User, Bell, Settings } from "lucide-react"
-
-const navigation = [
-  { name: "Home", href: "/", icon: Home },
-  { name: "Dashboard", href: "/dashboard", icon: User },
-  { name: "Marketplace", href: "/marketplace", icon: ShoppingBag },
-  { name: "Staking", href: "/staking", icon: Coins },
-  { name: "Games", href: "/games", icon: Sword },
-  { name: "Swap", href: "/swap", icon: Repeat },
-]
+import { Menu, X, ChevronDown } from "lucide-react"
+import { ConnectWalletButton } from "./connect-wallet-button"
+import { useMobile } from "@/hooks/use-mobile"
+import { useWallet } from "@/components/wallet-provider"
+import { NetworkSwitcher } from "./network-switcher"
+import Image from "next/image"
+import { useNetwork } from "@/contexts/network-context"
 
 export default function Header() {
+  const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const isMobile = useMobile()
   const { connected } = useWallet()
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  // Close mobile menu after navigation
-  const handleMobileNavigation = useCallback((href: string) => {
-    setMobileMenuOpen(false)
-  }, [])
+  const { isTestnet } = useNetwork()
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
+      setScrolled(window.scrollY > 10)
     }
-
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  const navLinks = [
+    { name: "Home", href: "/" },
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Marketplace", href: "/marketplace" },
+    {
+      name: "DeFi",
+      href: "#",
+      dropdown: true,
+      items: [
+        { name: "DeFi Hub", href: "/defi" },
+        { name: "Swap", href: "/swap" },
+        { name: "Staking", href: "/staking" },
+      ],
+    },
+    { name: "Games", href: "/games" },
+    { name: "Governance", href: "/governance" },
+    { name: "Transactions", href: "/transactions" },
+  ]
+
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+
+  const toggleDropdown = (name: string) => {
+    setOpenDropdown(openDropdown === name ? null : name)
+  }
+
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-dark-400/80 backdrop-blur-md border-b border-gold-500/10" : "bg-transparent"
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? "bg-black/80 backdrop-blur-md" : "bg-transparent"
       }`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <motion.div
-            className="flex items-center"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <div className="relative h-10 w-10 mr-2">
-                <Image src="/gold-logo.png" alt="Goldium.io" width={40} height={40} className="object-contain" />
-              </div>
-              <span className="text-xl font-bold gold-gradient-text">Goldium.io</span>
+              <Image
+                src="/gold_icon-removebg-preview.png"
+                alt="Goldium.io Logo"
+                width={40}
+                height={40}
+                className="mr-2"
+              />
+              <span className="text-xl font-bold bg-gradient-to-r from-amber-500 to-yellow-300 bg-clip-text text-transparent">
+                Goldium.io
+              </span>
             </Link>
-          </motion.div>
+            {isTestnet && (
+              <span className="ml-2 text-xs font-medium px-2 py-0.5 rounded bg-amber-500/20 text-amber-500">
+                Testnet
+              </span>
+            )}
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navigation.map((item) => (
-              <motion.div key={item.name} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            {navLinks.map((link) =>
+              link.dropdown ? (
+                <div key={link.name} className="relative">
+                  <button
+                    onClick={() => toggleDropdown(link.name)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${
+                      openDropdown === link.name ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
+                    }`}
+                  >
+                    {link.name}
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </button>
+
+                  {openDropdown === link.name && (
+                    <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-md rounded-md shadow-lg py-1 z-50 border border-amber-500/30">
+                      {link.items?.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="block px-4 py-2 text-sm text-gray-300 hover:bg-amber-500/10 hover:text-amber-300"
+                          onClick={() => setOpenDropdown(null)}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <Link
-                  href={item.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    pathname === item.href
-                      ? "bg-dark-300 text-gold-500"
-                      : "text-gray-300 hover:bg-dark-300 hover:text-gold-500"
+                  key={link.name}
+                  href={link.href}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    pathname === link.href ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
                   }`}
                 >
-                  <span className="flex items-center">
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.name}
-                  </span>
+                  {link.name}
                 </Link>
-              </motion.div>
-            ))}
+              ),
+            )}
           </nav>
 
-          <div className="flex items-center space-x-2">
-            {connected && (
-              <AnimatePresence>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="hidden md:flex space-x-2"
-                >
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="border-gold-500/30 text-gold-500 hover:bg-dark-300 hover:border-gold-500"
-                    >
-                      <Bell className="h-5 w-5" />
-                    </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="border-gold-500/30 text-gold-500 hover:bg-dark-300 hover:border-gold-500"
-                    >
-                      <Settings className="h-5 w-5" />
-                    </Button>
-                  </motion.div>
-                </motion.div>
-              </AnimatePresence>
-            )}
+          <div className="hidden md:flex items-center space-x-3">
+            <NetworkSwitcher />
+            <ConnectWalletButton />
+          </div>
 
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <ConnectWalletButton />
-            </motion.div>
-
-            {/* Mobile menu */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="md:hidden border-gold-500/30 text-gold-500 hover:bg-dark-300 hover:border-gold-500"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </motion.div>
-              </SheetTrigger>
-              <SheetContent className="bg-dark-400/95 border-gold-500/20 backdrop-blur-lg">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, staggerChildren: 0.1 }}
-                  className="flex flex-col space-y-4 mt-8"
-                >
-                  {navigation.map((item, index) => (
-                    <motion.div
-                      key={item.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      whileHover={{ x: 5 }}
-                    >
-                      <Link
-                        href={item.href}
-                        onClick={() => handleMobileNavigation(item.href)}
-                        className={`flex items-center px-3 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
-                          pathname === item.href
-                            ? "bg-dark-300 text-gold-500"
-                            : "text-gray-300 hover:bg-dark-300 hover:text-gold-500"
-                        }`}
-                      >
-                        <item.icon className="mr-3 h-5 w-5" />
-                        {item.name}
-                      </Link>
-                    </motion.div>
-                  ))}
-
-                  {connected && (
-                    <>
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: navigation.length * 0.05 }}
-                        whileHover={{ x: 5 }}
-                      >
-                        <Link
-                          href="/notifications"
-                          onClick={() => handleMobileNavigation("/notifications")}
-                          className="flex items-center px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-300 hover:text-gold-500"
-                        >
-                          <Bell className="mr-3 h-5 w-5" />
-                          Notifications
-                        </Link>
-                      </motion.div>
-                      <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: (navigation.length + 1) * 0.05 }}
-                        whileHover={{ x: 5 }}
-                      >
-                        <Link
-                          href="/settings"
-                          onClick={() => handleMobileNavigation("/settings")}
-                          className="flex items-center px-3 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-dark-300 hover:text-gold-500"
-                        >
-                          <Settings className="mr-3 h-5 w-5" />
-                          Settings
-                        </Link>
-                      </motion.div>
-                    </>
-                  )}
-                </motion.div>
-              </SheetContent>
-            </Sheet>
+          {/* Mobile menu button */}
+          <div className="flex md:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none"
+            >
+              <span className="sr-only">Open main menu</span>
+              {isOpen ? (
+                <X className="block h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="block h-6 w-6" aria-hidden="true" />
+              )}
+            </button>
           </div>
         </div>
       </div>
-    </motion.header>
+
+      {/* Mobile menu */}
+      {isOpen && (
+        <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-gray-800">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {navLinks.map((link) =>
+              link.dropdown ? (
+                <div key={link.name} className="space-y-1">
+                  <button
+                    onClick={() => toggleDropdown(link.name)}
+                    className={`w-full text-left px-3 py-2 rounded-md text-base font-medium flex items-center justify-between ${
+                      openDropdown === link.name ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
+                    }`}
+                  >
+                    {link.name}
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  </button>
+
+                  {openDropdown === link.name && (
+                    <div className="pl-4 space-y-1 border-l-2 border-amber-500/30 ml-3">
+                      {link.items?.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-amber-300"
+                          onClick={() => {
+                            setOpenDropdown(null)
+                            setIsOpen(false)
+                          }}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    pathname === link.href ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              ),
+            )}
+            <div className="pt-4 flex flex-col space-y-3">
+              <NetworkSwitcher />
+              <ConnectWalletButton />
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
   )
 }

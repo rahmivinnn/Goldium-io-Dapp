@@ -41,7 +41,7 @@ const OPPONENT_DECK = [
 ]
 
 // Define Card and Deck types
-interface CardType {
+interface Card {
   id: string
   name: string
   type: "attack" | "defense" | "magic"
@@ -52,11 +52,11 @@ interface CardType {
 interface Deck {
   id: string
   name: string
-  cards: CardType[]
+  cards: Card[]
 }
 
 // Sample cards and decks
-const SAMPLE_CARDS: CardType[] = [
+const SAMPLE_CARDS: Card[] = [
   { id: "card1", name: "Dragon's Fury", type: "attack", power: 8, image: "/emerald-inferno.png" },
   { id: "card2", name: "Knight's Shield", type: "defense", power: 7, image: "/guardian-crest.png" },
   { id: "card3", name: "Arcane Blast", type: "magic", power: 9, image: "/arcane-blast.png" },
@@ -111,8 +111,7 @@ const SAMPLE_DECKS: Deck[] = [
   },
 ]
 
-// Add this prop to the component
-export default function CardBattleGame({ demoMode = false }) {
+export default function CardBattleGame() {
   const { toast } = useToast()
   const [betAmount, setBetAmount] = useState(50)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -150,7 +149,6 @@ export default function CardBattleGame({ demoMode = false }) {
   }
 
   // Initialize game
-  // Modify the startGame function to handle demo mode
   const startGame = () => {
     if (betAmount <= 0 || betAmount > balance) {
       toast({
@@ -159,15 +157,6 @@ export default function CardBattleGame({ demoMode = false }) {
         variant: "destructive",
       })
       return
-    }
-
-    // If in demo mode, show a toast
-    if (demoMode) {
-      toast({
-        title: "Demo Mode",
-        description: "Connect your wallet to earn real GOLD tokens!",
-        variant: "default",
-      })
     }
 
     // Deduct bet amount
@@ -544,7 +533,7 @@ export default function CardBattleGame({ demoMode = false }) {
     setBattleLog(["Battle started! Select a card to play."])
   }
 
-  const playCardOld = (card: CardType) => {
+  const playCardOld = (card: Card) => {
     if (selectedCard) return // Already selected a card for this round
 
     // Prevent multiple clicks
@@ -618,7 +607,7 @@ export default function CardBattleGame({ demoMode = false }) {
     }, 1000)
   }
 
-  const determineRoundWinner = (playerCard: CardType, opponentCard: CardType): "win" | "lose" | "draw" => {
+  const determineRoundWinner = (playerCard: Card, opponentCard: Card): "win" | "lose" | "draw" => {
     // Type advantages: attack > magic > defense > attack
     if (playerCard.type === opponentCard.type) {
       return playerCard.power > opponentCard.power ? "win" : playerCard.power < opponentCard.power ? "lose" : "draw"
@@ -663,7 +652,7 @@ export default function CardBattleGame({ demoMode = false }) {
     setOpponentHealth(20)
     setPlayerCards([])
     setOpponentCards([])
-    setSelectedCardOld(null)
+    setSelectedCard(null)
     setOpponentCard(null)
     setBattleLog([])
     setRoundResult(null)
@@ -687,10 +676,10 @@ export default function CardBattleGame({ demoMode = false }) {
   const [gameStage, setGameStage] = useState<"entry" | "deck" | "battle" | "result">("entry")
   const [entryFee, setEntryFee] = useState(50)
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null)
-  const [playerCards, setPlayerCards] = useState<CardType[]>([])
-  const [opponentCards, setOpponentCards] = useState<CardType[]>([])
-  const [selectedCardOld, setSelectedCardOld] = useState<CardType | null>(null)
-  const [opponentCard, setOpponentCard] = useState<CardType | null>(null)
+  const [playerCards, setPlayerCards] = useState<Card[]>([])
+  const [opponentCards, setOpponentCards] = useState<Card[]>([])
+  const [selectedCardOld, setSelectedCardOld] = useState<Card | null>(null)
+  const [opponentCard, setOpponentCard] = useState<Card | null>(null)
   const [battleLog, setBattleLog] = useState<string[]>([])
   const [roundResult, setRoundResult] = useState<"win" | "lose" | "draw" | null>(null)
   const [gameResult, setGameResult] = useState<"win" | "lose" | null>(null)
