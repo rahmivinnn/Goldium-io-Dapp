@@ -2,12 +2,12 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { ConnectionProvider, WalletProvider, useConnection, useWallet } from "@solana/wallet-adapter-react"
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets"
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui"
-import { clusterApiUrl, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
+import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { useToast } from "@/hooks/use-toast"
 import { useNetwork } from "@/contexts/network-context"
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token"
 
 // Import wallet adapter CSS
 import "@solana/wallet-adapter-react-ui/styles.css"
@@ -26,6 +26,7 @@ interface SolanaContextType {
   signMessage: (message: Uint8Array) => Promise<Uint8Array | undefined>
   signTransaction: (transaction: any) => Promise<any>
   sendTransaction: (transaction: any) => Promise<string>
+  network: string
 }
 
 // Create the context
@@ -42,20 +43,15 @@ const SolanaContext = createContext<SolanaContextType>({
   signMessage: async () => undefined,
   signTransaction: async (transaction) => transaction,
   sendTransaction: async () => "",
+  network: "testnet",
 })
-
-// Mock GOLD token program ID (replace with actual program ID in production)
-const GOLD_TOKEN_PROGRAM_ID = {
-  mainnet: new PublicKey("GLD1aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr"),
-  testnet: new PublicKey("GLD7aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr"),
-}
 
 // Inner provider that uses the Solana wallet hooks
 function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
   const { connection } = useConnection()
   const wallet = useWallet()
   const { toast } = useToast()
-  const { network } = useNetwork()
+  const { network, goldTokenAddress } = useNetwork()
 
   const [solBalance, setSolBalance] = useState(0)
   const [goldBalance, setGoldBalance] = useState(0)
@@ -118,10 +114,31 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
       const solBalanceRaw = await connection.getBalance(wallet.publicKey)
       setSolBalance(solBalanceRaw / LAMPORTS_PER_SOL)
 
-      // In a real implementation, you would fetch SPL token balance
-      // For now, we'll use mock data
-      const mockGoldBalance = network === "mainnet" ? 1250.5 : 5000.25
-      setGoldBalance(mockGoldBalance)
+      // Get GOLD token balance (in a real implementation)
+      try {
+        const goldTokenPublicKey = new PublicKey(goldTokenAddress)
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(wallet.publicKey, {
+          programId: TOKEN_PROGRAM_ID,
+        })
+
+        // Find the token account for GOLD
+        const goldAccount = tokenAccounts.value.find(
+          (account) => account.account.data.parsed.info.mint === goldTokenPublicKey.toString(),
+        )
+
+        if (goldAccount) {
+          const balance = goldAccount.account.data.parsed.info.tokenAmount.uiAmount
+          setGoldBalance(balance)
+        } else {
+          // If no GOLD token account found, set balance to 0
+          setGoldBalance(0)
+        }
+      } catch (error) {
+        console.error("Error fetching GOLD balance:", error)
+        // Fallback to mock data if there's an error
+        const mockGoldBalance = network === "mainnet" ? 1250.5 : 5000.25
+        setGoldBalance(mockGoldBalance)
+      }
     } catch (error) {
       console.error("Error refreshing balance:", error)
     }
@@ -228,6 +245,7 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
         signMessage,
         signTransaction,
         sendTransaction,
+        network,
       }}
     >
       {children}
@@ -236,15 +254,8 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
 }
 
 // Main provider that sets up the Solana connection and wallet adapters
-// Changed the export name to match what we're importing in layout.tsx
 export function SolanaWalletProvider({ children }: { children: ReactNode }) {
-  const { network } = useNetwork()
-
-  // Set up network and endpoint
-  const endpoint = useMemo(() => {
-    const networkName = network === "mainnet" ? WalletAdapterNetwork.Mainnet : WalletAdapterNetwork.Devnet
-    return clusterApiUrl(networkName)
-  }, [network])
+  const { endpoint } = useNetwork()
 
   // Set up wallet adapters
   const wallets = useMemo(() => {

@@ -33,7 +33,7 @@ export default function Header() {
     { name: "Marketplace", href: "/marketplace" },
     {
       name: "DeFi",
-      href: "#",
+      href: "/defi",
       dropdown: true,
       items: [
         { name: "DeFi Hub", href: "/defi" },
@@ -85,15 +85,22 @@ export default function Header() {
             {navLinks.map((link) =>
               link.dropdown ? (
                 <div key={link.name} className="relative">
-                  <button
-                    onClick={() => toggleDropdown(link.name)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium flex items-center ${
-                      openDropdown === link.name ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
-                    }`}
-                  >
-                    {link.name}
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </button>
+                  <div className="flex items-center">
+                    <Link
+                      href={link.href}
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        pathname === link.href ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                    <button
+                      onClick={() => toggleDropdown(link.name)}
+                      className="p-1 text-gray-300 hover:text-amber-300 focus:outline-none"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </div>
 
                   {openDropdown === link.name && (
                     <div className="absolute right-0 mt-2 w-48 bg-black/90 backdrop-blur-md rounded-md shadow-lg py-1 z-50 border border-amber-500/30">
@@ -153,15 +160,23 @@ export default function Header() {
             {navLinks.map((link) =>
               link.dropdown ? (
                 <div key={link.name} className="space-y-1">
-                  <button
-                    onClick={() => toggleDropdown(link.name)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-base font-medium flex items-center justify-between ${
-                      openDropdown === link.name ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
-                    }`}
-                  >
-                    {link.name}
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={link.href}
+                      className={`flex-grow px-3 py-2 rounded-md text-base font-medium ${
+                        pathname === link.href ? "text-amber-400" : "text-gray-300 hover:text-amber-300"
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.name}
+                    </Link>
+                    <button
+                      onClick={() => toggleDropdown(link.name)}
+                      className="px-3 py-2 text-gray-300 hover:text-amber-300 focus:outline-none"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </div>
 
                   {openDropdown === link.name && (
                     <div className="pl-4 space-y-1 border-l-2 border-amber-500/30 ml-3">

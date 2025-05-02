@@ -1,144 +1,121 @@
 import { type Connection, PublicKey } from "@solana/web3.js"
-import { LAMPORTS_PER_SOL } from "@solana/web3.js"
+import { NETWORKS } from "@/contexts/network-context"
 
-export type TransactionType = "all" | "send" | "receive" | "swap" | "nft" | "stake"
+export type TransactionType = "send" | "receive" | "swap" | "nft" | "stake" | "unknown"
 
-export interface TransactionItem {
+export interface Transaction {
   signature: string
   blockTime: number
   type: TransactionType
   status: "confirmed" | "failed"
   amount?: number
   fee: number
-  from?: string
-  to?: string
-  tokenSymbol?: string
-  programId?: string
-  description?: string
+  from: string
+  to: string
+  description: string
 }
 
+// Function to get transaction history
 export async function getTransactionHistory(
   connection: Connection,
   walletAddress: string,
-  limit = 20,
+  network: "mainnet" | "testnet",
+  limit = 10,
   before?: string,
-): Promise<TransactionItem[]> {
+): Promise<Transaction[]> {
   try {
     const publicKey = new PublicKey(walletAddress)
 
-    // Fetch signatures
-    const signatures = await connection.getSignaturesForAddress(
-      publicKey,
-      { limit, before: before ? before : undefined },
-      "confirmed",
-    )
+    // Get transaction signatures
+    const signatures = await connection.getSignaturesForAddress(publicKey, {
+      limit,
+      before: before ? new PublicKey(before) : undefined,
+    })
 
-    if (!signatures.length) return []
+    if (signatures.length === 0) {
+      return []
+    }
 
-    // Fetch transaction details
+    // Get transaction details
     const transactions = await Promise.all(
       signatures.map(async (sig) => {
         try {
-          const tx = await connection.getTransaction(sig.signature, {
+          const txDetails = await connection.getTransaction(sig.signature, {
             maxSupportedTransactionVersion: 0,
           })
 
-          if (!tx) return null
+          if (!txDetails) {
+            return null
+          }
 
-          // Determine transaction type
-          let type: TransactionType = "all"
-          let amount = 0
-          const tokenSymbol = "SOL"
-          let from = ""
-          let to = ""
-          let description = ""
+          // Determine transaction type (simplified)
+          let type: TransactionType = "unknown"
+          let description = "Unknown transaction"
+          let amount: number | undefined = undefined
 
-          // Check if this is a SOL transfer
-          if (tx.meta && tx.transaction.message.instructions.length > 0) {
-            const instruction = tx.transaction.message.instructions[0]
+          // This is a simplified implementation
+          // In a real app, you would parse the transaction instructions to determine the type
+          if (txDetails.meta?.logMessages?.some((log) => log.includes("Transfer"))) {
+            if (txDetails.transaction.message.accountKeys[0].toString() === walletAddress) {
+              type = "send"
+              description = "Sent SOL"
+            } else {
+              type = "receive"
+              description = "Received SOL"
+            }
 
-            // Check program ID to determine type
-            const programId = tx.transaction.message.accountKeys[instruction.programId].toString()
-
-            // System program = SOL transfers
-            if (programId === "11111111111111111111111111111111") {
-              // Check if wallet is sender or receiver
-              const accounts = instruction.accounts.map((idx) => tx.transaction.message.accountKeys[idx].toString())
-
-              if (accounts[0] === walletAddress) {
-                type = "send"
-                from = walletAddress
-                to = accounts[1]
-
-                // Calculate amount from pre/post balances
-                if (tx.meta.preBalances[0] && tx.meta.postBalances[0]) {
-                  amount = (tx.meta.preBalances[0] - tx.meta.postBalances[0]) / LAMPORTS_PER_SOL
-                  // Subtract fee from amount
-                  amount -= tx.meta.fee / LAMPORTS_PER_SOL
-                }
-
-                description = `Sent ${amount} SOL to ${to.slice(0, 4)}...${to.slice(-4)}`
-              } else if (accounts[1] === walletAddress) {
-                type = "receive"
-                from = accounts[0]
-                to = walletAddress
-
-                // Calculate amount from pre/post balances
-                if (tx.meta.preBalances[1] && tx.meta.postBalances[1]) {
-                  amount = (tx.meta.postBalances[1] - tx.meta.preBalances[1]) / LAMPORTS_PER_SOL
-                }
-
-                description = `Received ${amount} SOL from ${from.slice(0, 4)}...${from.slice(-4)}`
+            // Try to extract amount
+            const transferLog = txDetails.meta.logMessages.find((log) => log.includes("Transfer"))
+            if (transferLog) {
+              const match = transferLog.match(/Transfer: (\d+)/)
+              if (match && match[1]) {
+                amount = Number.parseInt(match[1]) / 1e9 // Convert lamports to SOL
               }
             }
-            // Token Program = SPL token transfers
-            else if (programId === "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA") {
-              // This would require more complex parsing for token transfers
-              type = "swap"
-              description = "Token swap transaction"
-            }
-            // Metaplex = NFT transactions
-            else if (programId.startsWith("metaqbxxUerdq")) {
-              type = "nft"
-              description = "NFT transaction"
-            }
-            // Stake program
-            else if (programId === "Stake11111111111111111111111111111111111111") {
-              type = "stake"
-              description = "Staking transaction"
-            }
+          } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Swap"))) {
+            type = "swap"
+            description = "Token swap"
+          } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Mint"))) {
+            type = "nft"
+            description = "NFT transaction"
+          } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Stake"))) {
+            type = "stake"
+            description = "Staking transaction"
           }
 
           return {
             signature: sig.signature,
-            blockTime: sig.blockTime || 0,
+            blockTime: sig.blockTime ? sig.blockTime * 1000 : Date.now(), // Convert to milliseconds
             type,
             status: sig.err ? "failed" : "confirmed",
             amount,
-            fee: tx.meta ? tx.meta.fee / LAMPORTS_PER_SOL : 0,
-            from,
-            to,
-            tokenSymbol,
-            programId: tx.transaction.message.instructions[0]?.programId.toString(),
+            fee: txDetails.meta?.fee ? txDetails.meta.fee / 1e9 : 0, // Convert lamports to SOL
+            from: txDetails.transaction.message.accountKeys[0].toString(),
+            to: txDetails.transaction.message.accountKeys[1].toString(),
             description,
           }
         } catch (error) {
-          console.error(`Error fetching transaction ${sig.signature}:`, error)
+          console.error("Error fetching transaction details:", error)
           return null
         }
       }),
     )
 
-    return transactions.filter(Boolean) as TransactionItem[]
+    return transactions.filter(Boolean) as Transaction[]
   } catch (error) {
     console.error("Error fetching transaction history:", error)
     return []
   }
 }
 
-export function getExplorerUrl(
-  signature: string,
-  cluster: "mainnet-beta" | "devnet" | "testnet" = "mainnet-beta",
-): string {
-  return `https://explorer.solana.com/tx/${signature}?cluster=${cluster}`
+// Function to get transaction explorer URL
+export function getTransactionExplorerUrl(signature: string, network: "mainnet" | "testnet"): string {
+  const baseUrl = NETWORKS[network].explorerUrl
+  return `${baseUrl}/tx/${signature}`
+}
+
+// Function to get address explorer URL
+export function getAddressExplorerUrl(address: string, network: "mainnet" | "testnet"): string {
+  const baseUrl = NETWORKS[network].explorerUrl
+  return `${baseUrl}/address/${address}`
 }

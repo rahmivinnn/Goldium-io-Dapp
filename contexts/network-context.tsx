@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
+import { clusterApiUrl, Connection } from "@solana/web3.js"
 
 export type NetworkType = "mainnet" | "testnet"
 
@@ -10,13 +12,17 @@ export const DEFAULT_NETWORK: NetworkType = "testnet"
 export const NETWORKS = {
   mainnet: {
     name: "Mainnet",
-    endpoint: "https://api.mainnet-beta.solana.com",
+    label: "Mainnet",
+    endpoint: clusterApiUrl(WalletAdapterNetwork.Mainnet),
     goldTokenAddress: "GLD1aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr", // Example mainnet address
+    explorerUrl: "https://explorer.solana.com",
   },
   testnet: {
     name: "Testnet",
-    endpoint: "https://api.testnet.solana.com",
+    label: "Devnet",
+    endpoint: clusterApiUrl(WalletAdapterNetwork.Devnet),
     goldTokenAddress: "GLD7aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr", // Example testnet address
+    explorerUrl: "https://explorer.solana.com/?cluster=devnet",
   },
 }
 
@@ -24,7 +30,9 @@ interface NetworkContextType {
   network: NetworkType
   setNetwork: (network: NetworkType) => void
   endpoint: string
+  connection: Connection
   goldTokenAddress: string
+  explorerUrl: string
   isMainnet: boolean
   isTestnet: boolean
 }
@@ -33,13 +41,16 @@ const NetworkContext = createContext<NetworkContextType>({
   network: DEFAULT_NETWORK,
   setNetwork: () => {},
   endpoint: NETWORKS[DEFAULT_NETWORK].endpoint,
+  connection: new Connection(NETWORKS[DEFAULT_NETWORK].endpoint),
   goldTokenAddress: NETWORKS[DEFAULT_NETWORK].goldTokenAddress,
+  explorerUrl: NETWORKS[DEFAULT_NETWORK].explorerUrl,
   isMainnet: DEFAULT_NETWORK === "mainnet",
   isTestnet: DEFAULT_NETWORK === "testnet",
 })
 
 export function NetworkProvider({ children }: { children: ReactNode }) {
   const [network, setNetwork] = useState<NetworkType>(DEFAULT_NETWORK)
+  const [connection, setConnection] = useState<Connection>(new Connection(NETWORKS[DEFAULT_NETWORK].endpoint))
   const { toast } = useToast()
 
   // Load network preference from localStorage if available
@@ -54,8 +65,11 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Save network preference to localStorage when it changes
+  // Update connection when network changes
   useEffect(() => {
+    const newEndpoint = NETWORKS[network].endpoint
+    setConnection(new Connection(newEndpoint, "confirmed"))
+
     try {
       localStorage.setItem("goldium-network", network)
     } catch (error) {
@@ -67,7 +81,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     setNetwork(newNetwork)
     toast({
       title: "Network Changed",
-      description: `Switched to ${NETWORKS[newNetwork].name}`,
+      description: `Switched to ${NETWORKS[newNetwork].label}`,
       duration: 3000,
     })
   }
@@ -76,7 +90,9 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     network,
     setNetwork: handleNetworkChange,
     endpoint: NETWORKS[network].endpoint,
+    connection,
     goldTokenAddress: NETWORKS[network].goldTokenAddress,
+    explorerUrl: NETWORKS[network].explorerUrl,
     isMainnet: network === "mainnet",
     isTestnet: network === "testnet",
   }

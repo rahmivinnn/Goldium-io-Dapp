@@ -1,177 +1,139 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useConnection, useWallet } from "@solana/wallet-adapter-react"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { useNetwork } from "@/contexts/network-context"
+import { getTransactionHistory, type Transaction } from "@/services/transaction-service"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { WalletConnectOverlay } from "@/components/wallet-connect-overlay"
+import { RefreshCcw } from "lucide-react"
 import { TransactionItem } from "@/components/transactions/transaction-item"
 import { TransactionFilters } from "@/components/transactions/transaction-filters"
-import {
-  getTransactionHistory,
-  type TransactionItem as TransactionItemType,
-  type TransactionType,
-} from "@/services/transaction-service"
-import { RefreshCw } from "lucide-react"
-
-const ITEMS_PER_PAGE = 10
+import { useToast } from "@/hooks/use-toast"
 
 export default function TransactionsPage() {
-  const { connection } = useConnection()
-  const { publicKey } = useWallet()
-  const [transactions, setTransactions] = useState<TransactionItemType[]>([])
+  const { connected, walletAddress, publicKey } = useSolanaWallet()
+  const { connection, network } = useNetwork()
+  const { toast } = useToast()
+
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [activeFilter, setActiveFilter] = useState<TransactionType>("all")
-  const [lastSignature, setLastSignature] = useState<string | undefined>(undefined)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [filter, setFilter] = useState<string>("all")
 
-  // Fetch transactions when wallet connects or filter changes
+  // Fetch transactions when wallet is connected
   useEffect(() => {
-    if (!publicKey) return
-
-    const fetchTransactions = async () => {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const txs = await getTransactionHistory(connection, publicKey.toString(), ITEMS_PER_PAGE)
-
-        setTransactions(txs)
-        setHasMore(txs.length === ITEMS_PER_PAGE)
-
-        if (txs.length > 0) {
-          setLastSignature(txs[txs.length - 1].signature)
-        } else {
-          setLastSignature(undefined)
-          setHasMore(false)
-        }
-      } catch (err) {
-        console.error("Error fetching transactions:", err)
-        setError("Failed to load transactions. Please try again.")
-      } finally {
-        setLoading(false)
-      }
+    if (connected && walletAddress) {
+      fetchTransactions()
+    } else {
+      setTransactions([])
     }
+  }, [connected, walletAddress, network])
 
-    fetchTransactions()
-  }, [publicKey, connection, refreshKey])
-
-  const loadMore = async () => {
-    if (!publicKey || !lastSignature || !hasMore) return
-
-    setLoading(true)
+  // Function to fetch transactions
+  const fetchTransactions = async (reset = true) => {
+    if (!connected || !walletAddress) return
 
     try {
-      const txs = await getTransactionHistory(connection, publicKey.toString(), ITEMS_PER_PAGE, lastSignature)
+      setLoading(reset)
 
-      if (txs.length > 0) {
-        setTransactions([...transactions, ...txs])
-        setLastSignature(txs[txs.length - 1].signature)
-        setHasMore(txs.length === ITEMS_PER_PAGE)
-      } else {
-        setHasMore(false)
-      }
-    } catch (err) {
-      console.error("Error fetching more transactions:", err)
-      setError("Failed to load more transactions. Please try again.")
+      const txs = await getTransactionHistory(connection, walletAddress, network, 10)
+
+      setTransactions(txs)
+      setHasMore(txs.length === 10)
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch transactions. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setLoading(false)
     }
   }
 
-  const handleFilterChange = (type: TransactionType) => {
-    setActiveFilter(type)
-    // Reset pagination when filter changes
-    setLastSignature(undefined)
-    setRefreshKey((prev) => prev + 1)
+  // Function to load more transactions
+  const loadMoreTransactions = async () => {
+    if (!connected || !walletAddress || transactions.length === 0) return
+
+    try {
+      setLoadingMore(true)
+
+      const lastSignature = transactions[transactions.length - 1].signature
+
+      const moreTxs = await getTransactionHistory(connection, walletAddress, network, 10, lastSignature)
+
+      if (moreTxs.length > 0) {
+        setTransactions([...transactions, ...moreTxs])
+      }
+
+      setHasMore(moreTxs.length === 10)
+    } catch (error) {
+      console.error("Error loading more transactions:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load more transactions. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingMore(false)
+    }
   }
 
-  const handleRefresh = () => {
-    setLastSignature(undefined)
-    setRefreshKey((prev) => prev + 1)
-  }
-
-  const filteredTransactions =
-    activeFilter === "all" ? transactions : transactions.filter((tx) => tx.type === activeFilter)
-
-  if (!publicKey) {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <WalletConnectOverlay message="Connect your wallet to view your transaction history" />
-      </div>
-    )
-  }
+  // Filter transactions
+  const filteredTransactions = transactions.filter((tx) => {
+    if (filter === "all") return true
+    return tx.type === filter
+  })
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <TransactionFilters onFilterChange={handleFilterChange} activeFilter={activeFilter} />
-
-        <Button
-          variant="outline"
-          className="border-gold/30 text-gold hover:bg-gold/10"
-          onClick={handleRefresh}
-          disabled={loading}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+    <div className="container max-w-4xl py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Transaction History</h1>
+        <div className="flex items-center gap-2">
+          <TransactionFilters value={filter} onChange={setFilter} />
+          <Button variant="outline" size="icon" onClick={() => fetchTransactions()} disabled={loading || !connected}>
+            <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
       </div>
 
-      {error && (
-        <Card className="border-red-500/50 mb-6">
-          <CardContent className="pt-6 text-red-500">{error}</CardContent>
-        </Card>
-      )}
-
-      {loading && transactions.length === 0 ? (
+      {!connected ? (
+        <div className="bg-secondary/30 rounded-lg p-8 text-center">
+          <h2 className="text-xl font-semibold mb-2">Connect Your Wallet</h2>
+          <p className="text-muted-foreground mb-4">Connect your wallet to view your transaction history.</p>
+        </div>
+      ) : loading ? (
         <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="border border-gold/20 p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Skeleton className="h-10 w-10 rounded-full mr-3" />
-                  <div>
-                    <Skeleton className="h-4 w-40 mb-2" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                </div>
-                <div>
-                  <Skeleton className="h-6 w-24" />
-                </div>
-              </div>
-            </Card>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="bg-card rounded-lg p-4">
+              <Skeleton className="h-6 w-1/3 mb-2" />
+              <Skeleton className="h-4 w-1/2 mb-2" />
+              <Skeleton className="h-4 w-1/4" />
+            </div>
           ))}
         </div>
       ) : filteredTransactions.length === 0 ? (
-        <Card className="border border-gold/20 p-6 text-center">
-          <p className="text-gray-400">No transactions found.</p>
-          {activeFilter !== "all" && (
-            <Button variant="link" className="text-gold mt-2" onClick={() => handleFilterChange("all")}>
-              View all transactions
-            </Button>
-          )}
-        </Card>
+        <div className="bg-secondary/30 rounded-lg p-8 text-center">
+          <h2 className="text-xl font-semibold mb-2">No Transactions Found</h2>
+          <p className="text-muted-foreground mb-4">
+            {filter === "all" ? "You don't have any transactions yet." : `You don't have any ${filter} transactions.`}
+          </p>
+        </div>
       ) : (
         <>
           <div className="space-y-4">
             {filteredTransactions.map((tx) => (
-              <TransactionItem key={tx.signature} transaction={tx} />
+              <TransactionItem key={tx.signature} transaction={tx} network={network} />
             ))}
           </div>
 
           {hasMore && (
             <div className="mt-6 text-center">
-              <Button
-                variant="outline"
-                className="border-gold/30 text-gold hover:bg-gold/10"
-                onClick={loadMore}
-                disabled={loading}
-              >
-                {loading ? "Loading..." : "Load More"}
+              <Button onClick={loadMoreTransactions} disabled={loadingMore} variant="outline">
+                {loadingMore ? "Loading..." : "Load More"}
               </Button>
             </div>
           )}
