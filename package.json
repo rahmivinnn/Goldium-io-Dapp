@@ -66,7 +66,8 @@
     "@solana/wallet-adapter-react-ui": "latest",
     "@solana/wallet-adapter-base": "latest",
     "@solana/wallet-adapter-wallets": "latest",
-    "@solana/spl-token": "latest"
+    "@solana/spl-token": "latest",
+    "three": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

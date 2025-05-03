@@ -10,6 +10,7 @@ import { useWallet } from "@/components/wallet-provider"
 import { NetworkSwitcher } from "./network-switcher"
 import Image from "next/image"
 import { useNetwork } from "@/contexts/network-context"
+import { cn } from "@/lib/utils"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -129,6 +130,15 @@ export default function Header() {
                 </Link>
               ),
             )}
+            <Link
+              href="/adventure-game"
+              className={cn(
+                "text-sm font-medium transition-colors hover:text-primary",
+                pathname === "/adventure-game" ? "text-gold border-b-2 border-gold" : "text-muted-foreground",
+              )}
+            >
+              3D Adventure
+            </Link>
           </nav>
 
           <div className="hidden md:flex items-center space-x-3">
@@ -209,6 +219,16 @@ export default function Header() {
                 </Link>
               ),
             )}
+            <Link
+              href="/adventure-game"
+              className={cn(
+                "block px-3 py-2 rounded-md text-base font-medium",
+                pathname === "/adventure-game" ? "text-amber-400" : "text-gray-300 hover:text-amber-300",
+              )}
+              onClick={() => setIsOpen(false)}
+            >
+              3D Adventure
+            </Link>
             <div className="pt-4 flex flex-col space-y-3">
               <NetworkSwitcher />
               <ConnectWalletButton />
