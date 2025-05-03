@@ -3,6 +3,8 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { ConnectWalletButton } from "@/components/connect-wallet-button"
 import { motion } from "framer-motion"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { useEffect, useState } from "react"
 
 interface WalletConnectOverlayProps {
   message?: string
@@ -15,6 +17,24 @@ export function WalletConnectOverlay({
   showOnlyButton = false,
   className = "",
 }: WalletConnectOverlayProps) {
+  const { connected } = useSolanaWallet()
+  const [isClient, setIsClient] = useState(false)
+
+  // Prevent hydration errors by only rendering client-side
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // If not client-side yet, return null to prevent hydration mismatch
+  if (!isClient) {
+    return null
+  }
+
+  // If wallet is connected, don't show the overlay
+  if (connected) {
+    return null
+  }
+
   if (showOnlyButton) {
     return <ConnectWalletButton variant="outline" size="sm" className="gold-button-sm" />
   }

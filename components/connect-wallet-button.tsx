@@ -1,39 +1,50 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Loader2, Wallet } from "lucide-react"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
-import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 
-export function ConnectWalletButton() {
-  const { connected, connecting, walletAddress, connect, disconnect } = useSolanaWallet()
+interface ConnectWalletButtonProps {
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  size?: "default" | "sm" | "lg" | "icon"
+  className?: string
+}
+
+export function ConnectWalletButton({
+  variant = "outline",
+  size = "default",
+  className = "",
+}: ConnectWalletButtonProps) {
+  const { connected, connecting, walletAddress, connect, disconnect, openWalletModal } = useSolanaWallet()
   const [isHovering, setIsHovering] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
-  // Initialize walletModal outside the try-catch block
-  let walletModal
-  try {
-    walletModal = useWalletModal()
-  } catch (error) {
-    console.warn("WalletModalContext not available, using direct connect method")
-    walletModal = { setVisible: () => {} }
+  // Prevent hydration errors by only rendering client-side
+  useEffect(() => {
+    setIsClient(true)
+
+    // Log to console for debugging
+    console.log("ConnectWalletButton mounted, wallet state:", { connected, connecting, walletAddress })
+  }, [connected, connecting, walletAddress])
+
+  // If not client-side yet, show loading
+  if (!isClient) {
+    return (
+      <Button variant={variant} size={size} className={className} disabled>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading...
+      </Button>
+    )
   }
 
-  const handleConnect = () => {
-    try {
-      // Try to use the modal first
-      walletModal.setVisible(true)
-    } catch (error) {
-      // Fall back to direct connect method if modal fails
-      connect()
-    }
-  }
-
+  // If connected, show wallet address or disconnect button
   if (connected && walletAddress) {
     return (
       <Button
-        variant="outline"
-        className="border-gold-500/50 text-gold-500 hover:bg-gold-500/10"
+        variant={variant}
+        size={size}
+        className={`border-gold-500/50 text-gold-500 hover:bg-gold-500/10 ${className}`}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={disconnect}
@@ -44,15 +55,26 @@ export function ConnectWalletButton() {
     )
   }
 
+  // If not connected, show connect button
   return (
     <Button
-      variant="outline"
-      className="border-gold-500/50 text-gold-500 hover:bg-gold-500/10"
-      onClick={handleConnect}
+      variant={variant}
+      size={size}
+      className={`border-gold-500/50 text-gold-500 hover:bg-gold-500/10 ${className}`}
+      onClick={openWalletModal} // Use openWalletModal instead of connect
       disabled={connecting}
     >
-      {connecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wallet className="mr-2 h-4 w-4" />}
-      {connecting ? "Connecting..." : "Connect Wallet"}
+      {connecting ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Connecting...
+        </>
+      ) : (
+        <>
+          <Wallet className="mr-2 h-4 w-4" />
+          Connect Wallet
+        </>
+      )}
     </Button>
   )
 }

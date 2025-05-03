@@ -1,5 +1,5 @@
-import AdventureGameClient from "@/components/games/adventure-game/client"
 import { Suspense } from "react"
+import AdventureGameClient from "@/components/games/adventure-game/client"
 
 export const metadata = {
   title: "Goldium Adventure - 3D Game",
