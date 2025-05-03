@@ -9,6 +9,8 @@ import NotificationCenter from "@/components/notification-center"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SolanaWalletProvider } from "@/contexts/solana-wallet-context"
 import { NetworkProvider } from "@/contexts/network-context"
+import AnimatedBackground from "@/components/animated-background"
+import { ScrollProgress, ScrollToTopButton } from "@/components/ui/scroll-progress"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", weight: ["400", "500", "600", "700"] })
@@ -26,14 +28,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${cinzel.variable} font-sans bg-black text-white min-h-screen flex flex-col`}>
+      <body className={`${inter.variable} ${cinzel.variable} font-sans text-white min-h-screen flex flex-col`}>
         <ThemeProvider attribute="class" defaultTheme="dark">
           <NetworkProvider>
             <SolanaWalletProvider>
+              <ScrollProgress />
+              <AnimatedBackground />
               <Header />
               <main className="flex-grow">{children}</main>
               <Footer />
               <NotificationCenter />
+              <ScrollToTopButton />
               <Toaster />
             </SolanaWalletProvider>
           </NetworkProvider>

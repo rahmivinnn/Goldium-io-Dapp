@@ -1,673 +1,592 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Globe, ShoppingBag, Sword, Zap, Shield, TrendingUp, BarChart3, Wallet, Users, Lock } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Coins, TrendingUp, Shield, Users } from "lucide-react"
+import { Card3D } from "@/components/ui/card-3d"
 
 export default function TokenEcosystem() {
-  const [activeTab, setActiveTab] = useState("overview")
-  const { toast } = useToast()
-
-  const handleAction = (action: string) => {
-    toast({
-      title: "Action Initiated",
-      description: `${action} functionality will be available soon!`,
-    })
-  }
+  const [activeTab, setActiveTab] = useState("tokenomics")
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gold">GOLD Token Ecosystem</h1>
-          <p className="text-gray-400">Explore the complete GOLD token ecosystem and utilities</p>
+    <section className="py-16">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 gold-gradient">GOLD Token Ecosystem</h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            The GOLD token powers the entire Goldium ecosystem, providing utility across gaming, NFTs, and DeFi
+            applications.
+          </p>
         </div>
-      </div>
 
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
-        <TabsList className="grid grid-cols-4 mb-6">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-            <Globe className="mr-2 h-5 w-5" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="utilities" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-            <Zap className="mr-2 h-5 w-5" />
-            Utilities
-          </TabsTrigger>
-          <TabsTrigger value="tokenomics" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-            <BarChart3 className="mr-2 h-5 w-5" />
-            Tokenomics
-          </TabsTrigger>
-          <TabsTrigger value="governance" className="data-[state=active]:bg-gold data-[state=active]:text-black">
-            <Shield className="mr-2 h-5 w-5" />
-            Governance
-          </TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-4 mb-8">
+            <TabsTrigger value="tokenomics" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
+              <Coins className="mr-2 h-4 w-4" />
+              Tokenomics
+            </TabsTrigger>
+            <TabsTrigger value="utility" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
+              <Shield className="mr-2 h-4 w-4" />
+              Utility
+            </TabsTrigger>
+            <TabsTrigger value="staking" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Staking
+            </TabsTrigger>
+            <TabsTrigger value="governance" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
+              <Users className="mr-2 h-4 w-4" />
+              Governance
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="mt-0">
-          <Card className="border-gold bg-black mb-8">
-            <CardHeader>
-              <CardTitle>GOLD Token Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">What is GOLD Token?</h3>
-                  <p className="text-gray-300 mb-4">
-                    GOLD is the native utility token that powers the entire Goldium.io ecosystem. It serves multiple
-                    functions across our platform, including gaming, NFT marketplace, staking, and governance.
-                  </p>
-                  <p className="text-gray-300 mb-4">
-                    As a deflationary token with a fixed supply, GOLD is designed to increase in value over time as the
-                    ecosystem grows and token utility expands.
-                  </p>
-                  <div className="space-y-2 mt-6">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Current Price</span>
-                      <span className="font-bold text-gold">$0.85</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Market Cap</span>
-                      <span className="font-bold">$4.25M</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Circulating Supply</span>
-                      <span className="font-bold">5M GOLD</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Total Supply</span>
-                      <span className="font-bold">10M GOLD</span>
+          <TabsContent value="tokenomics">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm col-span-1 md:col-span-1">
+                <CardHeader>
+                  <CardTitle>Token Distribution</CardTitle>
+                  <CardDescription>Allocation of GOLD tokens</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative h-64 w-full">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-6xl font-bold text-gold-500 mb-2">100M</div>
+                        <div className="text-sm text-gray-400">Total Supply</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">Key Features</h3>
-                  <ul className="space-y-4">
-                    <li className="flex">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full">
-                        <Wallet className="h-6 w-6 text-gold" />
+
+                  <div className="space-y-3 mt-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 rounded-full bg-gold-500 mr-2"></div>
+                        <span>Community & Players</span>
+                      </div>
+                      <span className="font-medium">40%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                        <span>Ecosystem Growth</span>
+                      </div>
+                      <span className="font-medium">25%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                        <span>Team & Advisors</span>
+                      </div>
+                      <span className="font-medium">15%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
+                        <span>Treasury</span>
+                      </div>
+                      <span className="font-medium">10%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                        <span>Private Sale</span>
+                      </div>
+                      <span className="font-medium">10%</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card3D>
+
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm col-span-1 md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Token Metrics</CardTitle>
+                  <CardDescription>Key information about GOLD token</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm text-gray-400">Token Name</h4>
+                        <p className="text-xl font-bold">GOLD</p>
                       </div>
                       <div>
-                        <h4 className="font-bold">Store of Value</h4>
-                        <p className="text-gray-400">Hold GOLD as a digital asset with deflationary mechanics</p>
+                        <h4 className="text-sm text-gray-400">Token Type</h4>
+                        <p className="text-xl font-bold">SPL Token (Solana)</p>
                       </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">Initial Price</h4>
+                        <p className="text-xl font-bold">$0.10 USD</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">Current Price</h4>
+                        <p className="text-xl font-bold text-gold-500">$0.85 USD</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="text-sm text-gray-400">Market Cap</h4>
+                        <p className="text-xl font-bold">$4.25M USD</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">Circulating Supply</h4>
+                        <p className="text-xl font-bold">5M GOLD</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">Emission Rate</h4>
+                        <p className="text-xl font-bold">Deflationary</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">Burn Mechanism</h4>
+                        <p className="text-xl font-bold">2% of all transactions</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-800">
+                    <h4 className="font-medium mb-3">Token Release Schedule</h4>
+                    <div className="relative h-12 bg-gray-800 rounded-full overflow-hidden">
+                      <div className="absolute left-0 top-0 bottom-0 w-[15%] bg-gold-500 rounded-full"></div>
+                      <div className="absolute left-[15%] top-0 bottom-0 w-[10%] bg-blue-500 rounded-full"></div>
+                      <div className="absolute left-[25%] top-0 bottom-0 w-[5%] bg-green-500 rounded-full"></div>
+                      <div className="absolute left-[30%] top-0 bottom-0 w-[5%] bg-purple-500 rounded-full"></div>
+                      <div className="absolute left-[35%] top-0 bottom-0 w-[5%] bg-red-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between mt-2 text-xs text-gray-400">
+                      <span>Launch</span>
+                      <span>6 Months</span>
+                      <span>1 Year</span>
+                      <span>2 Years</span>
+                      <span>4 Years</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card3D>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="utility">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-full bg-gold-500/20 flex items-center justify-center mb-4">
+                    <Coins className="h-6 w-6 text-gold-500" />
+                  </div>
+                  <CardTitle>In-Game Currency</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-400 mb-4">
+                    GOLD serves as the primary currency within all Goldium games, allowing players to:
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Purchase in-game items and power-ups</span>
                     </li>
-                    <li className="flex">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full">
-                        <ShoppingBag className="h-6 w-6 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">NFT Marketplace Currency</h4>
-                        <p className="text-gray-400">Buy, sell and trade NFTs using GOLD tokens</p>
-                      </div>
+                    <li className="flex items-start">
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Enter tournaments and competitive events</span>
                     </li>
-                    <li className="flex">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full">
-                        <Sword className="h-6 w-6 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Gaming Rewards</h4>
-                        <p className="text-gray-400">Earn GOLD by playing games and participating in tournaments</p>
-                      </div>
+                    <li className="flex items-start">
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Trade with other players in the marketplace</span>
                     </li>
-                    <li className="flex">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full">
-                        <Shield className="h-6 w-6 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Governance</h4>
-                        <p className="text-gray-400">Vote on platform decisions and future development</p>
-                      </div>
+                    <li className="flex items-start">
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Unlock premium game content and features</span>
                     </li>
                   </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card3D>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="border-gold bg-black">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-center mb-4">
-                  <TrendingUp className="h-10 w-10 text-gold" />
-                </div>
-                <h3 className="text-xl font-bold text-center mb-2">Staking</h3>
-                <p className="text-gray-400 text-center mb-4">
-                  Earn passive income by staking your GOLD tokens with competitive APR rates
-                </p>
-                <Button className="gold-button w-full" onClick={() => handleAction("Staking")}>
-                  Stake GOLD
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-gold bg-black">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-center mb-4">
-                  <ShoppingBag className="h-10 w-10 text-gold" />
-                </div>
-                <h3 className="text-xl font-bold text-center mb-2">NFT Marketplace</h3>
-                <p className="text-gray-400 text-center mb-4">
-                  Buy, sell and trade unique fantasy-themed NFTs using GOLD tokens
-                </p>
-                <Button className="gold-button w-full" onClick={() => handleAction("Marketplace")}>
-                  Browse NFTs
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-gold bg-black">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-center mb-4">
-                  <Sword className="h-10 w-10 text-gold" />
-                </div>
-                <h3 className="text-xl font-bold text-center mb-2">Gaming</h3>
-                <p className="text-gray-400 text-center mb-4">Play games and tournaments to earn GOLD token rewards</p>
-                <Button className="gold-button w-full" onClick={() => handleAction("Gaming")}>
-                  Play Games
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="utilities" className="mt-0">
-          <Card className="border-gold bg-black">
-            <CardHeader>
-              <CardTitle>GOLD Token Utilities</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">Platform Utilities</h3>
-                  <ul className="space-y-4">
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-full bg-gold-500/20 flex items-center justify-center mb-4">
+                    <Shield className="h-6 w-6 text-gold-500" />
+                  </div>
+                  <CardTitle>NFT Ecosystem</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-400 mb-4">GOLD is deeply integrated with our NFT ecosystem, enabling:</p>
+                  <ul className="space-y-2">
                     <li className="flex items-start">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full mt-1">
-                        <ShoppingBag className="h-5 w-5 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Marketplace Currency</h4>
-                        <p className="text-gray-400 mb-2">
-                          GOLD is the primary currency for buying and selling NFTs on the Goldium.io marketplace.
-                        </p>
-                        <p className="text-gray-400">
-                          All transaction fees are paid in GOLD, with portions burned to reduce supply.
-                        </p>
-                      </div>
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Minting new NFTs with unique properties</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full mt-1">
-                        <Sword className="h-5 w-5 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Game Economy</h4>
-                        <p className="text-gray-400 mb-2">
-                          Players use GOLD for entry fees, in-game purchases, and tournament registrations.
-                        </p>
-                        <p className="text-gray-400">Winning games and tournaments rewards players with GOLD tokens.</p>
-                      </div>
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Trading NFTs on the Goldium marketplace</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full mt-1">
-                        <TrendingUp className="h-5 w-5 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Staking Rewards</h4>
-                        <p className="text-gray-400 mb-2">
-                          Stake GOLD to earn passive income with various locking periods.
-                        </p>
-                        <p className="text-gray-400">Higher amounts and longer lock periods earn greater APR.</p>
-                      </div>
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Upgrading and enhancing existing NFTs</span>
+                    </li>
+                    <li className="flex items-start">
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Participating in exclusive NFT drops and auctions</span>
                     </li>
                   </ul>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">Additional Benefits</h3>
-                  <ul className="space-y-4">
+                </CardContent>
+              </Card3D>
+
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-full bg-gold-500/20 flex items-center justify-center mb-4">
+                    <TrendingUp className="h-6 w-6 text-gold-500" />
+                  </div>
+                  <CardTitle>DeFi Applications</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-400 mb-4">
+                    GOLD powers our DeFi ecosystem with multiple financial utilities:
+                  </p>
+                  <ul className="space-y-2">
                     <li className="flex items-start">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full mt-1">
-                        <Shield className="h-5 w-5 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Governance Rights</h4>
-                        <p className="text-gray-400 mb-2">
-                          GOLD holders can vote on platform decisions and future development.
-                        </p>
-                        <p className="text-gray-400">Voting power is proportional to GOLD holdings.</p>
-                      </div>
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Staking for passive income generation</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full mt-1">
-                        <Users className="h-5 w-5 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">VIP Access</h4>
-                        <p className="text-gray-400 mb-2">
-                          Holding certain amounts of GOLD grants access to VIP areas and exclusive events.
-                        </p>
-                        <p className="text-gray-400">VIP holders get early access to new features and NFT drops.</p>
-                      </div>
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Providing liquidity to earn trading fees</span>
                     </li>
                     <li className="flex items-start">
-                      <div className="mr-4 bg-gold/10 p-2 rounded-full mt-1">
-                        <Lock className="h-5 w-5 text-gold" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Fee Discounts</h4>
-                        <p className="text-gray-400 mb-2">Holding GOLD reduces platform fees for various actions.</p>
-                        <p className="text-gray-400">Higher holdings provide greater discounts.</p>
-                      </div>
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Yield farming with partner protocols</span>
+                    </li>
+                    <li className="flex items-start">
+                      <ArrowRight className="h-5 w-5 text-gold-500 mr-2 shrink-0 mt-0.5" />
+                      <span>Collateral for borrowing other assets</span>
                     </li>
                   </ul>
-                </div>
-              </div>
+                </CardContent>
+              </Card3D>
+            </div>
+          </TabsContent>
 
-              <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4 text-gold">Utility Tiers</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gold/30">
-                        <th className="px-4 py-3 text-left">Tier</th>
-                        <th className="px-4 py-3 text-left">GOLD Required</th>
-                        <th className="px-4 py-3 text-left">Fee Discount</th>
-                        <th className="px-4 py-3 text-left">Staking Bonus</th>
-                        <th className="px-4 py-3 text-left">Special Benefits</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Bronze</td>
-                        <td className="px-4 py-3">100 GOLD</td>
-                        <td className="px-4 py-3">5%</td>
-                        <td className="px-4 py-3">+0.5% APR</td>
-                        <td className="px-4 py-3">Standard NFT drops</td>
-                      </tr>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Silver</td>
-                        <td className="px-4 py-3">500 GOLD</td>
-                        <td className="px-4 py-3">10%</td>
-                        <td className="px-4 py-3">+1% APR</td>
-                        <td className="px-4 py-3">Priority NFT drops</td>
-                      </tr>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Gold</td>
-                        <td className="px-4 py-3">1,000 GOLD</td>
-                        <td className="px-4 py-3">15%</td>
-                        <td className="px-4 py-3">+2% APR</td>
-                        <td className="px-4 py-3">Exclusive NFTs, VIP events</td>
-                      </tr>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Platinum</td>
-                        <td className="px-4 py-3">5,000 GOLD</td>
-                        <td className="px-4 py-3">25%</td>
-                        <td className="px-4 py-3">+3% APR</td>
-                        <td className="px-4 py-3">All benefits + Early access</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <TabsContent value="staking">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Staking Rewards</CardTitle>
+                  <CardDescription>Earn passive income by staking your GOLD tokens</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-black/30 rounded-lg">
+                      <div>
+                        <h4 className="font-bold text-lg">Flexible Staking</h4>
+                        <p className="text-gray-400">No lock-up period, withdraw anytime</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gold-500">4.5% APR</div>
+                        <Button
+                          variant="outline"
+                          className="mt-2 border-gold-500 text-gold-500 hover:bg-gold-500/10 button-3d"
+                        >
+                          Stake Now
+                        </Button>
+                      </div>
+                    </div>
 
-        <TabsContent value="tokenomics" className="mt-0">
-          <Card className="border-gold bg-black">
-            <CardHeader>
-              <CardTitle>GOLD Token Tokenomics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">Token Distribution</h3>
-                  <div className="h-64 flex items-center justify-center mb-4">
-                    <div className="text-center text-gray-400">[Token Distribution Chart]</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-gold mr-2"></div>
-                      <span>Community (40%)</span>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-black/30 rounded-lg">
+                      <div>
+                        <h4 className="font-bold text-lg">30-Day Lock</h4>
+                        <p className="text-gray-400">Tokens locked for 30 days</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gold-500">8.2% APR</div>
+                        <Button
+                          variant="outline"
+                          className="mt-2 border-gold-500 text-gold-500 hover:bg-gold-500/10 button-3d"
+                        >
+                          Stake Now
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                      <span>Team (15%)</span>
+
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-black/30 rounded-lg">
+                      <div>
+                        <h4 className="font-bold text-lg">90-Day Lock</h4>
+                        <p className="text-gray-400">Tokens locked for 90 days</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gold-500">12.5% APR</div>
+                        <Button
+                          variant="outline"
+                          className="mt-2 border-gold-500 text-gold-500 hover:bg-gold-500/10 button-3d"
+                        >
+                          Stake Now
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                      <span>Reserve (20%)</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
-                      <span>Ecosystem (25%)</span>
+
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-black/30 rounded-lg">
+                      <div>
+                        <h4 className="font-bold text-lg">180-Day Lock</h4>
+                        <p className="text-gray-400">Tokens locked for 180 days</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gold-500">18.0% APR</div>
+                        <Button
+                          variant="outline"
+                          className="mt-2 border-gold-500 text-gold-500 hover:bg-gold-500/10 button-3d"
+                        >
+                          Stake Now
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">Token Metrics</h3>
-                  <ul className="space-y-4">
-                    <li className="flex flex-col">
-                      <div className="flex justify-between">
-                        <span className="font-bold">Total Supply:</span>
-                        <span>10,000,000 GOLD</span>
-                      </div>
-                      <div className="text-gray-400 text-sm">
-                        Fixed maximum supply, no additional tokens will be minted
-                      </div>
-                    </li>
-                    <li className="flex flex-col">
-                      <div className="flex justify-between">
-                        <span className="font-bold">Circulating Supply:</span>
-                        <span>5,000,000 GOLD</span>
-                      </div>
-                      <div className="text-gray-400 text-sm">50% of tokens currently in circulation</div>
-                    </li>
-                    <li className="flex flex-col">
-                      <div className="flex justify-between">
-                        <span className="font-bold">Initial Price:</span>
-                        <span>$0.25 USD</span>
-                      </div>
-                      <div className="text-gray-400 text-sm">Token price at initial offering</div>
-                    </li>
-                    <li className="flex flex-col">
-                      <div className="flex justify-between">
-                        <span className="font-bold">Current Price:</span>
-                        <span>$0.85 USD</span>
-                      </div>
-                      <div className="text-gray-400 text-sm">+240% increase since launch</div>
-                    </li>
-                    <li className="flex flex-col">
-                      <div className="flex justify-between">
-                        <span className="font-bold">Market Cap:</span>
-                        <span>$4,250,000 USD</span>
-                      </div>
-                      <div className="text-gray-400 text-sm">Based on circulating supply</div>
-                    </li>
-                    <li className="flex flex-col">
-                      <div className="flex justify-between">
-                        <span className="font-bold">Fully Diluted Valuation:</span>
-                        <span>$8,500,000 USD</span>
-                      </div>
-                      <div className="text-gray-400 text-sm">Based on total supply</div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+                </CardContent>
+              </Card3D>
 
-              <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4 text-gold">Deflationary Mechanisms</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="black-gold-card">
-                    <h4 className="text-lg font-bold mb-2">Transaction Burns</h4>
-                    <p className="text-gray-400 mb-4">
-                      2% of all marketplace transactions are automatically burned, permanently reducing the total
-                      supply.
-                    </p>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Est. Monthly Burn:</span>
-                      <span className="text-gold">~15,000 GOLD</span>
+              <div className="space-y-8">
+                <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Staking Benefits</CardTitle>
+                    <CardDescription>Additional perks for GOLD stakers</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-4">
+                      <li className="flex items-start">
+                        <div className="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center mr-3 shrink-0">
+                          <span className="text-gold-500 font-bold">1</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold">Governance Rights</h4>
+                          <p className="text-gray-400">
+                            Participate in protocol governance with voting power proportional to your staked amount
+                          </p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <div className="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center mr-3 shrink-0">
+                          <span className="text-gold-500 font-bold">2</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold">NFT Boosters</h4>
+                          <p className="text-gray-400">
+                            Exclusive access to NFT boosters that enhance your in-game abilities
+                          </p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <div className="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center mr-3 shrink-0">
+                          <span className="text-gold-500 font-bold">3</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold">Fee Discounts</h4>
+                          <p className="text-gray-400">
+                            Reduced marketplace and transaction fees based on your staking tier
+                          </p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <div className="w-8 h-8 rounded-full bg-gold-500/20 flex items-center justify-center mr-3 shrink-0">
+                          <span className="text-gold-500 font-bold">4</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold">Early Access</h4>
+                          <p className="text-gray-400">
+                            Priority access to new game features, NFT drops, and platform updates
+                          </p>
+                        </div>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card3D>
+
+                <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Staking Stats</CardTitle>
+                    <CardDescription>Current platform staking metrics</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="text-sm text-gray-400">Total Value Locked</h4>
+                        <p className="text-2xl font-bold text-gold-500">2.5M GOLD</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">% of Supply Staked</h4>
+                        <p className="text-2xl font-bold">50%</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">Average Lock Time</h4>
+                        <p className="text-2xl font-bold">45 days</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm text-gray-400">Rewards Distributed</h4>
+                        <p className="text-2xl font-bold">125K GOLD</p>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="black-gold-card">
-                    <h4 className="text-lg font-bold mb-2">Staking Incentives</h4>
-                    <p className="text-gray-400 mb-4">
-                      Staked tokens are locked from circulation, reducing effective supply and increasing scarcity.
-                    </p>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Currently Staked:</span>
-                      <span className="text-gold">1.2M GOLD (24%)</span>
-                    </div>
-                  </div>
-
-                  <div className="black-gold-card">
-                    <h4 className="text-lg font-bold mb-2">Buy-back Program</h4>
-                    <p className="text-gray-400 mb-4">
-                      20% of platform revenue is used to buy back and burn GOLD tokens on a quarterly basis.
-                    </p>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Last Buyback:</span>
-                      <span className="text-gold">50,000 GOLD</span>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card3D>
               </div>
+            </div>
+          </TabsContent>
 
-              <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4 text-gold">Token Release Schedule</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gold/30">
-                        <th className="px-4 py-3 text-left">Allocation</th>
-                        <th className="px-4 py-3 text-left">Total Tokens</th>
-                        <th className="px-4 py-3 text-left">Initial Unlock</th>
-                        <th className="px-4 py-3 text-left">Vesting Period</th>
-                        <th className="px-4 py-3 text-left">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Public Sale</td>
-                        <td className="px-4 py-3">2,000,000 GOLD</td>
-                        <td className="px-4 py-3">100%</td>
-                        <td className="px-4 py-3">None</td>
-                        <td className="px-4 py-3 text-green-500">Complete</td>
-                      </tr>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Team</td>
-                        <td className="px-4 py-3">1,500,000 GOLD</td>
-                        <td className="px-4 py-3">0%</td>
-                        <td className="px-4 py-3">2 years (quarterly)</td>
-                        <td className="px-4 py-3 text-blue-500">In Progress (50%)</td>
-                      </tr>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Ecosystem Growth</td>
-                        <td className="px-4 py-3">2,500,000 GOLD</td>
-                        <td className="px-4 py-3">20%</td>
-                        <td className="px-4 py-3">3 years (quarterly)</td>
-                        <td className="px-4 py-3 text-blue-500">In Progress (40%)</td>
-                      </tr>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Community Rewards</td>
-                        <td className="px-4 py-3">2,000,000 GOLD</td>
-                        <td className="px-4 py-3">10%</td>
-                        <td className="px-4 py-3">4 years (monthly)</td>
-                        <td className="px-4 py-3 text-blue-500">In Progress (35%)</td>
-                      </tr>
-                      <tr className="border-b border-gold/10 hover:bg-gold/5">
-                        <td className="px-4 py-3">Reserve</td>
-                        <td className="px-4 py-3">2,000,000 GOLD</td>
-                        <td className="px-4 py-3">0%</td>
-                        <td className="px-4 py-3">5 years (annual)</td>
-                        <td className="px-4 py-3 text-blue-500">In Progress (20%)</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="governance" className="mt-0">
-          <Card className="border-gold bg-black">
-            <CardHeader>
-              <CardTitle>GOLD Token Governance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">Governance Overview</h3>
-                  <p className="text-gray-300 mb-4">
-                    GOLD token holders can participate in the governance of the Goldium.io ecosystem through a
-                    decentralized voting system.
+          <TabsContent value="governance">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Governance Overview</CardTitle>
+                  <CardDescription>How GOLD token holders govern the platform</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-400 mb-6">
+                    GOLD token holders have the power to influence the future direction of the Goldium ecosystem through
+                    decentralized governance. By staking GOLD, you gain voting rights proportional to your stake.
                   </p>
-                  <p className="text-gray-300 mb-4">
-                    Proposals can be submitted for various aspects of the platform, including feature development, token
-                    economics, reward structures, and ecosystem growth initiatives.
-                  </p>
-                  <p className="text-gray-300 mb-4">
-                    Voting power is proportional to the amount of GOLD tokens held or staked, with long-term stakers
-                    receiving additional voting weight.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-4 text-gold">Proposal Process</h3>
+
                   <div className="space-y-4">
-                    <div className="flex items-start">
-                      <div className="flex items-center justify-center rounded-full bg-gold/10 text-gold w-6 h-6 mt-1 mr-3">
-                        1
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Submission</h4>
-                        <p className="text-gray-400">Holders with at least 10,000 GOLD can submit proposals</p>
-                      </div>
+                    <div className="p-4 bg-black/30 rounded-lg">
+                      <h4 className="font-bold mb-2">Proposal Creation</h4>
+                      <p className="text-sm text-gray-400">
+                        Holders with at least 10,000 GOLD can submit governance proposals for community voting.
+                      </p>
                     </div>
-                    <div className="flex items-start">
-                      <div className="flex items-center justify-center rounded-full bg-gold/10 text-gold w-6 h-6 mt-1 mr-3">
-                        2
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Discussion</h4>
-                        <p className="text-gray-400">7-day discussion period for community feedback</p>
-                      </div>
+
+                    <div className="p-4 bg-black/30 rounded-lg">
+                      <h4 className="font-bold mb-2">Voting Power</h4>
+                      <p className="text-sm text-gray-400">
+                        1 staked GOLD = 1 vote. Longer staking periods receive voting power multipliers.
+                      </p>
                     </div>
-                    <div className="flex items-start">
-                      <div className="flex items-center justify-center rounded-full bg-gold/10 text-gold w-6 h-6 mt-1 mr-3">
-                        3
-                      </div>
-                      <div>
-                        <h4 className="font-bold">Voting</h4>
-                        <p className="text-gray-400">5-day voting period for all GOLD holders</p>
-                      </div>
+
+                    <div className="p-4 bg-black/30 rounded-lg">
+                      <h4 className="font-bold mb-2">Implementation</h4>
+                      <p className="text-sm text-gray-400">
+                        Proposals that reach quorum and majority approval are implemented by the core team.
+                      </p>
                     </div>
-                    <div className="flex items-start">
-                      <div className="flex items-center justify-center rounded-full bg-gold/10 text-gold w-6 h-6 mt-1 mr-3">
-                        4
+                  </div>
+                </CardContent>
+              </Card3D>
+
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Governance Parameters</CardTitle>
+                  <CardDescription>Current governance system settings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Proposal Threshold</span>
+                      <span className="font-bold">10,000 GOLD</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Voting Period</span>
+                      <span className="font-bold">7 days</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Quorum</span>
+                      <span className="font-bold">20% of staked GOLD</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Approval Threshold</span>
+                      <span className="font-bold">66%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Timelock</span>
+                      <span className="font-bold">48 hours</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-gray-800">
+                    <h4 className="font-medium mb-3">Voting Power Multipliers</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Flexible Staking</span>
+                        <span className="font-bold">1x</span>
                       </div>
-                      <div>
-                        <h4 className="font-bold">Implementation</h4>
-                        <p className="text-gray-400">Successful proposals are implemented by the team</p>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">30-Day Lock</span>
+                        <span className="font-bold">1.5x</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">90-Day Lock</span>
+                        <span className="font-bold">2x</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">180-Day Lock</span>
+                        <span className="font-bold">3x</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card3D>
 
-              <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4 text-gold">Active Proposals</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div className="black-gold-card">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-lg font-bold">New Staking Rewards</h4>
-                      <span className="text-xs bg-gold/20 text-gold px-2 py-1 rounded">Voting Active</span>
-                    </div>
-                    <p className="text-gray-400 mb-4">
-                      Proposal to increase staking rewards by 2% for all tiers and add special NFT rewards for long-term
-                      stakers.
-                    </p>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span>For:</span>
-                        <span className="text-green-500">65%</span>
+              <Card3D className="bg-slate-900/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Active Proposals</CardTitle>
+                  <CardDescription>Current governance votes</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="p-4 bg-black/30 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold">GIP-12: New Game Integration</h4>
+                        <span className="text-xs bg-blue-500/20 text-blue-500 px-2 py-1 rounded">Active</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Against:</span>
-                        <span className="text-red-500">35%</span>
+                      <p className="text-sm text-gray-400 mb-3">
+                        Proposal to integrate a new card battle game with GOLD token rewards.
+                      </p>
+                      <div className="w-full bg-gray-800 h-2 rounded-full mb-2">
+                        <div className="bg-gold-500 h-2 rounded-full" style={{ width: "72%" }}></div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Time Remaining:</span>
-                        <span>2 days</span>
-                      </div>
-                    </div>
-                    <Button className="gold-button w-full" onClick={() => handleAction("Vote")}>
-                      Vote Now
-                    </Button>
-                  </div>
-
-                  <div className="black-gold-card">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-lg font-bold">NFT Royalty Structure</h4>
-                      <span className="text-xs bg-blue-500/20 text-blue-500 px-2 py-1 rounded">Discussion</span>
-                    </div>
-                    <p className="text-gray-400 mb-4">
-                      Proposal to update NFT royalty structure to provide better incentives for creators and collectors.
-                    </p>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span>Comments:</span>
-                        <span>24</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Sentiment:</span>
-                        <span className="text-green-500">Positive</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Discussion Period:</span>
+                      <div className="flex justify-between text-xs">
+                        <span>72% Yes</span>
+                        <span>28% No</span>
                         <span>5 days left</span>
                       </div>
                     </div>
-                    <Button className="gold-button w-full" onClick={() => handleAction("Comment")}>
-                      Join Discussion
-                    </Button>
-                  </div>
-                </div>
 
-                <div className="mt-8">
-                  <h3 className="text-xl font-bold mb-4 text-gold">Past Governance Decisions</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gold/30">
-                          <th className="px-4 py-3 text-left">Proposal</th>
-                          <th className="px-4 py-3 text-left">Date</th>
-                          <th className="px-4 py-3 text-left">Votes</th>
-                          <th className="px-4 py-3 text-left">Result</th>
-                          <th className="px-4 py-3 text-left">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="border-b border-gold/10 hover:bg-gold/5">
-                          <td className="px-4 py-3">Burn Rate Increase</td>
-                          <td className="px-4 py-3">Mar 15, 2025</td>
-                          <td className="px-4 py-3">78% For</td>
-                          <td className="px-4 py-3 text-green-500">Passed</td>
-                          <td className="px-4 py-3">Implemented</td>
-                        </tr>
-                        <tr className="border-b border-gold/10 hover:bg-gold/5">
-                          <td className="px-4 py-3">New Game Integration</td>
-                          <td className="px-4 py-3">Feb 28, 2025</td>
-                          <td className="px-4 py-3">92% For</td>
-                          <td className="px-4 py-3 text-green-500">Passed</td>
-                          <td className="px-4 py-3">In Development</td>
-                        </tr>
-                        <tr className="border-b border-gold/10 hover:bg-gold/5">
-                          <td className="px-4 py-3">Token Bridge</td>
-                          <td className="px-4 py-3">Jan 10, 2025</td>
-                          <td className="px-4 py-3">45% For</td>
-                          <td className="px-4 py-3 text-red-500">Failed</td>
-                          <td className="px-4 py-3">Closed</td>
-                        </tr>
-                        <tr className="border-b border-gold/10 hover:bg-gold/5">
-                          <td className="px-4 py-3">Staking Fee Reduction</td>
-                          <td className="px-4 py-3">Dec 05, 2024</td>
-                          <td className="px-4 py-3">82% For</td>
-                          <td className="px-4 py-3 text-green-500">Passed</td>
-                          <td className="px-4 py-3">Implemented</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    <div className="p-4 bg-black/30 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold">GIP-13: Staking Rewards Adjustment</h4>
+                        <span className="text-xs bg-blue-500/20 text-blue-500 px-2 py-1 rounded">Active</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mb-3">
+                        Proposal to increase staking rewards for 90+ day locks by 2%.
+                      </p>
+                      <div className="w-full bg-gray-800 h-2 rounded-full mb-2">
+                        <div className="bg-gold-500 h-2 rounded-full" style={{ width: "65%" }}></div>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span>65% Yes</span>
+                        <span>35% No</span>
+                        <span>3 days left</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-black/30 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold">GIP-14: Treasury Allocation</h4>
+                        <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded">Passed</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mb-3">
+                        Allocate 100K GOLD from treasury for marketing initiatives.
+                      </p>
+                      <div className="w-full bg-gray-800 h-2 rounded-full mb-2">
+                        <div className="bg-gold-500 h-2 rounded-full" style={{ width: "82%" }}></div>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span>82% Yes</span>
+                        <span>18% No</span>
+                        <span>Implementation: 24h</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+
+                  <div className="mt-6 text-center">
+                    <Button className="bg-gold-500 hover:bg-gold-600 text-black button-3d">View All Proposals</Button>
+                  </div>
+                </CardContent>
+              </Card3D>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </section>
   )
 }

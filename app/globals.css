@@ -10,11 +10,16 @@
   --dark-primary: 0 0% 7%;
   --dark-secondary: 0 0% 10%;
   --dark-accent: 0 0% 15%;
+  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --gold-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  --gold-shadow-hover: 0 0 25px rgba(255, 215, 0, 0.5);
 }
 
 @layer base {
   body {
-    @apply bg-black text-white antialiased;
+    @apply bg-gradient-to-b from-slate-900 to-slate-800 text-white antialiased;
+    perspective: 1000px;
   }
 
   h1,
@@ -32,7 +37,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-black;
+    @apply bg-slate-900;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -58,15 +63,18 @@
     padding: 0.5rem 1rem;
     border-radius: 0.5rem;
     transition: all 0.3s ease;
+    transform-style: preserve-3d;
+    transform: perspective(1000px) translateZ(0);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
   .gold-button:hover {
     box-shadow: 0 4px 12px rgba(245, 196, 0, 0.3);
-    transform: translateY(-1px);
+    transform: perspective(1000px) translateZ(10px);
   }
 
   .gold-button:active {
-    transform: translateY(1px);
+    transform: perspective(1000px) translateZ(5px);
   }
 
   .gold-button:disabled {
@@ -74,22 +82,85 @@
     pointer-events: none;
   }
 
-  /* Modern NFT card */
+  /* Modern NFT card with 3D effect */
   .nft-card {
-    @apply relative overflow-hidden rounded-lg border border-gold-500/20 bg-black transition-all duration-300;
-    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    @apply relative overflow-hidden rounded-lg border border-gold-500/20 bg-slate-900/80 backdrop-blur-sm;
     transform-style: preserve-3d;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    transform: perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1);
+    box-shadow: var(--card-shadow);
   }
 
   .nft-card:hover {
     @apply shadow-lg border-gold-500/50;
-    box-shadow: 0 5px 20px rgba(245, 196, 0, 0.2);
+    box-shadow: var(--card-shadow-hover), var(--gold-shadow);
+    transform: perspective(1000px) translateZ(20px);
     animation: glow 2s infinite;
+  }
+
+  /* 3D Card Effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: var(--card-shadow);
+  }
+
+  .card-3d:hover {
+    box-shadow: var(--card-shadow-hover), var(--gold-shadow-hover);
+  }
+
+  .card-3d-content {
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .card-3d-shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 70%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .card-3d:hover .card-3d-shine {
+    opacity: 1;
+  }
+
+  /* 3D Button Effect */
+  .button-3d {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform: translateZ(0);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .button-3d:hover {
+    transform: translateZ(10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .button-3d:active {
+    transform: translateZ(5px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   /* Rarity badges with modern styling */
   .rarity-badge {
     @apply absolute top-2 right-2 px-2 py-1 rounded-md text-xs font-bold z-10 backdrop-blur-sm;
+    transform: translateZ(30px);
   }
 
   .rarity-common {
@@ -110,6 +181,41 @@
 
   .rarity-legendary {
     @apply bg-gold-500/80 text-black;
+  }
+
+  /* Glass card effect */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-lg;
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    box-shadow: var(--card-shadow);
+  }
+
+  .glass-card:hover {
+    box-shadow: var(--card-shadow-hover);
+    transform: perspective(1000px) translateZ(10px);
+  }
+
+  /* 3D Floating Element */
+  .float-3d {
+    animation: float-3d 6s ease-in-out infinite;
+    transform-style: preserve-3d;
+  }
+
+  /* Gold Emboss Effect */
+  .gold-emboss {
+    background: linear-gradient(145deg, #f5c400, #d6ab00);
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2), -5px -5px 10px rgba(255, 255, 255, 0.1), inset 0 0 0 rgba(0, 0, 0, 0),
+      inset 0 0 0 rgba(255, 255, 255, 0);
+    transition: all 0.3s ease;
+  }
+
+  .gold-emboss:hover {
+    box-shadow:
+      2px 2px 5px rgba(0, 0, 0, 0.2),
+      -2px -2px 5px rgba(255, 255, 255, 0.1),
+      inset 3px 3px 5px rgba(0, 0, 0, 0.1),
+      inset -3px -3px 5px rgba(255, 255, 255, 0.05);
   }
 }
 
@@ -136,6 +242,22 @@
   }
 }
 
+@keyframes float-3d {
+  0%,
+  100% {
+    transform: translateY(0) translateZ(0) rotateX(0) rotateY(0);
+  }
+  25% {
+    transform: translateY(-10px) translateZ(5px) rotateX(5deg) rotateY(3deg);
+  }
+  50% {
+    transform: translateY(0) translateZ(10px) rotateX(0) rotateY(5deg);
+  }
+  75% {
+    transform: translateY(10px) translateZ(5px) rotateX(-5deg) rotateY(3deg);
+  }
+}
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
@@ -143,4 +265,93 @@
   100% {
     transform: translateX(100%);
   }
+}
+
+/* Hero section with animated gradient */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at bottom, rgba(21, 25, 40, 0.8) 0%, rgba(10, 12, 16, 0.8) 100%);
+  z-index: 0;
+}
+
+.hero-section::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/images/hero-bg.png");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.2;
+  z-index: -1;
+}
+
+/* Gold text gradient */
+.gold-gradient {
+  background: linear-gradient(to right, #d6ab00, #f5c400, #d6ab00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shine 3s linear infinite;
+  background-size: 200% auto;
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* Black gold card */
+.black-gold-card {
+  @apply bg-slate-900/80 backdrop-blur-sm border border-gold-500/30 rounded-lg p-6;
+  transform-style: preserve-3d;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.black-gold-card:hover {
+  @apply border-gold-500/60;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2), 0 0 10px rgba(255, 215, 0, 0.3);
+  transform: perspective(1000px) translateZ(20px) rotateX(2deg) rotateY(2deg);
+}
+
+/* 3D Tilt Card Effect */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+
+.tilt-card-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+
+.tilt-card-shine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at var(--x) var(--y), rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.tilt-card:hover .tilt-card-shine {
+  opacity: 1;
 }

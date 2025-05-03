@@ -1,13 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Suspense, useState, useEffect } from "react"
 import NFTCard from "@/components/nft-card"
 import MarketplaceHeader from "@/components/marketplace-header"
 import FilterSidebar from "@/components/filter-sidebar"
 import { useToast } from "@/hooks/use-toast"
+import GoldBubbles from "@/components/gold-bubbles"
+import MarketplaceTabs from "@/components/marketplace-tabs"
 
 // Expanded Sample NFT data with more items
 const SAMPLE_NFTS = [
@@ -59,7 +58,7 @@ const SAMPLE_NFTS = [
   {
     id: "6",
     name: "Leather Gauntlets",
-    image: "/placeholder.svg?height=400&width=400&query=leather+armor+gauntlets+fantasy",
+    image: "/placeholder.svg?key=v7dn3",
     price: 120,
     rarity: "common",
     category: "armor",
@@ -68,7 +67,7 @@ const SAMPLE_NFTS = [
   {
     id: "7",
     name: "Ice Shard Spell",
-    image: "/placeholder.svg?height=400&width=400&query=ice+shard+magic+spell+fantasy",
+    image: "/placeholder.svg?key=1tiqw",
     price: 380,
     rarity: "uncommon",
     category: "spells",
@@ -77,7 +76,7 @@ const SAMPLE_NFTS = [
   {
     id: "8",
     name: "Ancient Amulet",
-    image: "/placeholder.svg?height=400&width=400&query=ancient+magic+amulet+fantasy+artifact",
+    image: "/placeholder.svg?key=4x25e",
     price: 920,
     rarity: "epic",
     category: "artifacts",
@@ -86,7 +85,7 @@ const SAMPLE_NFTS = [
   {
     id: "9",
     name: "Enchanted Bow",
-    image: "/placeholder.svg?height=400&width=400&query=enchanted+bow+fantasy+weapon",
+    image: "/placeholder.svg?key=fxxae",
     price: 750,
     rarity: "rare",
     category: "weapons",
@@ -95,7 +94,7 @@ const SAMPLE_NFTS = [
   {
     id: "10",
     name: "Mystic Orb",
-    image: "/placeholder.svg?height=400&width=400&query=mystic+orb+glowing+gem+fantasy",
+    image: "/placeholder.svg?key=oui4d",
     price: 1100,
     rarity: "epic",
     category: "gems",
@@ -283,7 +282,91 @@ const SAMPLE_NFTS = [
   },
 ]
 
-export default function Marketplace() {
+// Sample NFT data
+const nfts = [
+  {
+    id: "1",
+    name: "Dragon Breath Sword",
+    image: "/nft-images/dragon-breath-sword.png",
+    price: 1250,
+    currency: "GOLD",
+    rarity: "legendary",
+    creator: "CryptoForge",
+    likes: 89,
+  },
+  {
+    id: "2",
+    name: "Ethereal Shield",
+    image: "/nft-images/ethereal-shield.png",
+    price: 850,
+    currency: "GOLD",
+    rarity: "epic",
+    creator: "DigitalArtisan",
+    likes: 56,
+  },
+  {
+    id: "3",
+    name: "Arcane Fireball",
+    image: "/nft-images/arcane-fireball.png",
+    price: 600,
+    currency: "GOLD",
+    rarity: "rare",
+    creator: "MagicMinter",
+    likes: 42,
+  },
+  {
+    id: "4",
+    name: "Crown of Wisdom",
+    image: "/nft-images/crown-of-wisdom.png",
+    price: 1800,
+    currency: "GOLD",
+    rarity: "legendary",
+    creator: "RoyalCreations",
+    likes: 103,
+  },
+  {
+    id: "5",
+    name: "Ruby of Power",
+    image: "/nft-images/ruby-of-power.png",
+    price: 750,
+    currency: "GOLD",
+    rarity: "epic",
+    creator: "GemCrafter",
+    likes: 67,
+  },
+  {
+    id: "6",
+    name: "Leather Gauntlets",
+    image: "/nft-images/leather-gauntlets.png",
+    price: 300,
+    currency: "GOLD",
+    rarity: "uncommon",
+    creator: "ArmorSmith",
+    likes: 28,
+  },
+  {
+    id: "7",
+    name: "Ice Shard Spell",
+    image: "/nft-images/ice-shard-spell.png",
+    price: 550,
+    currency: "GOLD",
+    rarity: "rare",
+    creator: "FrostMage",
+    likes: 39,
+  },
+  {
+    id: "8",
+    name: "Ancient Amulet",
+    image: "/nft-images/ancient-amulet.png",
+    price: 920,
+    currency: "GOLD",
+    rarity: "epic",
+    creator: "RelicHunter",
+    likes: 71,
+  },
+]
+
+export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [priceRange, setPriceRange] = useState([0, 2500])
@@ -343,137 +426,33 @@ export default function Marketplace() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen pt-16 relative">
+      <GoldBubbles count={30} minSize={15} maxSize={50} />
       <MarketplaceHeader />
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
-        {/* Filters Sidebar */}
-        <FilterSidebar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
-          selectedRarities={selectedRarities}
-          setSelectedRarities={setSelectedRarities}
-        />
-
-        {/* NFT Grid */}
-        <div className="lg:col-span-3">
-          <Tabs defaultValue="all">
-            <div className="flex justify-between items-center mb-6">
-              <TabsList className="bg-black border border-gold-500/50">
-                <TabsTrigger value="all" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
-                  All NFTs
-                </TabsTrigger>
-                <TabsTrigger value="buy-now" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
-                  Buy Now
-                </TabsTrigger>
-                <TabsTrigger
-                  value="auctions"
-                  className="data-[state=active]:bg-gold-500 data-[state=active]:text-black"
-                >
-                  Auctions
-                </TabsTrigger>
-                <TabsTrigger value="new" className="data-[state=active]:bg-gold-500 data-[state=active]:text-black">
-                  New
-                </TabsTrigger>
-              </TabsList>
-
-              <div className="text-sm text-gray-400">{filteredNFTs.length} items</div>
+      <div className="container mx-auto px-4 py-8">
+        <MarketplaceTabs />
+        <div className="flex flex-col md:flex-row gap-6 mt-8">
+          <aside className="w-full md:w-64 shrink-0">
+            <FilterSidebar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              priceRange={priceRange}
+              setPriceRange={setPriceRange}
+              selectedRarities={selectedRarities}
+              setSelectedRarities={setSelectedRarities}
+            />
+          </aside>
+          <main className="flex-grow">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <Suspense fallback={<div>Loading NFTs...</div>}>
+                {nfts.map((nft) => (
+                  <NFTCard key={nft.id} nft={nft} />
+                ))}
+              </Suspense>
             </div>
-
-            <TabsContent value="all" className="mt-0">
-              {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[...Array(12)].map((_, index) => (
-                    <div key={index} className="animate-pulse">
-                      <div className="bg-gray-800 rounded-lg h-64 mb-2"></div>
-                      <div className="bg-gray-800 h-4 rounded w-3/4 mb-2"></div>
-                      <div className="bg-gray-800 h-4 rounded w-1/2"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : filteredNFTs.length > 0 ? (
-                <motion.div
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                  variants={container}
-                  initial="hidden"
-                  animate="show"
-                >
-                  <AnimatePresence>
-                    {filteredNFTs.slice(0, displayedNFTs).map((nft) => (
-                      <motion.div key={nft.id} variants={item}>
-                        <NFTCard nft={nft} />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-gray-400">No NFTs found matching your filters.</p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="buy-now" className="mt-0">
-              <motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                variants={container}
-                initial="hidden"
-                animate="show"
-              >
-                {filteredNFTs.slice(0, 12).map((nft) => (
-                  <motion.div key={nft.id} variants={item}>
-                    <NFTCard nft={nft} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent value="auctions" className="mt-0">
-              <motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                variants={container}
-                initial="hidden"
-                animate="show"
-              >
-                {filteredNFTs.slice(2, 14).map((nft) => (
-                  <motion.div key={nft.id} variants={item}>
-                    <NFTCard nft={nft} isAuction={true} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent value="new" className="mt-0">
-              <motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-                variants={container}
-                initial="hidden"
-                animate="show"
-              >
-                {filteredNFTs.slice(15, 27).map((nft) => (
-                  <motion.div key={nft.id} variants={item}>
-                    <NFTCard nft={nft} isNew={true} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </TabsContent>
-          </Tabs>
-
-          <div className="mt-8 text-center">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant="outline"
-                className="border-gold-500 text-gold-500 hover:bg-gold-500/10"
-                onClick={loadMoreNFTs}
-              >
-                Load More
-              </Button>
-            </motion.div>
-          </div>
+          </main>
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Clock, Calendar, Gift, Users } from "lucide-react"
+import { ScrollStaggerContainer, ScrollStaggerItem } from "@/components/ui/scroll-animation"
 
 export default function EventsPreview() {
   const events = [
@@ -36,36 +37,40 @@ export default function EventsPreview() {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {events.map((event) => (
-        <Card key={event.id} className="border-gold bg-black">
-          <CardContent className="pt-6">
-            <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-            <p className="text-gray-400 mb-4">{event.description}</p>
+    <ScrollStaggerContainer staggerDelay={0.15}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {events.map((event) => (
+          <ScrollStaggerItem key={event.id} type="slide-up">
+            <Card className="border-gold bg-black">
+              <CardContent className="pt-6">
+                <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                <p className="text-gray-400 mb-4">{event.description}</p>
 
-            <div className="space-y-3 mb-4">
-              <div className="flex items-center">
-                <Clock className="h-5 w-5 text-gold mr-2" />
-                <span>Starts in: {event.time}</span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="h-5 w-5 text-gold mr-2" />
-                <span>{event.date}</span>
-              </div>
-              <div className="flex items-center">
-                <Gift className="h-5 w-5 text-gold mr-2" />
-                <span>{event.reward}</span>
-              </div>
-              <div className="flex items-center">
-                <Users className="h-5 w-5 text-gold mr-2" />
-                <span>{event.participants} participants</span>
-              </div>
-            </div>
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center">
+                    <Clock className="h-5 w-5 text-gold mr-2" />
+                    <span>Starts in: {event.time}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Calendar className="h-5 w-5 text-gold mr-2" />
+                    <span>{event.date}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Gift className="h-5 w-5 text-gold mr-2" />
+                    <span>{event.reward}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Users className="h-5 w-5 text-gold mr-2" />
+                    <span>{event.participants} participants</span>
+                  </div>
+                </div>
 
-            <Button className="gold-button w-full">Set Reminder</Button>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+                <Button className="gold-button w-full">Set Reminder</Button>
+              </CardContent>
+            </Card>
+          </ScrollStaggerItem>
+        ))}
+      </div>
+    </ScrollStaggerContainer>
   )
 }
