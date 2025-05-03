@@ -73,10 +73,10 @@
     "@solana/wallet-adapter-base": "latest",
     "@react-three/rapier": "latest",
     "@react-three/drei": "latest",
-    "@solana/wallet-adapter-wallets": "latest",
-    "@solana/wallet-adapter-react-ui": "latest",
     "howler": "latest",
-    "canvas-confetti": "latest"
+    "canvas-confetti": "latest",
+    "@solana/wallet-adapter-wallets": "latest",
+    "@solana/wallet-adapter-react-ui": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

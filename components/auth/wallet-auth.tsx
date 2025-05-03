@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useWallet } from "@/hooks/use-wallet"
 import { useToast } from "@/hooks/use-toast"
-import { motion } from "framer-motion"
-import { Wallet, Shield, ArrowRight, ExternalLink, Copy, Check } from "lucide-react"
+import { Wallet, Shield, ArrowRight } from "lucide-react"
+import { WalletIdentityCard } from "@/components/wallet-identity-card"
+import { ConnectWalletButton } from "@/components/connect-wallet-button"
 
 export function WalletAuth() {
   const { connected, connecting, address, connect, disconnect } = useWallet()
@@ -108,35 +109,7 @@ export function WalletAuth() {
                   </Button>
                 </div>
 
-                <Button className="gold-button w-full" onClick={connect} disabled={connecting}>
-                  {connecting ? (
-                    <div className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Connecting...
-                    </div>
-                  ) : (
-                    <>Connect Wallet</>
-                  )}
-                </Button>
+                <ConnectWalletButton className="w-full" />
 
                 <div className="text-xs text-gray-400 text-center">
                   By connecting, you agree to our Terms of Service
@@ -156,67 +129,7 @@ export function WalletAuth() {
             </TabsContent>
           </Tabs>
         ) : (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <div className="bg-gold/5 rounded-lg p-4 mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <div className="text-sm text-gray-400">Connected Wallet</div>
-                <div className="text-xs px-2 py-1 bg-green-500/20 text-green-500 rounded-full">Active</div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="font-mono font-medium">{shortenAddress(address)}</div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-gray-400 hover:text-gold"
-                    onClick={copyAddress}
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-gray-400 hover:text-gold"
-                    onClick={() => window.open(getExplorerLink(), "_blank")}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-400">Network</div>
-                <div className="text-sm font-medium capitalize">{selectedNetwork}</div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-400">Gas Price</div>
-                <div className="text-sm font-medium">
-                  {selectedNetwork === "ethereum"
-                    ? "12 Gwei"
-                    : selectedNetwork === "solana"
-                      ? "0.000005 SOL"
-                      : "5 Gwei"}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-gray-400">ENS Name</div>
-                <div className="text-sm font-medium">{Math.random() > 0.5 ? "golduser.eth" : "Not set"}</div>
-              </div>
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full mt-4 border-red-500/50 text-red-500 hover:bg-red-500/10"
-              onClick={disconnect}
-            >
-              Disconnect Wallet
-            </Button>
-          </motion.div>
+          <WalletIdentityCard />
         )}
       </CardContent>
 

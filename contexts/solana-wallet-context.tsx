@@ -1,9 +1,9 @@
 "use client"
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, useRef, type ReactNode } from "react"
 import { ConnectionProvider, WalletProvider, useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets"
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui"
+import { WalletModalProvider, useWalletModal } from "@solana/wallet-adapter-react-ui"
 import { type PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { useToast } from "@/hooks/use-toast"
 import { useNetwork } from "@/contexts/network-context"
@@ -51,12 +51,14 @@ const SolanaContext = createContext<SolanaContextType>({
 function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
   const { connection } = useConnection()
   const wallet = useWallet()
+  const { setVisible } = useWalletModal()
   const { toast } = useToast()
   const { network, goldTokenAddress } = useNetwork()
 
   const [solBalance, setSolBalance] = useState(0)
   const [goldBalance, setGoldBalance] = useState(0)
   const [connecting, setConnecting] = useState(false)
+  const modalOpenedRef = useRef(false)
 
   const walletAddress = useMemo(() => {
     return wallet.publicKey ? wallet.publicKey.toString() : null
@@ -82,6 +84,9 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
         title: "Wallet Connected",
         description: `Connected to ${wallet.publicKey.toString().slice(0, 6)}...${wallet.publicKey.toString().slice(-4)}`,
       })
+
+      // Reset modal opened flag when connected
+      modalOpenedRef.current = false
     } else {
       setSolBalance(0)
       setGoldBalance(0)
@@ -114,17 +119,18 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Open wallet modal function - directly uses the wallet adapter's select method
+  // Open wallet modal function - using the wallet adapter's modal
   const openWalletModal = () => {
-    if (wallet.wallets.length > 0) {
-      wallet.select(wallet.wallets[0].adapter.name)
-    } else {
-      toast({
-        title: "No Wallets Available",
-        description: "Please install Phantom or another Solana wallet extension.",
-        variant: "destructive",
-      })
+    // Prevent opening the modal multiple times
+    if (modalOpenedRef.current || connecting || wallet.connecting) {
+      console.log("Modal already opened or connecting in progress, ignoring request")
+      return
     }
+
+    modalOpenedRef.current = true
+
+    // Use the wallet modal directly
+    setVisible(true)
   }
 
   // Disconnect wallet
@@ -135,6 +141,9 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
         title: "Wallet Disconnected",
         description: "Your wallet has been disconnected.",
       })
+
+      // Reset modal opened flag when disconnected
+      modalOpenedRef.current = false
     } catch (error) {
       console.error("Error disconnecting wallet:", error)
     }
@@ -275,7 +284,7 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={true}>
+      <WalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
           <SolanaWalletContextProvider>{children}</SolanaWalletContextProvider>
         </WalletModalProvider>
