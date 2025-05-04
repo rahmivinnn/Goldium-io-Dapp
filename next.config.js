@@ -16,6 +16,16 @@ const nextConfig = {
     if (isServer) {
       config.externals = [...(config.externals || []), "pino-pretty", "lokijs", "encoding"]
     }
+
+    // Ignore canvas-confetti in the browser build
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+        'canvas-confetti': false
+      };
+    }
+
     return config
   },
   // Skip specific pages during static generation
