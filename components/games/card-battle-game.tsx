@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { Shield, Zap, Heart, Sword, FastForward, Pizza, Moon, SkipForward, FileText, Trophy, Star, Flame, Lightning, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
-import confetti from "canvas-confetti"
 
 interface CardStats {
   id: string
@@ -20,75 +19,8 @@ interface CardStats {
 
 // Helper function for visual effects
 const createBattleEffect = (type: string) => {
-  switch(type) {
-    case 'victory':
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.6 }
-        });
-      }, 200);
-      setTimeout(() => {
-        confetti({
-          particleCount: 100,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.6 }
-        });
-      }, 400);
-      break;
-    case 'attack':
-      confetti({
-        particleCount: 30,
-        spread: 50,
-        colors: ['#FF5555', '#FF0000', '#CC0000'],
-        shapes: ['square'],
-        origin: { y: 0.5, x: 0.7 }
-      });
-      break;
-    case 'heal':
-      confetti({
-        particleCount: 30,
-        spread: 50,
-        colors: ['#00FF00', '#22CC22', '#00AA00'],
-        shapes: ['circle'],
-        origin: { y: 0.5, x: 0.3 }
-      });
-      break;
-    case 'special':
-      confetti({
-        particleCount: 50,
-        spread: 100,
-        colors: ['#AA00FF', '#CC00FF', '#FF00FF'],
-        shapes: ['star'],
-        origin: { y: 0.5, x: 0.7 }
-      });
-      break;
-    case 'shield':
-      confetti({
-        particleCount: 30,
-        spread: 50,
-        colors: ['#FFFF00', '#FFCC00', '#FFAA00'],
-        shapes: ['circle'],
-        origin: { y: 0.5, x: 0.3 }
-      });
-      break;
-    case 'defeat':
-      confetti({
-        particleCount: 30,
-        spread: 70,
-        colors: ['#FF0000', '#CC0000', '#880000'],
-        origin: { y: 0.5 }
-      });
-      break;
-  }
+  // Visual effects are handled by CSS animations
+  console.log(`Battle effect: ${type}`);
 };
 
 export default function CardBattleGame() {
