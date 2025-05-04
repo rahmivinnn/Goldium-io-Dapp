@@ -90,7 +90,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="container max-w-4xl py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 mt-16">
         <h1 className="text-3xl font-bold">Transaction History</h1>
         <div className="flex items-center gap-2">
           <TransactionFilters value={filter} onChange={setFilter} />
