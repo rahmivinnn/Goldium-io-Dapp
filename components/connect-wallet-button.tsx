@@ -3,71 +3,35 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { WalletIdentityCard } from "@/components/wallet-identity-card"
+import { WalletConnectPopup } from "@/components/wallet-connect-popup"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { PhantomLogo } from "./phantom-logo"
 
 interface ConnectWalletButtonProps {
   showIdentityCard?: boolean
+  className?: string
 }
 
-export function ConnectWalletButton({ showIdentityCard = true }: ConnectWalletButtonProps) {
+export function ConnectWalletButton({ showIdentityCard = true, className = "" }: ConnectWalletButtonProps) {
   const [mounted, setMounted] = useState(false)
-  const [connected, setConnected] = useState(false)
-  const [connecting, setConnecting] = useState(false)
   const [showIdentity, setShowIdentity] = useState(false)
+  const [showPopup, setShowPopup] = useState(false)
+  const { connected, connecting, connect, disconnect } = useSolanaWallet()
 
   useEffect(() => {
     setMounted(true)
-
-    // Check if wallet is connected
-    if (typeof window !== "undefined" && window.solana && window.solana.isConnected) {
-      setConnected(true)
-    }
-
-    // Listen for wallet connection changes
-    if (typeof window !== "undefined" && window.solana) {
-      window.solana.on("connect", () => setConnected(true))
-      window.solana.on("disconnect", () => setConnected(false))
-    }
-
-    return () => {
-      // Cleanup listeners
-      if (typeof window !== "undefined" && window.solana) {
-        window.solana.removeAllListeners?.("connect")
-        window.solana.removeAllListeners?.("disconnect")
-      }
-    }
   }, [])
 
   const handleConnect = async () => {
     if (!mounted || connecting) return
-
-    setConnecting(true)
-    try {
-      if (typeof window !== "undefined" && window.solana) {
-        if (!window.solana.isConnected) {
-          await window.solana.connect()
-        }
-        setConnected(true)
-      } else {
-        console.error("Phantom wallet not found")
-        // Show a message to install Phantom wallet
-        alert("Please install Phantom wallet to connect")
-      }
-    } catch (error) {
-      console.error("Error connecting wallet:", error)
-    } finally {
-      setConnecting(false)
-    }
+    setShowPopup(true)
   }
 
   const handleDisconnect = async () => {
     if (!mounted) return
-
     try {
-      if (typeof window !== "undefined" && window.solana) {
-        await window.solana.disconnect()
-        setConnected(false)
-        setShowIdentity(false)
-      }
+      await disconnect()
+      setShowIdentity(false)
     } catch (error) {
       console.error("Error disconnecting wallet:", error)
     }
@@ -79,9 +43,13 @@ export function ConnectWalletButton({ showIdentityCard = true }: ConnectWalletBu
     }
   }
 
+  const handlePopupClose = () => {
+    setShowPopup(false)
+  }
+
   if (!mounted) {
     return (
-      <Button className="bg-gold hover:bg-gold/80 text-black font-medium" disabled>
+      <Button className={`bg-yellow-500 hover:bg-yellow-600 text-black font-medium ${className}`} disabled>
         Loading...
       </Button>
     )
@@ -89,16 +57,33 @@ export function ConnectWalletButton({ showIdentityCard = true }: ConnectWalletBu
 
   if (!connected) {
     return (
-      <Button className="bg-gold hover:bg-gold/80 text-black font-medium" onClick={handleConnect} disabled={connecting}>
-        {connecting ? "Connecting..." : "Connect Wallet"}
-      </Button>
+      <>
+        <Button
+          className={`bg-yellow-500 hover:bg-yellow-600 text-black font-medium ${className}`}
+          onClick={handleConnect}
+          disabled={connecting}
+        >
+          <div className="flex items-center gap-2">
+            <PhantomLogo size={20} className="mr-1" />
+            {connecting ? "Connecting..." : "Connect Wallet"}
+          </div>
+        </Button>
+        {showPopup && <WalletConnectPopup onClose={handlePopupClose} />}
+      </>
     )
   }
 
   return (
     <div className="relative">
-      <Button variant="outline" className="border-gold text-gold hover:bg-gold/10" onClick={toggleIdentityCard}>
-        {showIdentity ? "Hide Wallet" : "Connected"}
+      <Button
+        variant="outline"
+        className={`border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 ${className}`}
+        onClick={toggleIdentityCard}
+      >
+        <div className="flex items-center gap-2">
+          <PhantomLogo size={16} className="mr-1" />
+          {showIdentity ? "Hide Wallet" : "Connected"}
+        </div>
       </Button>
 
       {showIdentity && showIdentityCard && (

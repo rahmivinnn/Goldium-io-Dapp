@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ConnectWalletButton } from "@/components/connect-wallet-button"
+import { WalletConnectButton } from "@/components/wallet-connect-button"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import { ChevronDown, Menu, X, Wallet } from "lucide-react"
 
@@ -11,12 +12,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-  // Safe default for server-side rendering
-  const connected = false
-
-  // Initialize wallet context outside of conditional
-  const walletContext = useSolanaWallet()
+  const { connected } = useSolanaWallet()
 
   useEffect(() => {
     setMounted(true)
@@ -104,6 +100,12 @@ export default function Header() {
                 >
                   Burn
                 </Link>
+                <Link
+                  href="/wallet-guide"
+                  className="block px-4 py-2 text-sm text-white hover:bg-yellow-500/20 hover:text-yellow-500"
+                >
+                  Wallet Guide
+                </Link>
               </div>
             </div>
             <Link href="/games" className="text-white hover:text-yellow-500 transition-colors">
@@ -129,7 +131,7 @@ export default function Header() {
               <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
               <span className="text-white text-sm">Mainnet</span>
             </div>
-            <ConnectWalletButton />
+            {connected ? <ConnectWalletButton /> : <WalletConnectButton />}
           </div>
 
           {/* Mobile Menu Button */}
@@ -204,6 +206,13 @@ export default function Header() {
                   >
                     Burn
                   </Link>
+                  <Link
+                    href="/wallet-guide"
+                    className="block text-white hover:text-yellow-500 transition-colors py-1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Wallet Guide
+                  </Link>
                 </div>
               </div>
               <Link
@@ -252,7 +261,7 @@ export default function Header() {
             </div>
 
             <div className="py-2">
-              <ConnectWalletButton className="w-full" />
+              {connected ? <ConnectWalletButton className="w-full" /> : <WalletConnectButton className="w-full" />}
             </div>
           </div>
         </div>

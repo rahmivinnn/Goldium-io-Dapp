@@ -81,8 +81,9 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
+        sans: ["var(--font-sans)"],
+        orbitron: ["var(--font-orbitron)"],
         serif: ["var(--font-cinzel)", "serif"],
-        sans: ["var(--font-inter)", "sans-serif"],
       },
       backgroundImage: {
         "gold-gradient": "linear-gradient(to right, #D6AB00, #F5C400, #D6AB00)",

@@ -1,54 +1,36 @@
 export default function StakingLoading() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-amber-500 to-yellow-300 bg-clip-text text-transparent">
-        Goldium Staking & Yield
-      </h1>
+    <div className="container mx-auto px-4 py-16">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="h-10 w-64 bg-yellow-500/20 rounded animate-pulse mx-auto mb-4"></div>
+          <div className="h-6 w-96 bg-yellow-500/10 rounded animate-pulse mx-auto"></div>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <div className="border border-gold/20 bg-black/60 backdrop-blur-sm rounded-lg p-6">
-            <div className="text-2xl text-center text-gold mb-2">Loading Staking Interface...</div>
-            <div className="text-center text-gray-400 mb-6">Please wait while we load the staking interface</div>
-            <div className="h-96 flex items-center justify-center">
-              <div className="animate-pulse flex space-x-4">
-                <div className="rounded-full bg-gold/20 h-12 w-12"></div>
-                <div className="flex-1 space-y-4 py-1">
-                  <div className="h-4 bg-gold/20 rounded w-3/4"></div>
-                  <div className="space-y-2">
-                    <div className="h-4 bg-gold/20 rounded"></div>
-                    <div className="h-4 bg-gold/20 rounded w-5/6"></div>
-                  </div>
-                </div>
+        <div className="bg-black/50 border border-yellow-500/30 rounded-lg p-8 mb-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex-1">
+              <div className="h-8 w-48 bg-yellow-500/20 rounded animate-pulse mb-4"></div>
+              <div className="space-y-4 mb-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-6 w-full bg-yellow-500/10 rounded animate-pulse"></div>
+                ))}
               </div>
+              <div className="h-12 w-48 bg-yellow-500/20 rounded animate-pulse"></div>
             </div>
+
+            <div className="flex-shrink-0 w-48 h-48 rounded-full bg-yellow-500/20 animate-pulse"></div>
           </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="border border-gold/20 bg-black/60 backdrop-blur-sm rounded-lg p-6">
-            <div className="text-xl text-gold mb-4">Top Stakers</div>
-            <div className="animate-pulse space-y-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center space-x-2">
-                  <div className="rounded-full bg-gold/20 h-8 w-8"></div>
-                  <div className="flex-1">
-                    <div className="h-3 bg-gold/20 rounded w-1/2 mb-2"></div>
-                    <div className="h-3 bg-gold/20 rounded w-1/4"></div>
-                  </div>
-                </div>
-              ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-black/40 border border-yellow-500/20 rounded-lg p-6">
+              <div className="h-6 w-32 bg-yellow-500/20 rounded animate-pulse mb-2"></div>
+              <div className="h-8 w-24 bg-yellow-500/20 rounded animate-pulse mb-2"></div>
+              <div className="h-4 w-40 bg-yellow-500/10 rounded animate-pulse"></div>
             </div>
-          </div>
-
-          <div className="border border-gold/20 bg-black/60 backdrop-blur-sm rounded-lg p-6">
-            <div className="text-xl text-gold mb-4">Recent Activity</div>
-            <div className="animate-pulse space-y-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-12 bg-gold/10 rounded-md"></div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

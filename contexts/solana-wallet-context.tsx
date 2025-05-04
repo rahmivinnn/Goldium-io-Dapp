@@ -23,7 +23,7 @@ interface SolanaWalletContextType {
   solBalance: number
   goldBalance: number
   connection: Connection | null
-  connect: () => Promise<void>
+  connect: () => Promise<{ success: boolean; rejected?: boolean }>
   disconnect: () => Promise<void>
   refreshBalance: () => Promise<void>
   sendTransaction: (transaction: any) => Promise<string>
@@ -38,7 +38,7 @@ const SolanaWalletContext = createContext<SolanaWalletContextType>({
   solBalance: 0,
   goldBalance: 0,
   connection: null,
-  connect: async () => {},
+  connect: async () => ({ success: false }),
   disconnect: async () => {},
   refreshBalance: async () => {},
   sendTransaction: async () => "",
@@ -154,7 +154,7 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
     }
   }
 
-  // Connect wallet - this is now a simple wrapper around window.solana.connect()
+  // Connect wallet
   const connect = async () => {
     try {
       console.log("Connect function called in context")
@@ -162,24 +162,70 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
 
       // Check if we're in a browser environment
       if (typeof window === "undefined") {
-        throw new Error("Cannot connect wallet in server environment")
+        setConnecting(false)
+        return { success: false }
       }
 
       // Check if Phantom is installed
       if (!window.solana || !window.solana.isPhantom) {
         console.log("Phantom not installed")
         setConnecting(false)
-        throw new Error("Phantom wallet is not installed")
+
+        // Show a toast notification
+        toast({
+          title: "Wallet Not Found",
+          description: "Please install Phantom wallet to connect",
+          variant: "destructive",
+        })
+
+        // Open Phantom website in a new tab
+        window.open("https://phantom.app/", "_blank")
+        return { success: false }
       }
 
       console.log("Requesting connection from Phantom...")
+
+      // Directly connect to Phantom
+      const response = await window.solana.connect()
+      console.log("Connection response:", response)
+
       // The actual connection will be handled by the event listener
-      await window.solana.connect()
-      console.log("Connection request sent to Phantom")
+      // but we can also update state here for faster UI response
+      if (response && response.publicKey) {
+        setPublicKey(response.publicKey)
+        setAddress(response.publicKey.toString())
+        setConnected(true)
+        if (connection) {
+          fetchBalances(connection, response.publicKey.toString())
+        }
+      }
+
+      setConnecting(false)
+      return { success: true }
     } catch (error: any) {
       console.error("Failed to connect wallet:", error)
       setConnecting(false)
-      throw error
+
+      // Check if the error is due to user rejection
+      if (
+        error.message &&
+        (error.message.includes("User rejected") ||
+          error.message.includes("user rejected") ||
+          error.message.includes("User canceled"))
+      ) {
+        console.log("User rejected wallet connection")
+        // Don't show an error toast for user rejection
+        return { success: false, rejected: true }
+      }
+
+      // Show error toast for other errors
+      toast({
+        title: "Connection Failed",
+        description: error.message || "Failed to connect to wallet",
+        variant: "destructive",
+      })
+
+      return { success: false }
     }
   }
 
@@ -188,6 +234,13 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
     try {
       if (window.solana) {
         await window.solana.disconnect()
+
+        // Manually update state for immediate UI response
+        setPublicKey(null)
+        setAddress(null)
+        setConnected(false)
+        setSolBalance(0)
+        setGoldBalance(0)
       }
     } catch (error) {
       console.error("Error disconnecting wallet:", error)
@@ -211,6 +264,17 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
       return signature
     } catch (error: any) {
       console.error("Transaction error:", error)
+
+      // Check if the error is due to user rejection
+      if (
+        error.message &&
+        (error.message.includes("User rejected") ||
+          error.message.includes("user rejected") ||
+          error.message.includes("User canceled"))
+      ) {
+        throw new Error("Transaction was rejected by user")
+      }
+
       throw new Error(error.message || "Failed to send transaction")
     }
   }

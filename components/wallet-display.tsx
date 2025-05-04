@@ -7,6 +7,7 @@ import { Copy, ExternalLink, RefreshCw } from "lucide-react"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useNetwork } from "@/contexts/network-context"
+import { PhantomLogo } from "./phantom-logo"
 
 export function WalletDisplay() {
   const { connected, address, solBalance, goldBalance, refreshBalance } = useSolanaWallet()
@@ -75,7 +76,7 @@ export function WalletDisplay() {
         <div className="flex flex-col space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <PhantomLogo size={20} />
               <span className="text-yellow-500 font-medium">{shortenAddress(address)}</span>
             </div>
             <div className="flex items-center space-x-2">

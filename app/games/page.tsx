@@ -5,6 +5,9 @@ import CoinFlipGame from "@/components/games/coin-flip-game"
 import CardFlipGame from "@/components/games/card-flip-game"
 import CardBattleGame from "@/components/games/card-battle-game"
 import FloatingParticles from "@/components/floating-particles"
+import { Orbitron } from "next/font/google"
+
+const orbitron = Orbitron({ subsets: ["latin"] })
 
 export default function GamesPage() {
   return (
@@ -12,7 +15,11 @@ export default function GamesPage() {
       <FloatingParticles count={40} speed={0.7} />
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 gold-gradient">Goldium Games</h1>
+          <h1
+            className={`text-4xl md:text-5xl font-bold mt-16 mb-10 text-center ${orbitron.className} tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600`}
+          >
+            Goldium Games
+          </h1>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Play, compete, and earn GOLD tokens with our exciting blockchain-powered games
           </p>

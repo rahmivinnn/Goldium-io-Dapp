@@ -1,2 +1,7 @@
+// This file is used to configure the staking-client page
 export const dynamic = "force-dynamic"
-export const runtime = "nodejs"
+export const runtime = "edge"
+export const revalidate = 0
+export const fetchCache = "force-no-store"
+export const dynamicParams = true
+export const generateStaticParams = false

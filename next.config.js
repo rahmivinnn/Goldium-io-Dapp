@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -12,10 +11,6 @@ const nextConfig = {
     unoptimized: true,
     domains: ["v0.blob.com"],
   },
-  // Completely disable SSR for problematic pages
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
   webpack: (config, { isServer }) => {
     // Fix for pino-pretty issues
     if (isServer) {
@@ -23,8 +18,29 @@ const nextConfig = {
     }
     return config
   },
-  // Exclude specific pages from SSR
-  excludePages: ["/defi/**/*"],
+  // Skip specific pages during static generation
+  skipMiddlewareUrlNormalize: true,
+  skipTrailingSlashRedirect: true,
+  experimental: {
+    // Disable static generation for specific paths
+    optimizeCss: false,
+    optimizeServerReact: false,
+    serverMinification: false,
+    serverSourceMaps: false,
+  },
+  // Completely disable static generation for specific paths
+  generateStaticParams: async () => {
+    return []
+  },
+  // Exclude specific pages from static generation
+  unstable_excludeFiles: [
+    "app/staking/**/*",
+    "app/staking-client/**/*",
+    "components/defi/staking-interface.tsx",
+    "components/defi/staking-contract.tsx",
+    "components/connect-wallet-button.tsx",
+    "components/wallet-identity-card.tsx",
+  ],
 }
 
 module.exports = nextConfig

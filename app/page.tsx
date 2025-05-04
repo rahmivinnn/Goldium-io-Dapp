@@ -41,8 +41,8 @@ export default function Home() {
         <FloatingParticles />
 
         {/* Hero Section */}
-        <div className="w-full min-h-screen flex flex-col items-center justify-center px-4 relative z-10">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-center text-yellow-500 mb-6 leading-tight">
+        <div className="w-full min-h-screen flex flex-col items-center justify-center px-4 relative z-10 pt-24">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 mb-6 leading-tight font-['Orbitron',sans-serif] tracking-wider mt-16">
             EXPERIENCE THE FUTURE OF
             <br />
             DECENTRALIZED FINANCE
@@ -201,7 +201,9 @@ export default function Home() {
 
         {/* Follow Updates Section */}
         <div className="w-full py-16 bg-black/50 backdrop-blur-sm relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-yellow-500 mb-8">FOLLOW OUR LATEST UPDATES</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-yellow-500 mb-8 font-['Orbitron',sans-serif] tracking-wider">
+            FOLLOW OUR LATEST UPDATES
+          </h2>
 
           <div className="flex justify-center space-x-6">
             <Link href="#" className="text-white hover:text-yellow-500 transition-colors">

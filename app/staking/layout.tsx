@@ -2,10 +2,10 @@ import type React from "react"
 export const dynamic = "force-dynamic"
 export const runtime = "edge"
 
-export default function StakingClientLayout({
+export default function StakingLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <div className="staking-client-layout">{children}</div>
+  return <div className="staking-layout">{children}</div>
 }

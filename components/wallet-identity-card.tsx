@@ -5,6 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Copy, ExternalLink } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { PhantomLogo } from "./phantom-logo"
 
 interface WalletIdentityCardProps {
   onDisconnect: () => void
@@ -59,7 +60,10 @@ export function WalletIdentityCard({ onDisconnect }: WalletIdentityCardProps) {
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Wallet</span>
+            <div className="flex items-center gap-2">
+              <PhantomLogo size={20} />
+              <span className="text-sm font-medium">Phantom Wallet</span>
+            </div>
             <div className="flex items-center space-x-1">
               <span className="text-sm font-mono">{shortAddress}</span>
               <button onClick={copyAddress} className="text-gold hover:text-gold/80">
