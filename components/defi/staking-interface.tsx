@@ -1,81 +1,82 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import type React from "react"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useWallet } from "@/components/wallet-provider"
-import { useNetwork } from "@/contexts/network-context"
+import { Slider } from "@/components/ui/slider"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import { useToast } from "@/hooks/use-toast"
+import { Loader2, Lock, Unlock } from "lucide-react"
+import { ConnectWalletButton } from "@/components/connect-wallet-button"
 
 export function StakingInterface() {
-  const [stakeAmount, setStakeAmount] = useState("")
-  const [unstakeAmount, setUnstakeAmount] = useState("")
-  const [isStaking, setIsStaking] = useState(false)
-  const [isUnstaking, setIsUnstaking] = useState(false)
-  const { connected, goldBalance } = useWallet()
-  const { isTestnet } = useNetwork()
+  const { connected, goldBalance, walletAddress, isTransacting } = useSolanaWallet()
+  const [stakeAmount, setStakeAmount] = useState<number>(0)
+  const [stakedAmount, setStakedAmount] = useState<number>(0)
+  const [rewards, setRewards] = useState<number>(0)
+  const [stakingAPY, setStakingAPY] = useState<number>(12.5)
+  const [isStaking, setIsStaking] = useState<boolean>(false)
+  const [isClaiming, setIsClaiming] = useState<boolean>(false)
+  const [isUnstaking, setIsUnstaking] = useState<boolean>(false)
+  const [isClient, setIsClient] = useState(false)
   const { toast } = useToast()
 
-  // Mock staked amount and rewards
-  const [stakedAmount, setStakedAmount] = useState(isTestnet ? 2500 : 750)
-  const [pendingRewards, setPendingRewards] = useState(isTestnet ? 125 : 37.5)
+  useEffect(() => {
+    setIsClient(true)
 
-  // APY rates
-  const apy = 15 // 15% APY
+    // For demo purposes, set some mock staked amount if connected
+    if (connected && walletAddress) {
+      // Simulate fetching staked amount from blockchain
+      setStakedAmount(Math.floor(Math.random() * 1000))
 
-  // Handle staking
+      // Calculate rewards based on staked amount
+      const mockRewards = ((stakedAmount * stakingAPY) / 100 / 365) * 30 // 30 days of rewards
+      setRewards(Number.parseFloat(mockRewards.toFixed(2)))
+    } else {
+      setStakedAmount(0)
+      setRewards(0)
+    }
+  }, [connected, walletAddress, stakingAPY, stakedAmount])
+
+  const handleStakeAmountChange = (value: number[]) => {
+    setStakeAmount(value[0])
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number.parseFloat(e.target.value)
+    if (!isNaN(value) && value >= 0 && value <= goldBalance) {
+      setStakeAmount(value)
+    }
+  }
+
+  const handleMaxClick = () => {
+    setStakeAmount(goldBalance)
+  }
+
   const handleStake = async () => {
-    if (!connected) {
-      toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to stake GOLD tokens.",
-        variant: "destructive",
-      })
-      return
-    }
+    if (!connected || stakeAmount <= 0 || stakeAmount > goldBalance) return
 
-    if (!stakeAmount || isNaN(Number(stakeAmount)) || Number(stakeAmount) <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount to stake.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Check if user has enough balance
-    if (Number(stakeAmount) > goldBalance) {
-      toast({
-        title: "Insufficient Balance",
-        description: "You don't have enough GOLD tokens to stake this amount.",
-        variant: "destructive",
-      })
-      return
-    }
-
+    setIsStaking(true)
     try {
-      setIsStaking(true)
-
-      // Simulate network delay
+      // Simulate blockchain transaction
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
       // Update staked amount
-      setStakedAmount((prev) => prev + Number(stakeAmount))
+      setStakedAmount((prev) => prev + stakeAmount)
+      setStakeAmount(0)
 
       toast({
         title: "Staking Successful",
-        description: `Successfully staked ${stakeAmount} GOLD tokens.`,
+        description: `Successfully staked ${stakeAmount} GOLD tokens`,
       })
-
-      // Reset form
-      setStakeAmount("")
     } catch (error) {
       console.error("Staking error:", error)
       toast({
         title: "Staking Failed",
-        description: "There was an error processing your stake. Please try again.",
+        description: "Failed to stake tokens. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -83,57 +84,26 @@ export function StakingInterface() {
     }
   }
 
-  // Handle unstaking
   const handleUnstake = async () => {
-    if (!connected) {
-      toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to unstake GOLD tokens.",
-        variant: "destructive",
-      })
-      return
-    }
+    if (!connected || stakedAmount <= 0) return
 
-    if (!unstakeAmount || isNaN(Number(unstakeAmount)) || Number(unstakeAmount) <= 0) {
-      toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount to unstake.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Check if user has enough staked
-    if (Number(unstakeAmount) > stakedAmount) {
-      toast({
-        title: "Insufficient Staked Amount",
-        description: "You don't have enough staked GOLD tokens to unstake this amount.",
-        variant: "destructive",
-      })
-      return
-    }
-
+    setIsUnstaking(true)
     try {
-      setIsUnstaking(true)
-
-      // Simulate network delay
+      // Simulate blockchain transaction
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
       // Update staked amount
-      setStakedAmount((prev) => prev - Number(unstakeAmount))
+      setStakedAmount(0)
 
       toast({
         title: "Unstaking Successful",
-        description: `Successfully unstaked ${unstakeAmount} GOLD tokens.`,
+        description: `Successfully unstaked ${stakedAmount} GOLD tokens`,
       })
-
-      // Reset form
-      setUnstakeAmount("")
     } catch (error) {
       console.error("Unstaking error:", error)
       toast({
         title: "Unstaking Failed",
-        description: "There was an error processing your unstake. Please try again.",
+        description: "Failed to unstake tokens. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -141,143 +111,161 @@ export function StakingInterface() {
     }
   }
 
-  // Handle claiming rewards
   const handleClaimRewards = async () => {
-    if (!connected) {
-      toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to claim rewards.",
-        variant: "destructive",
-      })
-      return
-    }
+    if (!connected || rewards <= 0) return
 
-    if (pendingRewards <= 0) {
-      toast({
-        title: "No Rewards",
-        description: "You don't have any pending rewards to claim.",
-        variant: "destructive",
-      })
-      return
-    }
-
+    setIsClaiming(true)
     try {
-      // Simulate network delay
+      // Simulate blockchain transaction
       await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Reset rewards
+      const claimedAmount = rewards
+      setRewards(0)
 
       toast({
         title: "Rewards Claimed",
-        description: `Successfully claimed ${pendingRewards} GOLD tokens.`,
+        description: `Successfully claimed ${claimedAmount} GOLD tokens`,
       })
-
-      // Reset rewards
-      setPendingRewards(0)
     } catch (error) {
-      console.error("Claiming rewards error:", error)
+      console.error("Claiming error:", error)
       toast({
         title: "Claiming Failed",
-        description: "There was an error claiming your rewards. Please try again.",
+        description: "Failed to claim rewards. Please try again.",
         variant: "destructive",
       })
+    } finally {
+      setIsClaiming(false)
     }
   }
 
+  if (!isClient) {
+    return null
+  }
+
+  if (!connected) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>GOLD Token Staking</CardTitle>
+          <CardDescription>Stake your GOLD tokens to earn rewards</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center p-6 space-y-4">
+          <p className="text-center text-muted-foreground">Connect your wallet to start staking</p>
+          <ConnectWalletButton showIdentityCard={false} />
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Stake GOLD Tokens</CardTitle>
-        <CardDescription>
-          Stake your GOLD tokens to earn rewards
-          {isTestnet && " (Testnet Mode)"}
-        </CardDescription>
+        <CardTitle>GOLD Token Staking</CardTitle>
+        <CardDescription>Current APY: {stakingAPY}%</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Staking Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-muted p-3">
-            <div className="text-xs text-muted-foreground">Total Staked</div>
-            <div className="mt-1 text-xl font-bold">{stakedAmount.toFixed(2)} GOLD</div>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-sm font-medium">Available Balance</span>
+            <span className="text-sm">{goldBalance.toFixed(2)} GOLD</span>
           </div>
-          <div className="rounded-lg bg-muted p-3">
-            <div className="text-xs text-muted-foreground">APY</div>
-            <div className="mt-1 text-xl font-bold text-green-500">{apy}%</div>
+          <div className="flex justify-between">
+            <span className="text-sm font-medium">Staked Amount</span>
+            <span className="text-sm">{stakedAmount.toFixed(2)} GOLD</span>
           </div>
-          <div className="rounded-lg bg-muted p-3">
-            <div className="text-xs text-muted-foreground">Pending Rewards</div>
-            <div className="mt-1 text-xl font-bold">{pendingRewards.toFixed(2)} GOLD</div>
-          </div>
-          <div className="rounded-lg bg-muted p-3">
-            <div className="text-xs text-muted-foreground">Available Balance</div>
-            <div className="mt-1 text-xl font-bold">{goldBalance.toFixed(2)} GOLD</div>
+          <div className="flex justify-between">
+            <span className="text-sm font-medium">Pending Rewards</span>
+            <span className="text-sm">{rewards.toFixed(2)} GOLD</span>
           </div>
         </div>
 
-        {/* Staking Actions */}
-        <Tabs defaultValue="stake" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="stake">Stake</TabsTrigger>
-            <TabsTrigger value="unstake">Unstake</TabsTrigger>
-          </TabsList>
-          <TabsContent value="stake" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Amount to Stake</label>
-                <button
-                  type="button"
-                  className="text-xs text-primary hover:underline"
-                  onClick={() => setStakeAmount(goldBalance.toString())}
-                >
-                  Max
-                </button>
-              </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Stake Amount</label>
+            <div className="flex space-x-2">
               <Input
                 type="number"
-                placeholder="0.0"
                 value={stakeAmount}
-                onChange={(e) => setStakeAmount(e.target.value)}
+                onChange={handleInputChange}
+                min={0}
+                max={goldBalance}
+                step={0.1}
+                disabled={isStaking || isTransacting}
               />
+              <Button
+                variant="outline"
+                onClick={handleMaxClick}
+                disabled={isStaking || isTransacting || goldBalance <= 0}
+              >
+                Max
+              </Button>
             </div>
-            <Button className="w-full" onClick={handleStake} disabled={!connected || !stakeAmount || isStaking}>
-              {isStaking ? "Staking..." : "Stake GOLD"}
-            </Button>
-          </TabsContent>
-          <TabsContent value="unstake" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Amount to Unstake</label>
-                <button
-                  type="button"
-                  className="text-xs text-primary hover:underline"
-                  onClick={() => setUnstakeAmount(stakedAmount.toString())}
-                >
-                  Max
-                </button>
-              </div>
-              <Input
-                type="number"
-                placeholder="0.0"
-                value={unstakeAmount}
-                onChange={(e) => setUnstakeAmount(e.target.value)}
-              />
-            </div>
-            <Button className="w-full" onClick={handleUnstake} disabled={!connected || !unstakeAmount || isUnstaking}>
-              {isUnstaking ? "Unstaking..." : "Unstake GOLD"}
-            </Button>
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          <Slider
+            value={[stakeAmount]}
+            max={goldBalance}
+            step={0.1}
+            onValueChange={handleStakeAmountChange}
+            disabled={isStaking || isTransacting || goldBalance <= 0}
+          />
+        </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col space-y-3">
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <Button
+            onClick={handleStake}
+            disabled={!connected || stakeAmount <= 0 || stakeAmount > goldBalance || isStaking || isTransacting}
+            className="w-full"
+          >
+            {isStaking ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Staking...
+              </>
+            ) : (
+              <>
+                <Lock className="mr-2 h-4 w-4" />
+                Stake
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={handleUnstake}
+            disabled={!connected || stakedAmount <= 0 || isUnstaking || isTransacting}
+            variant="outline"
+            className="w-full"
+          >
+            {isUnstaking ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Unstaking...
+              </>
+            ) : (
+              <>
+                <Unlock className="mr-2 h-4 w-4" />
+                Unstake
+              </>
+            )}
+          </Button>
+        </div>
         <Button
-          variant="outline"
-          className="w-full"
           onClick={handleClaimRewards}
-          disabled={!connected || pendingRewards <= 0}
+          disabled={!connected || rewards <= 0 || isClaiming || isTransacting}
+          variant="secondary"
+          className="w-full"
         >
-          Claim {pendingRewards.toFixed(2)} GOLD Rewards
+          {isClaiming ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Claiming...
+            </>
+          ) : (
+            <>Claim {rewards.toFixed(2)} GOLD Rewards</>
+          )}
         </Button>
       </CardFooter>
     </Card>
   )
 }
-
-export default StakingInterface

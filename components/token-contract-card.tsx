@@ -1,82 +1,103 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Copy, ExternalLink, Check } from "lucide-react"
+import { Copy, ExternalLink } from "lucide-react"
 import { useNetwork } from "@/contexts/network-context"
+import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 
 interface TokenContractCardProps {
   className?: string
-  showLabel?: boolean
   compact?: boolean
 }
 
-export function TokenContractCard({ className = "", showLabel = true, compact = false }: TokenContractCardProps) {
-  const { goldTokenAddress, explorerUrl, network } = useNetwork()
+export function TokenContractCard({ className = "", compact = false }: TokenContractCardProps) {
+  const { goldTokenAddress, network } = useNetwork()
   const { toast } = useToast()
-  const [copied, setCopied] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
+  // Pastikan rendering hanya terjadi di client-side
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Untuk debugging
+  useEffect(() => {
+    console.log("TokenContractCard render:", { goldTokenAddress, network })
+  }, [goldTokenAddress, network])
+
+  // Fungsi untuk menyalin alamat ke clipboard
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(goldTokenAddress)
-    setCopied(true)
-    toast({
-      title: "Copied to clipboard",
-      description: "Token address has been copied to clipboard",
-      duration: 3000,
-    })
-    setTimeout(() => setCopied(false), 2000)
+    if (goldTokenAddress) {
+      navigator.clipboard.writeText(goldTokenAddress)
+      toast({
+        title: "Address Copied",
+        description: "Token address copied to clipboard",
+      })
+    }
   }
 
-  const openExplorer = () => {
-    window.open(
-      `${explorerUrl}/address/${goldTokenAddress}${network === "testnet" ? "?cluster=testnet" : ""}`,
-      "_blank",
+  // Fungsi untuk membuka explorer
+  const openInExplorer = () => {
+    if (goldTokenAddress) {
+      let explorerUrl = ""
+
+      // Tentukan URL explorer berdasarkan jaringan
+      if (network === "mainnet") {
+        explorerUrl = `https://explorer.solana.com/address/${goldTokenAddress}`
+      } else {
+        explorerUrl = `https://explorer.solana.com/address/${goldTokenAddress}?cluster=${network}`
+      }
+
+      window.open(explorerUrl, "_blank")
+    }
+  }
+
+  // Jika belum di client-side, tampilkan placeholder
+  if (!isClient) {
+    return (
+      <Card className={`border-gold/30 bg-black/60 backdrop-blur-sm ${className}`}>
+        <CardContent className="p-4">
+          <div className="animate-pulse bg-gray-700 h-6 w-full rounded"></div>
+        </CardContent>
+      </Card>
     )
   }
 
-  // Format address for display
-  const formatAddress = (address: string, length = 6) => {
-    if (!address) return ""
-    return `${address.substring(0, length)}...${address.substring(address.length - length)}`
-  }
-
+  // Tampilan compact untuk tombol
   if (compact) {
     return (
       <Button
         variant="outline"
-        className={`border-gold text-gold hover:bg-gold/10 flex items-center gap-2 ${className}`}
+        className={`border-gold text-gold hover:bg-gold/10 ${className}`}
         onClick={copyToClipboard}
       >
-        <span className="font-mono text-xs truncate">{formatAddress(goldTokenAddress)}</span>
-        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+        <Copy className="mr-2 h-4 w-4" />
+        {goldTokenAddress ? `${goldTokenAddress.slice(0, 4)}...${goldTokenAddress.slice(-4)}` : "Contract Address"}
       </Button>
     )
   }
 
+  // Tampilan penuh
   return (
-    <Card className={`bg-black/30 backdrop-blur-sm border border-gold/20 ${className}`}>
-      <CardContent className="p-3">
-        <div className="flex flex-col sm:flex-row items-center gap-2">
-          {showLabel && <span className="text-xs text-gold/80 whitespace-nowrap">GOLD Token CA:</span>}
-          <code className="font-mono text-xs sm:text-sm text-gold truncate flex-grow">{goldTokenAddress}</code>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-gold/80 hover:text-gold hover:bg-gold/10"
-              onClick={copyToClipboard}
-            >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+    <Card className={`border-gold/30 bg-black/60 backdrop-blur-sm ${className}`}>
+      <CardContent className="p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-medium text-gray-400 mb-1">GOLD Token Contract Address ({network})</h3>
+            <p className="text-gold font-mono text-sm break-all">
+              {goldTokenAddress || "Contract address not available"}
+            </p>
+          </div>
+          <div className="flex space-x-2 mt-2 sm:mt-0">
+            <Button variant="outline" size="sm" className="border-gold/50 text-gold" onClick={copyToClipboard}>
+              <Copy className="h-4 w-4" />
+              <span className="sr-only">Copy</span>
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-gold/80 hover:text-gold hover:bg-gold/10"
-              onClick={openExplorer}
-            >
+            <Button variant="outline" size="sm" className="border-gold/50 text-gold" onClick={openInExplorer}>
               <ExternalLink className="h-4 w-4" />
+              <span className="sr-only">View in Explorer</span>
             </Button>
           </div>
         </div>

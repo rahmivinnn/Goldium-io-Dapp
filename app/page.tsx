@@ -17,9 +17,17 @@ import { TokenContractCard } from "@/components/token-contract-card"
 import { useNetwork } from "@/contexts/network-context"
 import { TokenDistributionChart } from "@/components/token-distribution-chart"
 import TwitterEmbed from "@/components/twitter-embed"
+import { useEffect } from "react"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 
 export default function Home() {
   const { goldTokenAddress } = useNetwork()
+  const { walletAddress, connected } = useSolanaWallet()
+
+  // Log untuk debugging
+  useEffect(() => {
+    console.log("Home page render:", { connected, walletAddress, goldTokenAddress })
+  }, [connected, walletAddress, goldTokenAddress])
 
   return (
     <div className="flex flex-col w-full">

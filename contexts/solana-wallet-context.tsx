@@ -1,10 +1,18 @@
 "use client"
 
-import { createContext, useContext, useEffect, useMemo, useState, useRef, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { ConnectionProvider, WalletProvider, useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets"
 import { WalletModalProvider, useWalletModal } from "@solana/wallet-adapter-react-ui"
-import { type PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
+import { PublicKey, LAMPORTS_PER_SOL, Transaction, SystemProgram } from "@solana/web3.js"
+import {
+  createAssociatedTokenAccountInstruction,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAccount,
+  createTransferInstruction,
+} from "@solana/spl-token"
 import { useToast } from "@/hooks/use-toast"
 import { useNetwork } from "@/contexts/network-context"
 
@@ -19,14 +27,19 @@ interface SolanaContextType {
   walletAddress: string | null
   solBalance: number
   goldBalance: number
+  goldTokenAddress: string | null
   connect: () => Promise<void>
   disconnect: () => Promise<void>
   refreshBalance: () => Promise<void>
   signMessage: (message: Uint8Array) => Promise<Uint8Array | undefined>
   signTransaction: (transaction: any) => Promise<any>
   sendTransaction: (transaction: any) => Promise<string>
+  transferSOL: (recipient: string, amount: number) => Promise<string | null>
+  transferGOLD: (recipient: string, amount: number) => Promise<string | null>
   network: string
   openWalletModal: () => void
+  isTransacting: boolean
+  walletProviderName: string | null
 }
 
 // Create the context
@@ -37,14 +50,19 @@ const SolanaContext = createContext<SolanaContextType>({
   walletAddress: null,
   solBalance: 0,
   goldBalance: 0,
+  goldTokenAddress: null,
   connect: async () => {},
   disconnect: async () => {},
   refreshBalance: async () => {},
   signMessage: async () => undefined,
   signTransaction: async (transaction) => transaction,
   sendTransaction: async () => "",
+  transferSOL: async () => null,
+  transferGOLD: async () => null,
   network: "testnet",
   openWalletModal: () => {},
+  isTransacting: false,
+  walletProviderName: null,
 })
 
 // Inner provider that uses the Solana wallet hooks
@@ -58,11 +76,18 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
   const [solBalance, setSolBalance] = useState(0)
   const [goldBalance, setGoldBalance] = useState(0)
   const [connecting, setConnecting] = useState(false)
-  const modalOpenedRef = useRef(false)
+  const [isTransacting, setIsTransacting] = useState(false)
+  const [modalOpenedRef] = useState(false)
 
   const walletAddress = useMemo(() => {
-    return wallet.publicKey ? wallet.publicKey.toString() : null
+    const address = wallet.publicKey ? wallet.publicKey.toString() : null
+    console.log("walletAddress updated:", address)
+    return address
   }, [wallet.publicKey])
+
+  const walletProviderName = useMemo(() => {
+    return wallet.wallet?.adapter.name || null
+  }, [wallet.wallet])
 
   // Log wallet state for debugging
   useEffect(() => {
@@ -77,6 +102,8 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
   // Fetch balances when wallet is connected or network changes
   useEffect(() => {
     if (wallet.connected && wallet.publicKey) {
+      console.log("Wallet connected with address:", wallet.publicKey.toString())
+      console.log("Current walletAddress state:", walletAddress)
       refreshBalance()
 
       // Show a success toast when connected
@@ -86,27 +113,58 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
       })
 
       // Reset modal opened flag when connected
-      modalOpenedRef.current = false
     } else {
       setSolBalance(0)
       setGoldBalance(0)
     }
-  }, [wallet.connected, wallet.publicKey, network])
+  }, [wallet.connected, wallet.publicKey, network, walletAddress])
+
+  // Tambahkan useEffect khusus untuk memantau perubahan publicKey:
+  useEffect(() => {
+    if (wallet.publicKey) {
+      console.log("Public key updated:", wallet.publicKey.toString())
+    }
+  }, [wallet.publicKey])
 
   // Connect wallet - now directly uses the wallet adapter's select method
+  const connectDirectlyToPhantom = async () => {
+    try {
+      setConnecting(true)
+
+      // Coba gunakan API Phantom baru
+      if (window.phantom?.solana) {
+        const resp = await window.phantom.solana.connect()
+        console.log("Connected with Phantom new API:", resp)
+        return true
+      }
+      // Coba gunakan API Phantom lama
+      else if (window.solana?.isPhantom) {
+        const resp = await window.solana.connect()
+        console.log("Connected with Phantom old API:", resp)
+        return true
+      }
+
+      return false
+    } catch (error) {
+      console.error("Error connecting directly to Phantom:", error)
+      return false
+    } finally {
+      setConnecting(false)
+    }
+  }
+
+  // Connect wallet - mencoba terhubung langsung ke Phantom terlebih dahulu
   const connect = async () => {
     try {
       setConnecting(true)
 
-      // This will open the wallet adapter modal
-      if (wallet.wallets.length > 0) {
-        wallet.select(wallet.wallets[0].adapter.name)
-      } else {
-        throw new Error("No wallets available")
-      }
+      // Coba terhubung langsung ke Phantom
+      const phantomConnected = await connectDirectlyToPhantom()
 
-      // The actual connection happens through the wallet adapter
-      // when user confirms in the wallet extension
+      // Jika gagal, buka wallet adapter modal
+      if (!phantomConnected) {
+        openWalletModal()
+      }
     } catch (error: any) {
       console.error("Error connecting wallet:", error)
       toast({
@@ -122,12 +180,10 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
   // Open wallet modal function - using the wallet adapter's modal
   const openWalletModal = () => {
     // Prevent opening the modal multiple times
-    if (modalOpenedRef.current || connecting || wallet.connecting) {
+    if (modalOpenedRef || connecting || wallet.connecting) {
       console.log("Modal already opened or connecting in progress, ignoring request")
       return
     }
-
-    modalOpenedRef.current = true
 
     // Use the wallet modal directly
     setVisible(true)
@@ -143,7 +199,6 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
       })
 
       // Reset modal opened flag when disconnected
-      modalOpenedRef.current = false
     } catch (error) {
       console.error("Error disconnecting wallet:", error)
     }
@@ -158,15 +213,48 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
       const solBalanceRaw = await connection.getBalance(wallet.publicKey)
       setSolBalance(solBalanceRaw / LAMPORTS_PER_SOL)
 
-      // For demo purposes, set a mock GOLD balance
-      // In a real implementation, you would fetch the actual token balance
-      const mockGoldBalance = network === "mainnet" ? 1250.5 : 5000.25
-      setGoldBalance(mockGoldBalance)
+      // Get GOLD token balance if goldTokenAddress is available
+      if (goldTokenAddress) {
+        try {
+          const goldTokenPublicKey = new PublicKey(goldTokenAddress)
+          const tokenAccountAddress = await getAssociatedTokenAddress(goldTokenPublicKey, wallet.publicKey)
+
+          try {
+            const tokenAccount = await getAccount(connection, tokenAccountAddress)
+            setGoldBalance(Number(tokenAccount.amount) / Math.pow(10, 9)) // Assuming 9 decimals
+          } catch (error) {
+            // Token account doesn't exist yet, which means balance is 0
+            setGoldBalance(0)
+          }
+        } catch (error) {
+          console.error("Error fetching GOLD balance:", error)
+
+          // For development, set a mock balance
+          if (process.env.NODE_ENV === "development") {
+            setGoldBalance(5000)
+          } else {
+            setGoldBalance(0)
+          }
+        }
+      } else {
+        // For development, set a mock balance
+        if (process.env.NODE_ENV === "development") {
+          setGoldBalance(5000)
+        } else {
+          setGoldBalance(0)
+        }
+      }
     } catch (error) {
       console.error("Error refreshing balance:", error)
       // Set fallback values if there's an error
       setSolBalance(0)
-      setGoldBalance(5000) // Demo value
+
+      // For development, set a mock balance
+      if (process.env.NODE_ENV === "development") {
+        setGoldBalance(5000)
+      } else {
+        setGoldBalance(0)
+      }
     }
   }
 
@@ -195,7 +283,7 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
   }
 
   // Sign transaction
-  const signTransaction = async (transaction: any) => {
+  const signTransaction = async (transaction: Transaction) => {
     if (!wallet.signTransaction) {
       toast({
         title: "Wallet Error",
@@ -219,7 +307,7 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
   }
 
   // Send transaction
-  const sendTransaction = async (transaction: any) => {
+  const sendTransaction = async (transaction: Transaction) => {
     if (!wallet.sendTransaction) {
       toast({
         title: "Wallet Error",
@@ -230,6 +318,7 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      setIsTransacting(true)
       const signature = await wallet.sendTransaction(transaction, connection)
 
       toast({
@@ -246,6 +335,149 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       })
       throw error
+    } finally {
+      setIsTransacting(false)
+    }
+  }
+
+  // Transfer SOL to another wallet
+  const transferSOL = async (recipient: string, amount: number): Promise<string | null> => {
+    if (!wallet.publicKey || !wallet.signTransaction) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to transfer SOL",
+        variant: "destructive",
+      })
+      return null
+    }
+
+    try {
+      setIsTransacting(true)
+      const recipientPublicKey = new PublicKey(recipient)
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: wallet.publicKey,
+          toPubkey: recipientPublicKey,
+          lamports: amount * LAMPORTS_PER_SOL,
+        }),
+      )
+
+      // Get the latest blockhash
+      const { blockhash } = await connection.getLatestBlockhash()
+      transaction.recentBlockhash = blockhash
+      transaction.feePayer = wallet.publicKey
+
+      // Sign and send the transaction
+      const signature = await sendTransaction(transaction)
+
+      // Wait for confirmation
+      await connection.confirmTransaction(signature)
+
+      // Refresh balance after transfer
+      await refreshBalance()
+
+      toast({
+        title: "Transfer Successful",
+        description: `Successfully transferred ${amount} SOL to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`,
+      })
+
+      return signature
+    } catch (error: any) {
+      console.error("Error transferring SOL:", error)
+      toast({
+        title: "Transfer Failed",
+        description: error?.message || "Failed to transfer SOL",
+        variant: "destructive",
+      })
+      return null
+    } finally {
+      setIsTransacting(false)
+    }
+  }
+
+  // Transfer GOLD tokens to another wallet
+  const transferGOLD = async (recipient: string, amount: number): Promise<string | null> => {
+    if (!wallet.publicKey || !wallet.signTransaction || !goldTokenAddress) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to transfer GOLD tokens",
+        variant: "destructive",
+      })
+      return null
+    }
+
+    try {
+      setIsTransacting(true)
+      const recipientPublicKey = new PublicKey(recipient)
+      const goldTokenPublicKey = new PublicKey(goldTokenAddress)
+
+      // Get the sender's token account
+      const senderTokenAccount = await getAssociatedTokenAddress(goldTokenPublicKey, wallet.publicKey)
+
+      // Get or create the recipient's token account
+      const recipientTokenAccount = await getAssociatedTokenAddress(goldTokenPublicKey, recipientPublicKey)
+
+      // Check if recipient token account exists
+      const transaction = new Transaction()
+
+      try {
+        await getAccount(connection, recipientTokenAccount)
+      } catch (error) {
+        // If the account doesn't exist, create it
+        transaction.add(
+          createAssociatedTokenAccountInstruction(
+            wallet.publicKey, // payer
+            recipientTokenAccount, // associated token account address
+            recipientPublicKey, // owner
+            goldTokenPublicKey, // mint
+            TOKEN_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID,
+          ),
+        )
+      }
+
+      // Add transfer instruction
+      transaction.add(
+        createTransferInstruction(
+          senderTokenAccount, // source
+          recipientTokenAccount, // destination
+          wallet.publicKey, // owner
+          amount * Math.pow(10, 9), // amount, assuming 9 decimals
+          [],
+          TOKEN_PROGRAM_ID,
+        ),
+      )
+
+      // Get the latest blockhash
+      const { blockhash } = await connection.getLatestBlockhash()
+      transaction.recentBlockhash = blockhash
+      transaction.feePayer = wallet.publicKey
+
+      // Sign and send the transaction
+      const signature = await sendTransaction(transaction)
+
+      // Wait for confirmation
+      await connection.confirmTransaction(signature)
+
+      // Refresh balance after transfer
+      await refreshBalance()
+
+      toast({
+        title: "Transfer Successful",
+        description: `Successfully transferred ${amount} GOLD to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`,
+      })
+
+      return signature
+    } catch (error: any) {
+      console.error("Error transferring GOLD:", error)
+      toast({
+        title: "Transfer Failed",
+        description: error?.message || "Failed to transfer GOLD tokens",
+        variant: "destructive",
+      })
+      return null
+    } finally {
+      setIsTransacting(false)
     }
   }
 
@@ -258,14 +490,19 @@ function SolanaWalletContextProvider({ children }: { children: ReactNode }) {
         walletAddress,
         solBalance,
         goldBalance,
+        goldTokenAddress,
         connect,
         disconnect,
         refreshBalance,
         signMessage,
         signTransaction,
         sendTransaction,
+        transferSOL,
+        transferGOLD,
         network,
         openWalletModal,
+        isTransacting,
+        walletProviderName,
       }}
     >
       {children}

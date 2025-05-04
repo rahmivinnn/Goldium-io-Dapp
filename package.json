@@ -74,9 +74,11 @@
     "@react-three/drei": "latest",
     "howler": "latest",
     "canvas-confetti": "latest",
+    "@solana/spl-token": "latest",
+    "@metaplex-foundation/js": "latest",
+    "@project-serum/anchor": "latest",
     "@solana/wallet-adapter-wallets": "latest",
-    "@solana/wallet-adapter-react-ui": "latest",
-    "@solana/spl-token": "latest"
+    "@solana/wallet-adapter-react-ui": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

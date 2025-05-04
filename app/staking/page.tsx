@@ -3,15 +3,15 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import StakingInterface from "@/components/defi/staking-interface"
+import StakingContract from "@/components/defi/staking-contract"
 import YieldFarming from "@/components/defi/yield-farming"
 import { WalletConnectOverlay } from "@/components/wallet-connect-overlay"
-import { useWallet } from "@/hooks/use-wallet"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import StakingLeaderboard from "@/components/staking-leaderboard"
 import StakingHistory from "@/components/staking-history"
 
 export default function StakingPage() {
-  const { isConnected } = useWallet()
+  const { connected } = useSolanaWallet()
   const [activeTab, setActiveTab] = useState("stake")
 
   return (
@@ -22,26 +22,30 @@ export default function StakingPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <Card className="border border-amber-200/20 bg-black/60 backdrop-blur-sm">
+          <Card className="border border-gold/20 bg-black/60 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-2xl text-center">Earn Rewards</CardTitle>
+              <CardTitle className="text-2xl text-center text-gold">Earn Rewards</CardTitle>
               <CardDescription className="text-center">Stake your tokens and earn passive income</CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-2 mb-6">
-                  <TabsTrigger value="stake">Staking</TabsTrigger>
-                  <TabsTrigger value="farm">Yield Farming</TabsTrigger>
+                <TabsList className="grid grid-cols-2 mb-6 bg-black/50 border border-gold/20">
+                  <TabsTrigger value="stake" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                    Staking
+                  </TabsTrigger>
+                  <TabsTrigger value="farm" className="data-[state=active]:bg-gold data-[state=active]:text-black">
+                    Yield Farming
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="stake" className="relative">
-                  <StakingInterface />
-                  {!isConnected && <WalletConnectOverlay />}
+                  <StakingContract />
+                  {!connected && <WalletConnectOverlay />}
                 </TabsContent>
 
                 <TabsContent value="farm" className="relative">
                   <YieldFarming />
-                  {!isConnected && <WalletConnectOverlay />}
+                  {!connected && <WalletConnectOverlay />}
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -49,18 +53,18 @@ export default function StakingPage() {
         </div>
 
         <div className="space-y-8">
-          <Card className="border border-amber-200/20 bg-black/60 backdrop-blur-sm">
+          <Card className="border border-gold/20 bg-black/60 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-xl">Top Stakers</CardTitle>
+              <CardTitle className="text-xl text-gold">Top Stakers</CardTitle>
             </CardHeader>
             <CardContent>
               <StakingLeaderboard />
             </CardContent>
           </Card>
 
-          <Card className="border border-amber-200/20 bg-black/60 backdrop-blur-sm">
+          <Card className="border border-gold/20 bg-black/60 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-xl">Recent Activity</CardTitle>
+              <CardTitle className="text-xl text-gold">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
               <StakingHistory />

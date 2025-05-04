@@ -1,4 +1,5 @@
-import type { Connection, PublicKey } from "@solana/web3.js"
+import { type Connection, PublicKey } from "@solana/web3.js"
+import { Metaplex } from "@metaplex-foundation/js"
 import type { NetworkType } from "@/contexts/network-context"
 
 export interface NFT {
@@ -15,22 +16,68 @@ export interface NFT {
   }
   price?: number
   listed?: boolean
+  uri?: string
+  metadataAddress?: string
 }
 
-// Function to get NFTs owned by a wallet
+// Function to get NFTs owned by a wallet using Metaplex
 export async function getNFTsByOwner(connection: Connection, owner: string, network: NetworkType): Promise<NFT[]> {
   try {
-    // In a real implementation, you would use Metaplex to fetch NFTs
-    // For now, we'll return mock data
-    return mockNFTs.filter((nft, index) => {
-      // Return different NFTs based on network to simulate real behavior
-      if (network === "mainnet") {
-        return index % 3 === 0 // Return 1/3 of NFTs for mainnet
-      }
-      return true // Return all NFTs for testnet
-    })
+    const ownerPublicKey = new PublicKey(owner)
+    const metaplex = new Metaplex(connection)
+
+    // Fetch all NFTs owned by the wallet
+    const nfts = await metaplex.nfts().findAllByOwner({ owner: ownerPublicKey })
+
+    // Process and return the NFTs
+    const processedNfts = await Promise.all(
+      nfts.map(async (nft) => {
+        try {
+          // Fetch metadata if available
+          let metadata: any = {}
+          if (nft.uri) {
+            try {
+              const response = await fetch(nft.uri)
+              metadata = await response.json()
+            } catch (error) {
+              console.error("Error fetching NFT metadata:", error)
+            }
+          }
+
+          return {
+            mint: nft.mintAddress.toString(),
+            name: nft.name || metadata.name || "Unnamed NFT",
+            symbol: nft.symbol || metadata.symbol || "",
+            description: metadata.description || "",
+            image: metadata.image || "/placeholder.svg",
+            attributes: metadata.attributes || [],
+            owner: owner,
+            collection: nft.collection
+              ? {
+                  name: nft.collection.name || "",
+                  family: nft.collection.key.toString(),
+                }
+              : undefined,
+            uri: nft.uri || "",
+            metadataAddress: nft.address.toString(),
+          }
+        } catch (error) {
+          console.error("Error processing NFT:", error)
+          return null
+        }
+      }),
+    )
+
+    // Filter out any null values from errors
+    return processedNfts.filter(Boolean) as NFT[]
   } catch (error) {
     console.error("Error fetching NFTs:", error)
+
+    // If in development mode, return mock data
+    if (process.env.NODE_ENV === "development") {
+      return mockNFTs
+    }
+
     return []
   }
 }
@@ -38,53 +85,54 @@ export async function getNFTsByOwner(connection: Connection, owner: string, netw
 // Function to get NFT details by mint address
 export async function getNFTByMint(connection: Connection, mint: string, network: NetworkType): Promise<NFT | null> {
   try {
-    // In a real implementation, you would use Metaplex to fetch NFT metadata
-    // For now, we'll return mock data
-    const nft = mockNFTs.find((nft) => nft.mint === mint)
-    return nft || null
+    const mintPublicKey = new PublicKey(mint)
+    const metaplex = new Metaplex(connection)
+
+    // Fetch the NFT by mint address
+    const nft = await metaplex.nfts().findByMint({ mintAddress: mintPublicKey })
+
+    // Fetch metadata if available
+    let metadata: any = {}
+    if (nft.uri) {
+      try {
+        const response = await fetch(nft.uri)
+        metadata = await response.json()
+      } catch (error) {
+        console.error("Error fetching NFT metadata:", error)
+      }
+    }
+
+    return {
+      mint: nft.mintAddress.toString(),
+      name: nft.name || metadata.name || "Unnamed NFT",
+      symbol: nft.symbol || metadata.symbol || "",
+      description: metadata.description || "",
+      image: metadata.image || "/placeholder.svg",
+      attributes: metadata.attributes || [],
+      owner: nft.ownerAddress?.toString() || "",
+      collection: nft.collection
+        ? {
+            name: nft.collection.name || "",
+            family: nft.collection.key.toString(),
+          }
+        : undefined,
+      uri: nft.uri || "",
+      metadataAddress: nft.address.toString(),
+    }
   } catch (error) {
     console.error("Error fetching NFT:", error)
+
+    // If in development mode, return mock data
+    if (process.env.NODE_ENV === "development") {
+      const mockNft = mockNFTs.find((nft) => nft.mint === mint)
+      return mockNft || null
+    }
+
     return null
   }
 }
 
-// Function to list an NFT for sale
-export async function listNFTForSale(
-  connection: Connection,
-  mint: string,
-  price: number,
-  owner: PublicKey,
-  network: NetworkType,
-): Promise<boolean> {
-  try {
-    // In a real implementation, you would create a listing on a marketplace program
-    console.log(`Listing NFT ${mint} for ${price} SOL on ${network}`)
-    return true
-  } catch (error) {
-    console.error("Error listing NFT:", error)
-    return false
-  }
-}
-
-// Function to buy an NFT
-export async function buyNFT(
-  connection: Connection,
-  mint: string,
-  price: number,
-  buyer: PublicKey,
-  network: NetworkType,
-): Promise<boolean> {
-  try {
-    // In a real implementation, you would execute a purchase on a marketplace program
-    console.log(`Buying NFT ${mint} for ${price} SOL on ${network}`)
-    return true
-  } catch (error) {
-    console.error("Error buying NFT:", error)
-    return false
-  }
-}
-
-// Mock NFT data
+// Mock NFT data for development
 const mockNFTs: NFT[] = [
   {
     mint: "NFT123456789",
@@ -105,5 +153,42 @@ const mockNFTs: NFT[] = [
     price: 25,
     listed: true,
   },
-  // Add more mock NFTs here
+  {
+    mint: "NFT987654321",
+    name: "Ethereal Shield",
+    symbol: "ES",
+    description: "A mystical shield that protects against arcane attacks.",
+    image: "/nft-images/ethereal-shield.png",
+    attributes: [
+      { trait_type: "Rarity", value: "Epic" },
+      { trait_type: "Defense", value: "120" },
+      { trait_type: "Element", value: "Arcane" },
+    ],
+    owner: "Test1234567890123456789012345678901234567890",
+    collection: {
+      name: "Legendary Weapons",
+      family: "Goldium Arsenal",
+    },
+    price: 18,
+    listed: true,
+  },
+  {
+    mint: "NFT456789123",
+    name: "Arcane Fireball",
+    symbol: "AF",
+    description: "A powerful spell that unleashes a ball of arcane fire.",
+    image: "/nft-images/arcane-fireball.png",
+    attributes: [
+      { trait_type: "Rarity", value: "Rare" },
+      { trait_type: "Damage", value: "90" },
+      { trait_type: "Element", value: "Fire" },
+    ],
+    owner: "Test1234567890123456789012345678901234567890",
+    collection: {
+      name: "Magical Spells",
+      family: "Goldium Spellbook",
+    },
+    price: 12,
+    listed: false,
+  },
 ]
