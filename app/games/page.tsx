@@ -16,7 +16,7 @@ export default function GamesPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <h1
-            className={`text-4xl md:text-5xl font-bold mt-16 mb-10 text-center ${orbitron.className} tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600`}
+            className={`text-4xl md:text-5xl font-bold mt-32 mb-10 text-center ${orbitron.className} tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600`}
           >
             Goldium Games
           </h1>

@@ -10,7 +10,7 @@ export default function GovernancePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8 mt-16 text-center bg-gradient-to-r from-amber-500 to-yellow-300 bg-clip-text text-transparent">
+      <h1 className="text-4xl font-bold mb-8 mt-32 text-center bg-gradient-to-r from-amber-500 to-yellow-300 bg-clip-text text-transparent">
         Goldium Governance
       </h1>
 
