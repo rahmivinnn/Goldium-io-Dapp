@@ -106,7 +106,7 @@ export default function CardBattleGame() {
   const [actionPopupType, setActionPopupType] = useState<"attack" | "heal" | "special" | "shield" | "victory" | "defeat" | "">("")
   const [showPlayerAnimation, setShowPlayerAnimation] = useState(false)
   const [showOpponentAnimation, setShowOpponentAnimation] = useState(false)
-  const [playerAnimationType, setPlayerAnimationType] = useState<"attack" | "heal" | "special" | "shield" | "">("")
+  const [playerAnimationType, setPlayerAnimationType] = useState<"attack" | "heal" | "special" | "shield" | "damage" | "">("")
   const [opponentAnimationType, setOpponentAnimationType] = useState<"attack" | "damage" | "">("")
   const [showVictory, setShowVictory] = useState(false)
   const [showDefeat, setShowDefeat] = useState(false)
@@ -159,7 +159,7 @@ export default function CardBattleGame() {
   }
 
   // Show player animation
-  const showPlayerAction = (type: "attack" | "heal" | "special" | "shield") => {
+  const showPlayerAction = (type: "attack" | "heal" | "special" | "shield" | "damage") => {
     setPlayerAnimationType(type)
     setShowPlayerAnimation(true)
 
