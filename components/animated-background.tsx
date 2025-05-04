@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { useTheme } from "next-themes"
 import { useMobile } from "@/hooks/use-mobile"
+import { throttle } from "@/lib/utils"
 
 export default function AnimatedBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -12,31 +13,76 @@ export default function AnimatedBackground() {
   const [isHovering, setIsHovering] = useState(false)
   const [isClicked, setIsClicked] = useState(false)
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const mouseTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const animationFrameRef = useRef<number>(0)
+  const lastUpdateTimeRef = useRef<number>(0)
+
+  // Memoize colors to avoid recreating them on every render
+  const colors = useMemo(() => {
+    return {
+      // Hanya menggunakan variasi warna kuning/emas
+      gold: [
+        "rgba(255, 215, 0, 0.7)", // Gold
+        "rgba(255, 223, 0, 0.7)", // Yellow Gold
+        "rgba(255, 185, 15, 0.7)", // Golden Yellow
+        "rgba(255, 165, 0, 0.7)", // Orange Gold
+        "rgba(255, 140, 0, 0.7)", // Dark Orange Gold
+        "rgba(255, 200, 61, 0.7)", // Light Gold
+      ],
+      lightGold: [
+        "rgba(255, 236, 139, 0.7)", // Light Yellow
+        "rgba(255, 215, 0, 0.5)", // Gold (lighter)
+        "rgba(250, 250, 210, 0.7)", // Light Goldenrod
+        "rgba(255, 248, 220, 0.7)", // Cornsilk
+        "rgba(255, 222, 173, 0.7)", // Navajo White
+        "rgba(255, 228, 181, 0.7)", // Moccasin
+      ],
+      amber: [
+        "rgba(255, 191, 0, 0.7)", // Amber
+        "rgba(255, 204, 0, 0.7)", // Selective Yellow
+        "rgba(255, 214, 0, 0.7)", // School Bus Yellow
+        "rgba(255, 207, 64, 0.7)", // Maximum Yellow Red
+        "rgba(255, 196, 0, 0.7)", // Golden Yellow
+        "rgba(255, 177, 0, 0.7)", // Chrome Yellow
+      ],
+    }
+  }, [])
+
+  // Throttled mouse move handler to improve performance
+  const handleMouseMove = useMemo(
+    () =>
+      throttle((e: MouseEvent) => {
+        setMousePosition({ x: e.clientX, y: e.clientY })
+        setIsHovering(true)
+
+        // Reset hover state after 2 seconds of no movement
+        if (mouseTimeoutRef.current) {
+          clearTimeout(mouseTimeoutRef.current)
+        }
+        mouseTimeoutRef.current = setTimeout(() => setIsHovering(false), 2000)
+      }, 16), // ~60fps
+    [],
+  )
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext("2d", { alpha: false })
     if (!ctx) return
 
-    // Set canvas to full screen
+    // Set canvas to full screen with device pixel ratio for sharpness
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = window.innerWidth * dpr
+      canvas.height = window.innerHeight * dpr
+      ctx.scale(dpr, dpr)
+      canvas.style.width = `${window.innerWidth}px`
+      canvas.style.height = `${window.innerHeight}px`
     }
 
     resizeCanvas()
     window.addEventListener("resize", resizeCanvas)
-
-    // Track mouse position for interactive effects
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
-      setIsHovering(true)
-      // Reset hover state after 2 seconds of no movement
-      clearTimeout(mouseTimeoutRef.current as NodeJS.Timeout)
-      mouseTimeoutRef.current = setTimeout(() => setIsHovering(false), 2000)
-    }
 
     // Handle mouse click for interactive effects
     const handleMouseClick = (e: MouseEvent) => {
@@ -66,19 +112,19 @@ export default function AnimatedBackground() {
       }
     }
 
-    const handleTouchMove = (e: TouchEvent) => {
+    const handleTouchMove = throttle((e: TouchEvent) => {
       if (e.touches.length > 0) {
         const touch = e.touches[0]
         setMousePosition({ x: touch.clientX, y: touch.clientY })
         setIsHovering(true)
 
         // Reset hover state after touch ends
-        clearTimeout(mouseTimeoutRef.current as NodeJS.Timeout)
+        if (mouseTimeoutRef.current) {
+          clearTimeout(mouseTimeoutRef.current)
+        }
         mouseTimeoutRef.current = setTimeout(() => setIsHovering(false), 2000)
       }
-    }
-
-    const mouseTimeoutRef = { current: setTimeout(() => {}, 0) }
+    }, 32) // ~30fps for touch events to save battery
 
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("click", handleMouseClick)
@@ -105,37 +151,43 @@ export default function AnimatedBackground() {
       life: number
       maxLife: number
       isExplosion: boolean
+      colorSet: string[]
 
       constructor(x = -1, y = -1, isExplosion = false) {
         this.isExplosion = isExplosion
+
+        // Choose a random color set from gold variations
+        const colorSets = [colors.gold, colors.lightGold, colors.amber]
+        this.colorSet = colorSets[Math.floor(Math.random() * colorSets.length)]
 
         if (isExplosion) {
           // Explosion particle
           this.x = x
           this.y = y
-          this.baseSize = Math.random() * 5 + 2
+          this.baseSize = Math.random() * 4 + 1
           this.size = this.baseSize
-          const speed = Math.random() * 6 + 2
+          const speed = Math.random() * 5 + 1
           const angle = Math.random() * Math.PI * 2
           this.speedX = Math.cos(angle) * speed
           this.speedY = Math.sin(angle) * speed
           this.life = 100
           this.maxLife = 100
+          this.color = this.colorSet[Math.floor(Math.random() * this.colorSet.length)]
         } else {
           // Regular particle
           this.x = x === -1 ? Math.random() * canvas.width : x
           this.y = y === -1 ? Math.random() * canvas.height : y
-          this.baseSize = Math.random() * 4 + 1
+          this.baseSize = Math.random() * 3 + 0.5 // Smaller base size for better performance
           this.size = this.baseSize
-          this.speedX = (Math.random() * 1 - 0.5) * 0.7
-          this.speedY = (Math.random() * 1 - 0.5) * 0.7
+          this.speedX = (Math.random() * 0.8 - 0.4) * 0.5 // Slower for better performance
+          this.speedY = (Math.random() * 0.8 - 0.4) * 0.5
           this.life = -1 // -1 means infinite life
           this.maxLife = -1
+          this.color = this.colorSet[Math.floor(Math.random() * this.colorSet.length)]
         }
 
         this.originalSpeedX = this.speedX
         this.originalSpeedY = this.speedY
-        this.color = getParticleColor()
         this.opacity = Math.random() * 0.5 + 0.3
         this.glowing = Math.random() > 0.7
         this.pulseSpeed = Math.random() * 0.02 + 0.01
@@ -144,19 +196,22 @@ export default function AnimatedBackground() {
         this.rotationSpeed = (Math.random() * 0.02 - 0.01) * 0.5
       }
 
-      update() {
+      update(deltaTime: number) {
+        // Time-based movement for consistent speed regardless of framerate
+        const timeScale = deltaTime / 16.67 // Normalize to ~60fps
+
         // Update position
-        this.x += this.speedX
-        this.y += this.speedY
-        this.angle += this.rotationSpeed
+        this.x += this.speedX * timeScale
+        this.y += this.speedY * timeScale
+        this.angle += this.rotationSpeed * timeScale
 
         // Update life for explosion particles
         if (this.isExplosion) {
-          this.life -= 2
+          this.life -= 2 * timeScale
           this.opacity = (this.life / this.maxLife) * 0.8
 
           // Add gravity effect for explosion particles
-          this.speedY += 0.05
+          this.speedY += 0.05 * timeScale
 
           // Slow down over time
           this.speedX *= 0.98
@@ -165,7 +220,7 @@ export default function AnimatedBackground() {
 
         // Pulse size for glowing particles
         if (this.glowing) {
-          this.size += this.pulseDirection * this.pulseSpeed
+          this.size += this.pulseDirection * this.pulseSpeed * timeScale
           if (this.size > this.baseSize * 1.5 || this.size < this.baseSize * 0.5) {
             this.pulseDirection *= -1
           }
@@ -189,10 +244,10 @@ export default function AnimatedBackground() {
           const dx = mousePosition.x - this.x
           const dy = mousePosition.y - this.y
           const distance = Math.sqrt(dx * dx + dy * dy)
-          const maxDistance = 200
+          const maxDistance = 150
 
           if (distance < maxDistance) {
-            const force = (1 - distance / maxDistance) * 0.05
+            const force = (1 - distance / maxDistance) * 0.03 * timeScale
             this.speedX += (dx / distance) * force
             this.speedY += (dy / distance) * force
           }
@@ -225,8 +280,8 @@ export default function AnimatedBackground() {
         // Draw particle with glow effect for some particles
         if (this.glowing && !this.isExplosion) {
           const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 2)
-          gradient.addColorStop(0, `rgba(255, 215, 0, ${this.opacity})`)
-          gradient.addColorStop(1, "rgba(255, 215, 0, 0)")
+          gradient.addColorStop(0, this.color.replace(/[\d.]+\)$/, `${this.opacity})`))
+          gradient.addColorStop(1, this.color.replace(/[\d.]+\)$/, "0)"))
 
           ctx.fillStyle = gradient
           ctx.beginPath()
@@ -235,37 +290,30 @@ export default function AnimatedBackground() {
         }
 
         // Draw the main particle
-        ctx.fillStyle = this.isExplosion ? `rgba(255, 215, 0, ${this.opacity})` : `rgba(255, 215, 0, ${this.opacity})`
+        ctx.fillStyle = this.isExplosion
+          ? this.color.replace(/[\d.]+\)$/, `${this.opacity})`)
+          : this.color.replace(/[\d.]+\)$/, `${this.opacity})`)
 
         ctx.beginPath()
 
-        // Randomly shaped particles: circles, squares, and stars
+        // Randomly shaped particles: circles, diamonds, and triangles
         const shapeType = this.isExplosion ? 0 : Math.floor(this.x * this.y) % 3
 
         if (shapeType === 0) {
           // Circle
           ctx.arc(0, 0, this.size, 0, Math.PI * 2)
         } else if (shapeType === 1) {
-          // Square
-          ctx.rect(-this.size / 2, -this.size / 2, this.size, this.size)
+          // Diamond
+          ctx.moveTo(0, -this.size)
+          ctx.lineTo(this.size, 0)
+          ctx.lineTo(0, this.size)
+          ctx.lineTo(-this.size, 0)
+          ctx.closePath()
         } else {
-          // Star
-          const spikes = 5
-          const outerRadius = this.size
-          const innerRadius = this.size / 2
-
-          for (let i = 0; i < spikes * 2; i++) {
-            const radius = i % 2 === 0 ? outerRadius : innerRadius
-            const angle = (Math.PI * 2 * i) / (spikes * 2)
-            const x = Math.cos(angle) * radius
-            const y = Math.sin(angle) * radius
-
-            if (i === 0) {
-              ctx.moveTo(x, y)
-            } else {
-              ctx.lineTo(x, y)
-            }
-          }
+          // Triangle
+          ctx.moveTo(0, -this.size)
+          ctx.lineTo(this.size, this.size)
+          ctx.lineTo(-this.size, this.size)
           ctx.closePath()
         }
 
@@ -276,7 +324,7 @@ export default function AnimatedBackground() {
       }
     }
 
-    // Wave class for flowing background effect
+    // Wave class for flowing background effect - simplified for performance
     class Wave {
       amplitude: number
       period: number
@@ -284,24 +332,32 @@ export default function AnimatedBackground() {
       color: string
       lineWidth: number
       yOffset: number
+      colorSet: string[]
 
       constructor(yOffsetPercent = 0.5) {
-        this.amplitude = Math.random() * 20 + 10
+        // Choose a random color set from gold variations
+        const colorSets = [colors.gold, colors.lightGold, colors.amber]
+        this.colorSet = colorSets[Math.floor(Math.random() * colorSets.length)]
+
+        this.amplitude = Math.random() * 15 + 5
         this.period = Math.random() * 200 + 100
         this.phase = Math.random() * Math.PI * 2
-        this.color = `rgba(255, 215, 0, ${Math.random() * 0.1 + 0.05})`
-        this.lineWidth = Math.random() * 2 + 1
+        const color = this.colorSet[Math.floor(Math.random() * this.colorSet.length)]
+        this.color = color.replace(/[\d.]+\)$/, "0.1)")
+        this.lineWidth = Math.random() * 1.5 + 0.5
         this.yOffset = canvas.height * yOffsetPercent
       }
 
-      draw() {
+      draw(deltaTime: number) {
         if (!ctx) return
 
         ctx.beginPath()
         ctx.lineWidth = this.lineWidth
         ctx.strokeStyle = this.color
 
-        for (let x = 0; x < canvas.width; x += 5) {
+        // Optimize by drawing fewer points
+        const step = isMobile ? 10 : 5
+        for (let x = 0; x < canvas.width; x += step) {
           const y = this.yOffset + Math.sin(x / this.period + this.phase) * this.amplitude
 
           if (x === 0) {
@@ -313,43 +369,27 @@ export default function AnimatedBackground() {
 
         ctx.stroke()
 
-        // Update phase for animation
-        this.phase += 0.01
+        // Update phase for animation - time-based
+        this.phase += 0.01 * (deltaTime / 16.67)
 
         // Make waves react to mouse movement
         if (isHovering) {
           const distanceFromMouse = Math.abs(mousePosition.y - this.yOffset)
           if (distanceFromMouse < 100) {
-            this.amplitude = 20 + (100 - distanceFromMouse) / 5
+            this.amplitude = 15 + (100 - distanceFromMouse) / 5
           } else {
-            this.amplitude = Math.max(10, this.amplitude * 0.98)
+            this.amplitude = Math.max(5, this.amplitude * 0.98)
           }
         } else {
-          this.amplitude = Math.max(10, this.amplitude * 0.98)
+          this.amplitude = Math.max(5, this.amplitude * 0.98)
         }
       }
     }
 
-    // Get particle color based on theme
-    function getParticleColor() {
-      // Gold theme colors with more variety
-      const colors = [
-        "rgba(255, 215, 0, 0.7)", // Gold
-        "rgba(218, 165, 32, 0.6)", // Golden rod
-        "rgba(255, 223, 0, 0.5)", // Yellow gold
-        "rgba(207, 181, 59, 0.6)", // Old gold
-        "rgba(255, 185, 15, 0.5)", // Golden yellow
-        "rgba(184, 134, 11, 0.6)", // Dark golden rod
-        "rgba(212, 175, 55, 0.5)", // Metallic gold
-      ]
-
-      return colors[Math.floor(Math.random() * colors.length)]
-    }
-
-    // Create particles - fewer on mobile for performance
+    // Create particles - fewer for better performance
     const particleCount = isMobile
-      ? Math.min(50, Math.floor((canvas.width * canvas.height) / 20000))
-      : Math.min(150, Math.floor((canvas.width * canvas.height) / 10000))
+      ? Math.min(30, Math.floor((canvas.width * canvas.height) / 30000))
+      : Math.min(80, Math.floor((canvas.width * canvas.height) / 15000))
 
     const particles: Particle[] = []
     for (let i = 0; i < particleCount; i++) {
@@ -361,14 +401,14 @@ export default function AnimatedBackground() {
 
     // Function to create explosion effect
     function createExplosion(x: number, y: number) {
-      const particleCount = isMobile ? 30 : 60
+      const particleCount = isMobile ? 15 : 30
       for (let i = 0; i < particleCount; i++) {
         explosionParticles.push(new Particle(x, y, true))
       }
     }
 
-    // Create waves at different heights
-    const waveCount = isMobile ? 3 : 5
+    // Create waves at different heights - fewer for better performance
+    const waveCount = isMobile ? 2 : 3
     const waves: Wave[] = []
     for (let i = 0; i < waveCount; i++) {
       // Distribute waves across the screen height
@@ -376,20 +416,23 @@ export default function AnimatedBackground() {
       waves.push(new Wave(yOffsetPercent))
     }
 
-    // Connect particles with lines
+    // Connect particles with lines - optimized
     function connectParticles() {
       if (!ctx) return
-      const maxDistance = isMobile ? 100 : 150
+      const maxDistance = isMobile ? 80 : 120
 
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i; j < particles.length; j++) {
+      // Only check connections for a subset of particles to improve performance
+      const checkEvery = isMobile ? 2 : 1
+      for (let i = 0; i < particles.length; i += checkEvery) {
+        for (let j = i + 1; j < particles.length; j += checkEvery) {
           const dx = particles[i].x - particles[j].x
           const dy = particles[i].y - particles[j].y
           const distance = Math.sqrt(dx * dx + dy * dy)
 
           if (distance < maxDistance) {
+            // Gunakan warna kuning/emas untuk koneksi
             ctx.beginPath()
-            ctx.strokeStyle = `rgba(255, 215, 0, ${0.15 * (1 - distance / maxDistance)})`
+            ctx.strokeStyle = `rgba(255, 215, 0, ${0.1 * (1 - distance / maxDistance)})`
             ctx.lineWidth = 0.5
             ctx.moveTo(particles[i].x, particles[i].y)
             ctx.lineTo(particles[j].x, particles[j].y)
@@ -399,169 +442,30 @@ export default function AnimatedBackground() {
       }
     }
 
-    // Create floating orbs that move slowly across the screen
-    class FloatingOrb {
-      x: number
-      y: number
-      size: number
-      speedX: number
-      speedY: number
-      opacity: number
-      targetX: number
-      targetY: number
-      moveSpeed: number
-
-      constructor() {
-        this.size = Math.random() * 100 + 50
-        this.opacity = Math.random() * 0.1 + 0.05
-        this.moveSpeed = Math.random() * 0.01 + 0.005
-
-        // Start from edges
-        const side = Math.floor(Math.random() * 4)
-        if (side === 0) {
-          // top
-          this.x = Math.random() * canvas.width
-          this.y = -this.size
-          this.speedY = Math.random() * 0.2 + 0.1
-          this.speedX = (Math.random() - 0.5) * 0.2
-        } else if (side === 1) {
-          // right
-          this.x = canvas.width + this.size
-          this.y = Math.random() * canvas.height
-          this.speedX = -(Math.random() * 0.2 + 0.1)
-          this.speedY = (Math.random() - 0.5) * 0.2
-        } else if (side === 2) {
-          // bottom
-          this.x = Math.random() * canvas.width
-          this.y = canvas.height + this.size
-          this.speedY = -(Math.random() * 0.2 + 0.1)
-          this.speedX = (Math.random() - 0.5) * 0.2
-        } else {
-          // left
-          this.x = -this.size
-          this.y = Math.random() * canvas.height
-          this.speedX = Math.random() * 0.2 + 0.1
-          this.speedY = (Math.random() - 0.5) * 0.2
-        }
-
-        // Set initial target position
-        this.targetX = this.x
-        this.targetY = this.y
-        this.updateTarget()
-      }
-
-      updateTarget() {
-        // Set a new target position
-        this.targetX = Math.random() * canvas.width
-        this.targetY = Math.random() * canvas.height
-      }
-
-      update() {
-        // Move towards target with some inertia
-        if (isHovering) {
-          // When mouse is active, move away from mouse
-          const dx = this.x - mousePosition.x
-          const dy = this.y - mousePosition.y
-          const distance = Math.sqrt(dx * dx + dy * dy)
-
-          if (distance < 300) {
-            const repelForce = 0.5 * (1 - distance / 300)
-            this.speedX += (dx / distance) * repelForce
-            this.speedY += (dy / distance) * repelForce
-          }
-        }
-
-        // Apply current speed
-        this.x += this.speedX
-        this.y += this.speedY
-
-        // Apply drag
-        this.speedX *= 0.99
-        this.speedY *= 0.99
-
-        // Occasionally update target
-        if (Math.random() < 0.005) {
-          this.updateTarget()
-        }
-
-        // Move towards target
-        const dx = this.targetX - this.x
-        const dy = this.targetY - this.y
-        const distance = Math.sqrt(dx * dx + dy * dy)
-
-        if (distance > 10) {
-          this.speedX += (dx / distance) * this.moveSpeed
-          this.speedY += (dy / distance) * this.moveSpeed
-        }
-
-        // Check if orb is off screen
-        return !(
-          this.x < -this.size * 2 ||
-          this.x > canvas.width + this.size * 2 ||
-          this.y < -this.size * 2 ||
-          this.y > canvas.height + this.size * 2
-        )
-      }
-
-      draw() {
-        if (!ctx) return
-
-        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size)
-
-        // Fixed: Use proper RGBA format with correct opacity values
-        gradient.addColorStop(0, `rgba(255, 215, 0, ${this.opacity * 4})`)
-        gradient.addColorStop(1, `rgba(255, 215, 0, 0)`)
-
-        ctx.fillStyle = gradient
-        ctx.beginPath()
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
-        ctx.fill()
-      }
-    }
-
-    // Create initial orbs
-    const orbs: FloatingOrb[] = []
-    for (let i = 0; i < 3; i++) {
-      orbs.push(new FloatingOrb())
-    }
-
-    // Add new orb occasionally
-    setInterval(() => {
-      if (orbs.length < 5) {
-        orbs.push(new FloatingOrb())
-      }
-    }, 10000)
-
-    // Animation loop
-    function animate() {
+    // Animation loop with time-based animation
+    function animate(timestamp: number) {
       if (!ctx || !canvas) return
 
-      // Clear with semi-transparent background for trail effect
-      ctx.fillStyle = theme === "dark" ? "rgba(15, 23, 42, 0.2)" : "rgba(15, 23, 42, 0.1)"
+      // Calculate delta time for smooth animation regardless of framerate
+      const deltaTime = timestamp - (lastUpdateTimeRef.current || timestamp)
+      lastUpdateTimeRef.current = timestamp
+
+      // Clear canvas completely for better performance
+      ctx.fillStyle = theme === "dark" ? "rgb(15, 23, 42)" : "rgb(15, 23, 42)"
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
       // Draw waves
-      waves.forEach((wave) => wave.draw())
-
-      // Update and draw orbs
-      for (let i = orbs.length - 1; i >= 0; i--) {
-        const isVisible = orbs[i].update()
-        if (!isVisible) {
-          orbs.splice(i, 1)
-        } else {
-          orbs[i].draw()
-        }
-      }
+      waves.forEach((wave) => wave.draw(deltaTime))
 
       // Update and draw regular particles
       for (let i = 0; i < particles.length; i++) {
-        particles[i].update()
+        particles[i].update(deltaTime)
         particles[i].draw()
       }
 
       // Update and draw explosion particles
       for (let i = explosionParticles.length - 1; i >= 0; i--) {
-        const isAlive = explosionParticles[i].update()
+        const isAlive = explosionParticles[i].update(deltaTime)
         if (!isAlive) {
           explosionParticles.splice(i, 1)
         } else {
@@ -569,11 +473,15 @@ export default function AnimatedBackground() {
         }
       }
 
-      connectParticles()
-      requestAnimationFrame(animate)
+      // Only connect particles if not on mobile for better performance
+      if (!isMobile) {
+        connectParticles()
+      }
+
+      animationFrameRef.current = requestAnimationFrame(animate)
     }
 
-    animate()
+    animationFrameRef.current = requestAnimationFrame(animate)
 
     // Clean up
     return () => {
@@ -582,18 +490,20 @@ export default function AnimatedBackground() {
       window.removeEventListener("click", handleMouseClick)
       window.removeEventListener("touchstart", handleTouchStart)
       window.removeEventListener("touchmove", handleTouchMove)
-      clearTimeout(mouseTimeoutRef.current as NodeJS.Timeout)
+
+      if (mouseTimeoutRef.current) {
+        clearTimeout(mouseTimeoutRef.current)
+      }
+
       if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current)
       }
-    }
-  }, [theme, isMobile, isHovering, isClicked])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed top-0 left-0 w-full h-full -z-10"
-      style={{ pointerEvents: "auto", cursor: "none" }}
-    />
-  )
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [theme, isMobile, isHovering, isClicked, colors, handleMouseMove])
+
+  return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full -z-10" style={{ pointerEvents: "auto" }} />
 }

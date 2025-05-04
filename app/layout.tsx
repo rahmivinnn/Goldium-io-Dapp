@@ -11,7 +11,6 @@ import { SolanaWalletProvider } from "@/contexts/solana-wallet-context"
 import { NetworkProvider } from "@/contexts/network-context"
 import AnimatedBackground from "@/components/animated-background"
 import { ScrollProgress, ScrollToTopButton } from "@/components/ui/scroll-progress"
-import CustomCursor from "@/components/custom-cursor"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", weight: ["400", "500", "600", "700"] })
@@ -35,9 +34,9 @@ export default function RootLayout({
             <SolanaWalletProvider>
               <ScrollProgress />
               <AnimatedBackground />
-              <CustomCursor />
               <Header />
-              <main className="flex-grow">{children}</main>
+              {/* Added pt-24 to create space below the header */}
+              <main className="flex-grow pt-24">{children}</main>
               <Footer />
               <NotificationCenter />
               <ScrollToTopButton />
