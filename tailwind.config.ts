@@ -1,7 +1,13 @@
 import type { Config } from "tailwindcss"
 const config: Config = {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}", "*.{js,ts,jsx,tsx,mdx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+    "*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -64,7 +70,7 @@ const config: Config = {
         rarity: {
           common: "#9CA3AF",
           uncommon: "#10B981",
-          rare: "#3B82F6",
+          rare: "#F5C400", // Changed from blue to gold
           epic: "#8B5CF6",
           legendary: "#F5C400",
         },
@@ -89,24 +95,24 @@ const config: Config = {
       },
       animation: {
         "pulse-gold": "pulse-gold 2s infinite",
-        "float": "float 3s ease-in-out infinite",
-        "shine": "shine 2s infinite",
-        "glow": "glow 2s infinite",
+        float: "float 3s ease-in-out infinite",
+        shine: "shine 2s infinite",
+        glow: "glow 2s infinite",
       },
       keyframes: {
         "pulse-gold": {
           "0%, 100%": { boxShadow: "0 0 0 0 rgba(245, 196, 0, 0.4)" },
           "50%": { boxShadow: "0 0 0 10px rgba(245, 196, 0, 0)" },
         },
-        "float": {
+        float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
-        "shine": {
+        shine: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
-        "glow": {
+        glow: {
           "0%": { boxShadow: "0 0 5px rgba(245, 196, 0, 0.3)" },
           "50%": { boxShadow: "0 0 20px rgba(245, 196, 0, 0.6)" },
           "100%": { boxShadow: "0 0 5px rgba(245, 196, 0, 0.3)" },

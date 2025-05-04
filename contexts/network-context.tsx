@@ -2,27 +2,40 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base"
-import { clusterApiUrl, Connection } from "@solana/web3.js"
+import { Connection } from "@solana/web3.js"
 
+// Network configuration
 export type NetworkType = "mainnet" | "testnet"
 
 export const DEFAULT_NETWORK: NetworkType = "testnet"
 
+// Token metadata
+const GOLD_TOKEN_METADATA = {
+  symbol: "GOLD",
+  name: "Goldium Token",
+  decimals: 9,
+  logoURI: "/gold_icon-removebg-preview.png",
+}
+
+const SOL_TOKEN_METADATA = {
+  symbol: "SOL",
+  name: "Solana",
+  decimals: 9,
+  logoURI: "/images/solana-logo.png",
+}
+
 export const NETWORKS = {
   mainnet: {
     name: "Mainnet",
-    label: "Mainnet",
-    endpoint: clusterApiUrl(WalletAdapterNetwork.Mainnet),
-    goldTokenAddress: "GLD1aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr", // Example mainnet address
+    endpoint: "https://api.mainnet-beta.solana.com",
+    goldTokenAddress: "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump", // Real GOLD token address on mainnet
     explorerUrl: "https://explorer.solana.com",
   },
   testnet: {
     name: "Testnet",
-    label: "Devnet",
-    endpoint: clusterApiUrl(WalletAdapterNetwork.Devnet),
-    goldTokenAddress: "GLD7aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr", // Example testnet address
-    explorerUrl: "https://explorer.solana.com/?cluster=devnet",
+    endpoint: "https://api.testnet.solana.com",
+    goldTokenAddress: "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump", // Using same address for demo, would be different in real scenario
+    explorerUrl: "https://explorer.solana.com/?cluster=testnet",
   },
 }
 
@@ -38,19 +51,19 @@ interface NetworkContextType {
 }
 
 const NetworkContext = createContext<NetworkContextType>({
-  network: DEFAULT_NETWORK,
+  network: "testnet",
   setNetwork: () => {},
-  endpoint: NETWORKS[DEFAULT_NETWORK].endpoint,
-  connection: new Connection(NETWORKS[DEFAULT_NETWORK].endpoint),
-  goldTokenAddress: NETWORKS[DEFAULT_NETWORK].goldTokenAddress,
-  explorerUrl: NETWORKS[DEFAULT_NETWORK].explorerUrl,
-  isMainnet: DEFAULT_NETWORK === "mainnet",
-  isTestnet: DEFAULT_NETWORK === "testnet",
+  endpoint: NETWORKS.testnet.endpoint,
+  connection: new Connection(NETWORKS.testnet.endpoint),
+  goldTokenAddress: NETWORKS.testnet.goldTokenAddress,
+  explorerUrl: NETWORKS.testnet.explorerUrl,
+  isMainnet: false,
+  isTestnet: true,
 })
 
 export function NetworkProvider({ children }: { children: ReactNode }) {
-  const [network, setNetwork] = useState<NetworkType>(DEFAULT_NETWORK)
-  const [connection, setConnection] = useState<Connection>(new Connection(NETWORKS[DEFAULT_NETWORK].endpoint))
+  const [network, setNetwork] = useState<NetworkType>("testnet")
+  const [connection, setConnection] = useState<Connection>(new Connection(NETWORKS.testnet.endpoint))
   const { toast } = useToast()
 
   // Load network preference from localStorage if available
@@ -81,7 +94,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
     setNetwork(newNetwork)
     toast({
       title: "Network Changed",
-      description: `Switched to ${NETWORKS[newNetwork].label}`,
+      description: `Switched to ${NETWORKS[newNetwork].name}`,
       duration: 3000,
     })
   }

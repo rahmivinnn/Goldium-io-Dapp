@@ -18,7 +18,7 @@
 
 @layer base {
   body {
-    @apply bg-gradient-to-b from-slate-900 to-slate-800 text-white antialiased;
+    @apply bg-gradient-to-b from-dark-500 to-dark-900 text-white antialiased;
     perspective: 1000px;
   }
 
@@ -37,7 +37,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-slate-900;
+    @apply bg-dark-900;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -84,7 +84,7 @@
 
   /* Modern NFT card with 3D effect */
   .nft-card {
-    @apply relative overflow-hidden rounded-lg border border-gold-500/20 bg-slate-900/80 backdrop-blur-sm;
+    @apply relative overflow-hidden rounded-lg border border-gold-500/20 bg-dark-400/80 backdrop-blur-sm;
     transform-style: preserve-3d;
     transition: transform 0.5s ease, box-shadow 0.5s ease;
     transform: perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1);
@@ -172,7 +172,7 @@
   }
 
   .rarity-rare {
-    @apply bg-blue-500/80 text-white;
+    @apply bg-gold-500/80 text-black;
   }
 
   .rarity-epic {
@@ -355,7 +355,7 @@
 
 /* Black gold card */
 .black-gold-card {
-  @apply bg-slate-900/80 backdrop-blur-sm border border-gold-500/30 rounded-lg p-6;
+  @apply bg-dark-400/80 backdrop-blur-sm border border-gold-500/30 rounded-lg p-6;
   transform-style: preserve-3d;
   transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

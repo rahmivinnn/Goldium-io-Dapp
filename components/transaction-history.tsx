@@ -1,181 +1,97 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { ArrowUpRight, ArrowDownRight, Clock, CheckCircle, XCircle, ExternalLink } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { useNetwork } from "@/contexts/network-context"
+import { ArrowUpRight, ArrowDownLeft, ExternalLink } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import { type Transaction, getTransactionHistory, getTransactionExplorerUrl } from "@/services/transaction-service"
+import { useEffect, useState } from "react"
 
-// Sample transaction data
-const TRANSACTIONS = [
-  {
-    id: "tx1",
-    type: "send",
-    amount: 250,
-    to: "0x8765...4321",
-    status: "completed",
-    timestamp: "2025-04-29T10:15:00Z",
-  },
-  {
-    id: "tx2",
-    type: "receive",
-    amount: 500,
-    from: "0x2468...1357",
-    status: "completed",
-    timestamp: "2025-04-28T18:30:00Z",
-  },
-  {
-    id: "tx3",
-    type: "stake",
-    amount: 1000,
-    status: "completed",
-    timestamp: "2025-04-27T14:45:00Z",
-  },
-  {
-    id: "tx4",
-    type: "claim",
-    amount: 45,
-    status: "completed",
-    timestamp: "2025-04-26T09:20:00Z",
-  },
-  {
-    id: "tx5",
-    type: "send",
-    amount: 150,
-    to: "0x1357...2468",
-    status: "pending",
-    timestamp: "2025-04-29T11:05:00Z",
-  },
-  {
-    id: "tx6",
-    type: "game",
-    amount: 75,
-    game: "Card Battle",
-    status: "completed",
-    timestamp: "2025-04-28T20:15:00Z",
-  },
-  {
-    id: "tx7",
-    type: "send",
-    amount: 50,
-    to: "0x9876...5432",
-    status: "failed",
-    timestamp: "2025-04-27T16:30:00Z",
-  },
-]
+type TransactionHistoryProps = {}
 
-export default function TransactionHistory() {
-  const [visibleTransactions, setVisibleTransactions] = useState(5)
+export function TransactionHistory({}: TransactionHistoryProps) {
+  const { connected, publicKey, connection } = useSolanaWallet()
+  const { network } = useNetwork()
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!connected || !publicKey || !connection) return
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      case "pending":
-        return <Clock className="h-5 w-5 text-yellow-500" />
-      case "failed":
-        return <XCircle className="h-5 w-5 text-red-500" />
-      default:
-        return null
+      setIsLoading(true)
+      try {
+        const walletAddress = publicKey.toString()
+        const txs = await getTransactionHistory(connection, walletAddress, network, 5)
+        setTransactions(txs)
+      } catch (error) {
+        console.error("Error fetching transactions:", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }
 
-  const getTypeIcon = (type: string) => {
+    fetchTransactions()
+  }, [connected, publicKey, connection, network])
+
+  const getTransactionIcon = (type: string) => {
     switch (type) {
       case "send":
-        return <ArrowUpRight className="h-5 w-5 text-red-500" />
+        return <ArrowUpRight className="h-5 w-5 text-gold" />
       case "receive":
-        return <ArrowDownRight className="h-5 w-5 text-green-500" />
-      case "stake":
-        return <ArrowUpRight className="h-5 w-5 text-blue-500" />
-      case "claim":
-        return <ArrowDownRight className="h-5 w-5 text-gold" />
-      case "game":
-        return <ArrowDownRight className="h-5 w-5 text-purple-500" />
+        return <ArrowDownLeft className="h-5 w-5 text-gold" />
       default:
-        return null
+        return <ExternalLink className="h-5 w-5 text-gray-500" />
     }
   }
 
-  const getTypeLabel = (transaction: any) => {
-    switch (transaction.type) {
-      case "send":
-        return `Send to ${transaction.to}`
-      case "receive":
-        return `Receive from ${transaction.from}`
-      case "stake":
-        return "Stake GOLD"
-      case "claim":
-        return "Claim Rewards"
-      case "game":
-        return `${transaction.game} Winnings`
-      default:
-        return transaction.type
-    }
-  }
-
-  const loadMore = () => {
-    setVisibleTransactions((prev) => Math.min(prev + 5, TRANSACTIONS.length))
+  const formatAddress = (address: string) => {
+    if (!address) return ""
+    return `${address.slice(0, 4)}...${address.slice(-4)}`
   }
 
   return (
-    <div>
-      <div className="space-y-4">
-        {TRANSACTIONS.slice(0, visibleTransactions).map((transaction) => (
-          <div
-            key={transaction.id}
-            className="flex items-center justify-between p-3 border border-gold/20 rounded-lg hover:bg-gold/5 transition-colors"
-          >
-            <div className="flex items-center">
-              <div className="mr-3">{getTypeIcon(transaction.type)}</div>
-              <div>
-                <div className="font-medium">{getTypeLabel(transaction)}</div>
-                <div className="text-xs text-gray-400">{formatDate(transaction.timestamp)}</div>
+    <div className="space-y-4">
+      {transactions.map((tx) => (
+        <Card key={tx.signature} className="border-gold/30 bg-black hover:bg-black/80 transition-colors">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className={`p-2 rounded-full ${tx.type === "send" ? "bg-gold/20" : "bg-gold/20"}`}>
+                  {getTransactionIcon(tx.type)}
+                </div>
+                <div className="ml-3">
+                  <p className="font-medium">
+                    {tx.type === "send" ? "Sent" : "Received"} {tx.amount?.toFixed(4)}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    {formatDistanceToNow(new Date(tx.blockTime), { addSuffix: true })}
+                  </p>
+                </div>
               </div>
-            </div>
-
-            <div className="flex items-center">
-              <div className="text-right mr-4">
-                <div
-                  className={`font-bold ${
-                    transaction.type === "receive" || transaction.type === "claim" || transaction.type === "game"
-                      ? "text-green-500"
-                      : transaction.type === "send"
-                        ? "text-red-500"
-                        : "text-gold"
-                  }`}
+              <div className="text-right">
+                <a
+                  href={getTransactionExplorerUrl(tx.signature, network)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-gold flex items-center justify-end hover:underline"
                 >
-                  {transaction.type === "receive" || transaction.type === "claim" || transaction.type === "game"
-                    ? "+"
-                    : transaction.type === "send"
-                      ? "-"
-                      : ""}
-                  {transaction.amount} GOLD
-                </div>
-                <div className="text-xs flex items-center justify-end">
-                  {getStatusIcon(transaction.status)}
-                  <span className="ml-1 capitalize">{transaction.status}</span>
-                </div>
+                  <span>View</span>
+                  <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
               </div>
-
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gold">
-                <ExternalLink className="h-4 w-4" />
-              </Button>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {visibleTransactions < TRANSACTIONS.length && (
-        <div className="text-center mt-4">
-          <Button variant="outline" className="border-gold/50 text-gold hover:bg-gold/10" onClick={loadMore}>
-            Load More
-          </Button>
-        </div>
-      )}
+            <div className="mt-2 text-xs text-gray-400">
+              {tx.type === "send" ? "To: " : "From: "}
+              {formatAddress(tx.from)}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   )
 }
+
+// Also add default export for backward compatibility
+export default TransactionHistory

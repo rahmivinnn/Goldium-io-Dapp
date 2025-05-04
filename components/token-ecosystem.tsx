@@ -52,7 +52,7 @@ export default function TokenEcosystem() {
                   <div className="relative h-64 w-full">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="text-center">
-                        <div className="text-6xl font-bold text-gold-500 mb-2">100M</div>
+                        <div className="text-6xl font-bold text-gold-500 mb-2">1M</div>
                         <div className="text-sm text-gray-400">Total Supply</div>
                       </div>
                     </div>

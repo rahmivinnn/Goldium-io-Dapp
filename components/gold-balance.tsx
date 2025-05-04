@@ -1,70 +1,101 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { useWallet } from "@/hooks/use-wallet"
-import { Coins, RefreshCw, DollarSign } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useNetwork } from "@/contexts/network-context"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { getGOLDBalance, getSOLBalance } from "@/services/token-service"
 
-interface GoldBalanceProps {
-  compact?: boolean
-}
+export default function GoldBalance() {
+  const { connection, network } = useNetwork()
+  const { publicKey, connected } = useSolanaWallet()
+  const [goldBalance, setGoldBalance] = useState<number | null>(null)
+  const [solBalance, setSolBalance] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
 
-export default function GoldBalance({ compact = false }: GoldBalanceProps) {
-  const { balance } = useWallet()
-  const [showUSD, setShowUSD] = useState(false)
-  const goldToUSD = 0.85 // Mock exchange rate
+  useEffect(() => {
+    const fetchBalances = async () => {
+      if (connected && publicKey) {
+        setLoading(true)
+        try {
+          const walletAddress = publicKey.toString()
 
-  const toggleCurrency = () => {
-    setShowUSD(!showUSD)
-  }
+          // Fetch balances in parallel
+          const [goldBal, solBal] = await Promise.all([
+            getGOLDBalance(connection, walletAddress, network),
+            getSOLBalance(connection, walletAddress),
+          ])
 
-  if (compact) {
+          setGoldBalance(goldBal)
+          setSolBalance(solBal)
+        } catch (error) {
+          console.error("Error fetching balances:", error)
+        } finally {
+          setLoading(false)
+        }
+      } else {
+        setGoldBalance(null)
+        setSolBalance(null)
+      }
+    }
+
+    fetchBalances()
+
+    // Set up interval to refresh balances every 30 seconds
+    const intervalId = setInterval(fetchBalances, 30000)
+
+    return () => clearInterval(intervalId)
+  }, [connected, publicKey, connection, network])
+
+  if (!connected) {
     return (
-      <div className="flex items-center bg-black border border-gold/50 rounded-lg px-3 py-2">
-        <Coins className="h-5 w-5 text-gold mr-2" />
-        <span className="font-bold">
-          {showUSD ? `$${(balance * goldToUSD).toFixed(2)}` : `${balance.toLocaleString()} GOLD`}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 ml-2 text-gray-400 hover:text-gold hover:bg-transparent"
-          onClick={toggleCurrency}
-        >
-          {showUSD ? <Coins className="h-4 w-4" /> : <DollarSign className="h-4 w-4" />}
-        </Button>
-      </div>
+      <Card className="border-gold/30 bg-black/40 backdrop-blur-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Your Balance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-400">Connect your wallet to view your balance</p>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center">
-          <Coins className="h-6 w-6 text-gold mr-2" />
-          <span className="text-lg font-medium">Your Balance</span>
+    <Card className="border-gold/30 bg-black/40 backdrop-blur-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">Your Balance</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-6 h-6 mr-2 rounded-full bg-gold/20 flex items-center justify-center">
+                <img src="/gold_icon-removebg-preview.png" alt="GOLD" className="w-5 h-5" />
+              </div>
+              <span>GOLD</span>
+            </div>
+            {loading ? (
+              <Skeleton className="h-6 w-20" />
+            ) : (
+              <span className="font-bold text-gold">{goldBalance?.toLocaleString() || "0"}</span>
+            )}
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-6 h-6 mr-2 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <img src="/images/solana-logo.png" alt="SOL" className="w-5 h-5" />
+              </div>
+              <span>SOL</span>
+            </div>
+            {loading ? (
+              <Skeleton className="h-6 w-20" />
+            ) : (
+              <span className="font-bold text-purple-400">{solBalance?.toLocaleString() || "0"}</span>
+            )}
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-gray-400 hover:text-gold hover:bg-transparent"
-          onClick={toggleCurrency}
-        >
-          {showUSD ? <Coins className="h-5 w-5" /> : <DollarSign className="h-5 w-5" />}
-        </Button>
-      </div>
-
-      <div className="flex items-baseline">
-        <span className="text-3xl font-bold text-gold">
-          {showUSD ? `$${(balance * goldToUSD).toFixed(2)}` : `${balance.toLocaleString()}`}
-        </span>
-        <span className="ml-2 text-gray-400">{showUSD ? "USD" : "GOLD"}</span>
-      </div>
-
-      <div className="flex items-center mt-2 text-sm text-gray-400">
-        <RefreshCw className="h-3 w-3 mr-1" />
-        <span>Updated just now</span>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

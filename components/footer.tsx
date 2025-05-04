@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Twitter, Github, DiscIcon as Discord, Globe, Mail, Shield, FileText, HelpCircle } from "lucide-react"
+import TwitterEmbed from "./twitter-embed"
 
 export default function Footer() {
   return (
@@ -13,9 +14,20 @@ export default function Footer() {
               Experience the future of decentralized finance with GOLD token economy, fantasy-themed NFTs, and games.
             </p>
             <div className="flex space-x-2">
-              <Button variant="outline" size="icon" className="rounded-full border-gold/50 text-gold hover:bg-gold/10">
-                <Twitter className="h-4 w-4" />
-              </Button>
+              <a
+                href="https://x.com/goldiumofficial"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full border-gold/50 text-gold hover:bg-gold/10"
+                >
+                  <Twitter className="h-4 w-4" />
+                </Button>
+              </a>
               <Button variant="outline" size="icon" className="rounded-full border-gold/50 text-gold hover:bg-gold/10">
                 <Discord className="h-4 w-4" />
               </Button>
@@ -119,6 +131,14 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Twitter Embed Section - Full Width */}
+        <div className="my-12 w-full">
+          <h3 className="text-2xl font-bold mb-8 text-center">
+            Follow Us on <span className="text-gold">X.com</span>
+          </h3>
+          <TwitterEmbed />
         </div>
 
         <div className="border-t border-gold/10 pt-6 mt-6 flex flex-col md:flex-row justify-between items-center">

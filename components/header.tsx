@@ -40,6 +40,7 @@ export default function Header() {
         { name: "DeFi Hub", href: "/defi" },
         { name: "Swap", href: "/swap" },
         { name: "Staking", href: "/staking" },
+        { name: "Burn", href: "/burn" },
       ],
     },
     { name: "Games", href: "/games" },
@@ -134,7 +135,7 @@ export default function Header() {
               href="/adventure-game"
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                pathname === "/adventure-game" ? "text-gold border-b-2 border-gold" : "text-muted-foreground",
+                pathname === "/adventure-game" ? "text-gold-500 border-b-2 border-gold-500" : "text-gray-400",
               )}
             >
               3D Adventure

@@ -8,14 +8,19 @@ import LiveStats from "@/components/live-stats"
 import FeaturedNFTs from "@/components/featured-nfts"
 import GameShowcase from "@/components/game-showcase"
 import EventsPreview from "@/components/events-preview"
-import { Trophy, Coins, Sword, ShoppingBag, Copy, ExternalLink } from "lucide-react"
+import { Trophy, Coins, Sword, ShoppingBag } from "lucide-react"
 import FloatingParticles from "@/components/floating-particles"
 import { ScrollAnimation, ScrollStaggerContainer, ScrollStaggerItem } from "@/components/ui/scroll-animation"
 import { ScrollReveal, GoldReveal } from "@/components/ui/scroll-reveal"
 import { ParallaxScroll } from "@/components/ui/parallax-scroll"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { TokenContractCard } from "@/components/token-contract-card"
+import { useNetwork } from "@/contexts/network-context"
+import { TokenDistributionChart } from "@/components/token-distribution-chart"
+import TwitterEmbed from "@/components/twitter-embed"
 
 export default function Home() {
+  const { goldTokenAddress } = useNetwork()
+
   return (
     <div className="flex flex-col w-full">
       {/* Hero Section */}
@@ -40,34 +45,8 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ConnectWalletButton className="gold-button text-lg py-3 px-8" />
 
-              {/* Contract Address Button - Replacing "Learn More" */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="relative group">
-                      <Button
-                        variant="outline"
-                        className="border-gold text-gold hover:bg-gold/10 text-lg py-3 px-8 flex items-center"
-                        onClick={() => {
-                          navigator.clipboard.writeText("APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")
-                          // You could add a toast notification here
-                        }}
-                      >
-                        <span className="mr-2 font-mono text-sm sm:text-base truncate max-w-[120px] sm:max-w-[180px]">
-                          APkBg8...4pump
-                        </span>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <div className="absolute -bottom-8 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-gold">
-                        GOLD Token CA
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Copy GOLD Token Contract Address</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {/* Contract Address Button - Using TokenContractCard in compact mode */}
+              <TokenContractCard compact className="text-lg py-3 px-8" />
             </div>
           </ScrollAnimation>
 
@@ -92,34 +71,29 @@ export default function Home() {
             </div>
           </ScrollAnimation>
 
-          {/* Full Contract Address Display */}
+          {/* Full Contract Address Display - Using TokenContractCard */}
           <ScrollAnimation type="fade" delay={1} duration={1}>
             <div className="mt-8 flex flex-col items-center">
-              <div className="bg-black/30 backdrop-blur-sm border border-gold/20 rounded-lg px-4 py-2 flex items-center gap-2 max-w-full overflow-hidden">
-                <span className="text-xs text-gold/80 whitespace-nowrap">GOLD Token CA:</span>
-                <code className="font-mono text-xs sm:text-sm text-gold truncate">
-                  APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump
-                </code>
-                <button
-                  className="text-gold/80 hover:text-gold p-1 transition-colors"
-                  onClick={() => {
-                    navigator.clipboard.writeText("APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")
-                    // You could add a toast notification here
-                  }}
-                >
-                  <Copy className="h-3 w-3" />
-                </button>
-                <a
-                  href="https://explorer.solana.com/address/APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gold/80 hover:text-gold p-1 transition-colors"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
+              <TokenContractCard className="max-w-full" />
             </div>
           </ScrollAnimation>
+        </div>
+      </section>
+
+      {/* Social Media Section */}
+      <section className="py-16 bg-black relative">
+        <FloatingParticles count={30} speed={0.6} />
+        <div className="container mx-auto px-4">
+          <GoldReveal>
+            <h2 className="text-3xl md:text-4xl font-bold mb-12 text-center gold-gradient">
+              Follow Our Latest Updates
+            </h2>
+          </GoldReveal>
+          <div className="flex justify-center">
+            <ScrollAnimation type="slide-up">
+              <TwitterEmbed />
+            </ScrollAnimation>
+          </div>
         </div>
       </section>
 
@@ -322,6 +296,13 @@ export default function Home() {
               <ConnectWalletButton className="gold-button text-lg py-3 px-8" />
             </ScrollAnimation>
           </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-black">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gold-500">Token Economics</h2>
+          <TokenDistributionChart />
         </div>
       </section>
     </div>
