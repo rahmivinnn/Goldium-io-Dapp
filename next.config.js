@@ -27,20 +27,7 @@ const nextConfig = {
     optimizeServerReact: false,
     serverMinification: false,
     serverSourceMaps: false,
-  },
-  // Completely disable static generation for specific paths
-  generateStaticParams: async () => {
-    return []
-  },
-  // Exclude specific pages from static generation
-  unstable_excludeFiles: [
-    "app/staking/**/*",
-    "app/staking-client/**/*",
-    "components/defi/staking-interface.tsx",
-    "components/defi/staking-contract.tsx",
-    "components/connect-wallet-button.tsx",
-    "components/wallet-identity-card.tsx",
-  ],
+  }
 }
 
 module.exports = nextConfig
