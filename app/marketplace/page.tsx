@@ -1,12 +1,14 @@
 "use client"
 
 import { Suspense, useState, useEffect } from "react"
+import Link from "next/link"
 import NFTCard from "@/components/nft-card"
 import MarketplaceHeader from "@/components/marketplace-header"
 import FilterSidebar from "@/components/filter-sidebar"
 import { useToast } from "@/hooks/use-toast"
 import GoldBubbles from "@/components/gold-bubbles"
 import MarketplaceTabs from "@/components/marketplace-tabs"
+import { Button } from "@/components/ui/button"
 
 // Expanded Sample NFT data with more items
 const SAMPLE_NFTS = [
@@ -428,7 +430,16 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen pt-16 relative">
       <GoldBubbles count={30} minSize={15} maxSize={50} />
-      <MarketplaceHeader />
+      <div className="container mx-auto px-4 pt-8">
+        <div className="flex justify-between items-center">
+          <MarketplaceHeader />
+          <Link href="/marketplace/enhanced">
+            <Button className="bg-gradient-to-r from-amber-500 to-yellow-300 text-black font-bold hover:from-amber-600 hover:to-yellow-400 transition-all duration-300 shadow-lg hover:shadow-amber-500/20">
+              Try Enhanced UI
+            </Button>
+          </Link>
+        </div>
+      </div>
       <div className="container mx-auto px-4 py-8">
         <MarketplaceTabs />
         <div className="flex flex-col md:flex-row gap-6 mt-8">
