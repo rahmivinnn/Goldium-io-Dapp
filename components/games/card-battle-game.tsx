@@ -200,64 +200,80 @@ export default function CardBattleGame() {
   }, [])
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-indigo-950 to-purple-900 text-white p-4">
+    <div className="w-full text-white">
       {/* Game Header */}
-      <div className="flex justify-between items-center mb-8 mt-6 px-4">
-        <div className="flex items-center gap-4">
-          <div className="bg-blue-900 px-4 py-2 rounded-md">Turn {turn}</div>
-          <div className="flex items-center gap-2 bg-blue-900 px-4 py-2 rounded-md">
-            <Zap className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-            Energy: {energy}/{maxEnergy}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="bg-black/40 border border-gold/20 px-4 py-2 rounded-md">
+            <span className="font-medium">Turn</span> <span className="text-gold">{turn}</span>
           </div>
-          <div className="bg-blue-900 px-4 py-2 rounded-md">Combo: x{combo}</div>
+          <div className="flex items-center gap-2 bg-black/40 border border-gold/20 px-4 py-2 rounded-md">
+            <Zap className="h-5 w-5 text-gold" />
+            <span className="font-medium">Energy:</span> <span className="text-gold">{energy}/{maxEnergy}</span>
+          </div>
+          <div className="bg-black/40 border border-gold/20 px-4 py-2 rounded-md">
+            <span className="font-medium">Combo:</span> <span className="text-gold">x{combo}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 bg-blue-900 px-4 py-2 rounded-md">
-          <span className="text-yellow-400">🪙</span> {gold} GOLD
+        <div className="flex items-center gap-2 bg-black/40 border border-gold/20 px-4 py-2 rounded-md">
+          <span className="text-gold">🪙</span> <span className="font-bold text-gold">{gold} GOLD</span>
         </div>
       </div>
 
       {/* Game Title */}
-      <h1 className="text-5xl font-bold text-center mb-10 font-['Orbitron',sans-serif] tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">
+      <h2 className="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">
         Battle Arena
-      </h1>
+      </h2>
 
       {/* Card Battle Area */}
-      <div className="flex justify-center gap-16 mb-8">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-16 mb-8">
         {/* Player Card */}
-        <div className={`relative w-64 h-96 rounded-xl overflow-hidden border-4 border-yellow-500`}>
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-600/30 to-yellow-900/30"></div>
+        <div className={`relative w-64 h-96 rounded-xl overflow-hidden border-2 border-gold shadow-lg shadow-gold/20 transition-all hover:shadow-gold/30 hover:scale-105`}>
+          <div className="absolute inset-0 bg-gradient-to-b from-yellow-600/20 to-yellow-900/20"></div>
           <div className="absolute top-0 left-0 w-full h-full p-4 flex flex-col">
             <div className="flex justify-center mb-2">
-              <div className="w-32 h-32 rounded-full overflow-hidden bg-yellow-100 border-2 border-yellow-500">
-                <img
-                  src={playerCard.image || "/placeholder.svg"}
-                  alt={playerCard.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-black/60 border-2 border-gold p-0.5">
+                <div className="w-full h-full rounded-full bg-black/60 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={playerCard.image || "/placeholder.svg"}
+                    alt={playerCard.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Sword className="h-5 w-5 text-red-500" />
-                <span>ATK: {playerCard.attack}</span>
-                <Shield className="h-5 w-5 ml-4 text-blue-400" />
-                <span>DEF: {playerCard.defense}</span>
+            <h3 className="text-center text-lg font-bold text-gold mb-2">{playerCard.name}</h3>
+
+            <div className="mt-2 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Sword className="h-5 w-5 text-red-500" />
+                  <span>ATK: <span className="text-red-400 font-bold">{playerCard.attack}</span></span>
+                </div>
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-400" />
+                  <span>DEF: <span className="text-blue-400 font-bold">{playerCard.defense}</span></span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                <span>HP: {playerCard.health}</span>
-                <Zap className="h-5 w-5 ml-4 text-yellow-400 fill-yellow-400" />
-                <span>MP: {playerCard.mana}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-red-500 fill-red-500" />
+                  <span>HP: <span className="text-red-400 font-bold">{playerCard.health}</span></span>
+                </div>
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-gold" />
+                  <span>MP: <span className="text-gold font-bold">{playerCard.mana}</span></span>
+                </div>
               </div>
 
-              <div className="mt-4">
-                <p className="font-semibold">Special Abilities:</p>
-                <ul className="pl-2">
+              <div className="bg-black/40 rounded-md p-2">
+                <p className="font-semibold text-sm text-gold mb-1">Special Abilities:</p>
+                <ul className="pl-2 text-xs space-y-1">
                   {playerCard.abilities.map((ability, index) => (
                     <li key={index} className="flex items-center gap-1">
-                      <span className="text-yellow-400">•</span> {ability}
+                      <span className="text-gold">•</span> {ability}
                     </li>
                   ))}
                 </ul>
@@ -266,38 +282,57 @@ export default function CardBattleGame() {
           </div>
         </div>
 
+        {/* VS Badge */}
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-red-600 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+            VS
+          </div>
+        </div>
+
         {/* Opponent Card */}
-        <div className={`relative w-64 h-96 rounded-xl overflow-hidden border-4 border-gray-400`}>
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-600/30 to-gray-900/30"></div>
+        <div className={`relative w-64 h-96 rounded-xl overflow-hidden border-2 border-gray-400 shadow-lg shadow-gray-500/20 transition-all hover:shadow-gray-400/30 hover:scale-105`}>
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-600/20 to-gray-900/20"></div>
           <div className="absolute top-0 left-0 w-full h-full p-4 flex flex-col">
             <div className="flex justify-center mb-2">
-              <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-400">
-                <img
-                  src={opponentCard.image || "/placeholder.svg"}
-                  alt={opponentCard.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-black/60 border-2 border-gray-400 p-0.5">
+                <div className="w-full h-full rounded-full bg-black/60 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={opponentCard.image || "/placeholder.svg"}
+                    alt={opponentCard.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Sword className="h-5 w-5 text-red-500" />
-                <span>ATK: {opponentCard.attack}</span>
-                <Shield className="h-5 w-5 ml-4 text-blue-400" />
-                <span>DEF: {opponentCard.defense}</span>
+            <h3 className="text-center text-lg font-bold text-gray-300 mb-2">{opponentCard.name}</h3>
+
+            <div className="mt-2 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Sword className="h-5 w-5 text-red-500" />
+                  <span>ATK: <span className="text-red-400 font-bold">{opponentCard.attack}</span></span>
+                </div>
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-400" />
+                  <span>DEF: <span className="text-blue-400 font-bold">{opponentCard.defense}</span></span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                <span>HP: {opponentCard.health}</span>
-                <Zap className="h-5 w-5 ml-4 text-yellow-400 fill-yellow-400" />
-                <span>MP: {opponentCard.mana}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-red-500 fill-red-500" />
+                  <span>HP: <span className="text-red-400 font-bold">{opponentCard.health}</span></span>
+                </div>
+                <div className="bg-black/40 rounded-md p-2 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-gold" />
+                  <span>MP: <span className="text-gold font-bold">{opponentCard.mana}</span></span>
+                </div>
               </div>
 
-              <div className="mt-4">
-                <p className="font-semibold">Special Abilities:</p>
-                <ul className="pl-2">
+              <div className="bg-black/40 rounded-md p-2">
+                <p className="font-semibold text-sm text-gray-300 mb-1">Special Abilities:</p>
+                <ul className="pl-2 text-xs space-y-1">
                   {opponentCard.abilities.map((ability, index) => (
                     <li key={index} className="flex items-center gap-1">
                       <span className="text-blue-400">•</span> {ability}
@@ -310,99 +345,149 @@ export default function CardBattleGame() {
         </div>
       </div>
 
-      {/* Action Buttons - First Row */}
-      <div className="grid grid-cols-5 gap-4 mb-4">
-        <button
-          onClick={() => performAction("attack", 2)}
-          className="bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <Sword className="h-5 w-5" /> Attack (2 Mana)
-        </button>
+      {/* Action Buttons */}
+      <div className="mb-6">
+        <h3 className="text-xl font-bold mb-3 text-gold">Basic Actions</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
+          <button
+            onClick={() => performAction("attack", 2)}
+            className="bg-black/40 border border-red-500/50 hover:bg-red-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+            disabled={energy < 2}
+          >
+            <Sword className="h-6 w-6 text-red-500" />
+            <span className="font-bold">Attack</span>
+            <span className="text-xs flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 2</span>
+          </button>
 
-        <button
-          onClick={() => performAction("heal", 3)}
-          className="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <Heart className="h-5 w-5" /> Heal (3 Mana)
-        </button>
+          <button
+            onClick={() => performAction("heal", 3)}
+            className="bg-black/40 border border-green-500/50 hover:bg-green-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+            disabled={energy < 3}
+          >
+            <Heart className="h-6 w-6 text-green-500" />
+            <span className="font-bold">Heal</span>
+            <span className="text-xs flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 3</span>
+          </button>
 
-        <button
-          onClick={() => performAction("special", 5)}
-          className="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <Zap className="h-5 w-5" /> Special (5 Mana)
-        </button>
+          <button
+            onClick={() => performAction("special", 5)}
+            className="bg-black/40 border border-purple-500/50 hover:bg-purple-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+            disabled={energy < 5}
+          >
+            <Zap className="h-6 w-6 text-purple-500" />
+            <span className="font-bold">Special</span>
+            <span className="text-xs flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 5</span>
+          </button>
 
-        <button
-          onClick={() => performAction("charge", 0)}
-          className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <Zap className="h-5 w-5" /> Charge Mana
-        </button>
+          <button
+            onClick={() => performAction("charge", 0)}
+            className="bg-black/40 border border-blue-500/50 hover:bg-blue-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+          >
+            <Zap className="h-6 w-6 text-blue-500" />
+            <span className="font-bold">Charge</span>
+            <span className="text-xs flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 0</span>
+          </button>
 
-        <button
-          onClick={() => performAction("shield", 4)}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <Shield className="h-5 w-5" /> Shield (4 Mana)
-        </button>
-      </div>
+          <button
+            onClick={() => performAction("shield", 4)}
+            className="bg-black/40 border border-yellow-500/50 hover:bg-yellow-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+            disabled={energy < 4}
+          >
+            <Shield className="h-6 w-6 text-yellow-500" />
+            <span className="font-bold">Shield</span>
+            <span className="text-xs flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 4</span>
+          </button>
+        </div>
 
-      {/* Action Buttons - Second Row */}
-      <div className="grid grid-cols-5 gap-4 mb-8">
-        <button
-          onClick={() => performAction("lazy_attack", 2, 30)}
-          className="bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <FastForward className="h-5 w-5" /> Lazy Attack (2 Mana, 30 GOLD)
-        </button>
+        <h3 className="text-xl font-bold mb-3 text-gold">Special Abilities</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+          <button
+            onClick={() => performAction("lazy_attack", 2, 30)}
+            className="bg-black/40 border border-orange-500/50 hover:bg-orange-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+            disabled={energy < 2 || gold < 30}
+          >
+            <FastForward className="h-6 w-6 text-orange-500" />
+            <span className="font-bold">Lazy Attack</span>
+            <div className="flex items-center text-xs gap-2">
+              <span className="flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 2</span>
+              <span className="flex items-center">🪙 30</span>
+            </div>
+          </button>
 
-        <button
-          onClick={() => performAction("cat_nap", 4, 80)}
-          className="bg-teal-500 hover:bg-teal-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <Moon className="h-5 w-5" /> Cat Nap (4 Mana, 80 GOLD)
-        </button>
+          <button
+            onClick={() => performAction("cat_nap", 4, 80)}
+            className="bg-black/40 border border-teal-500/50 hover:bg-teal-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+            disabled={energy < 4 || gold < 80}
+          >
+            <Moon className="h-6 w-6 text-teal-500" />
+            <span className="font-bold">Cat Nap</span>
+            <div className="flex items-center text-xs gap-2">
+              <span className="flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 4</span>
+              <span className="flex items-center">🪙 80</span>
+            </div>
+          </button>
 
-        <button
-          onClick={() => performAction("pizza_power", 6, 150)}
-          className="bg-pink-500 hover:bg-pink-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <Pizza className="h-5 w-5" /> Pizza Power (6 Mana, 150 GOLD)
-        </button>
+          <button
+            onClick={() => performAction("pizza_power", 6, 150)}
+            className="bg-black/40 border border-pink-500/50 hover:bg-pink-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+            disabled={energy < 6 || gold < 150}
+          >
+            <Pizza className="h-6 w-6 text-pink-500" />
+            <span className="font-bold">Pizza Power</span>
+            <div className="flex items-center text-xs gap-2">
+              <span className="flex items-center"><Zap className="h-3 w-3 text-gold mr-1" /> 6</span>
+              <span className="flex items-center">🪙 150</span>
+            </div>
+          </button>
 
-        <button
-          onClick={() => performAction("pass", 0)}
-          className="bg-indigo-500 hover:bg-indigo-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <SkipForward className="h-5 w-5" /> Pass Turn
-        </button>
+          <button
+            onClick={() => performAction("pass", 0)}
+            className="bg-black/40 border border-indigo-500/50 hover:bg-indigo-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+          >
+            <SkipForward className="h-6 w-6 text-indigo-500" />
+            <span className="font-bold">Pass Turn</span>
+            <span className="text-xs">End your turn</span>
+          </button>
 
-        <button
-          onClick={() => performAction("clear", 0)}
-          className="bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-md flex items-center justify-center gap-2 transition-colors"
-        >
-          <FileText className="h-5 w-5" /> Clear Log
-        </button>
+          <button
+            onClick={() => performAction("clear", 0)}
+            className="bg-black/40 border border-gray-500/50 hover:bg-gray-500/20 text-white py-3 px-4 rounded-md flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
+          >
+            <FileText className="h-6 w-6 text-gray-400" />
+            <span className="font-bold">Clear Log</span>
+            <span className="text-xs">Clear battle log</span>
+          </button>
+        </div>
       </div>
 
       {/* Battle Log */}
-      <div className="mt-4">
-        <h3 className="text-xl font-semibold mb-2">Battle Log:</h3>
-        <div className="bg-gray-900/50 p-4 rounded-md h-32 overflow-y-auto">
-          {battleLog.map((log, index) => (
-            <p
-              key={index}
-              className={cn(
-                "mb-1",
-                log.includes("Victory") && "text-green-400 font-bold",
-                log.includes("Defeat") && "text-red-400 font-bold",
-                log.includes("earned") && "text-yellow-400",
-              )}
-            >
-              {log}
-            </p>
-          ))}
+      <div className="mb-6">
+        <h3 className="text-xl font-bold mb-3 text-gold flex items-center">
+          <FileText className="h-5 w-5 mr-2" /> Battle Log
+        </h3>
+        <div className="bg-black/40 border border-gold/20 p-4 rounded-md h-40 overflow-y-auto">
+          {battleLog.length > 0 ? (
+            battleLog.map((log, index) => (
+              <p
+                key={index}
+                className={cn(
+                  "mb-1 px-2 py-1 rounded",
+                  log.includes("Victory") && "text-green-400 font-bold bg-green-900/20",
+                  log.includes("Defeat") && "text-red-400 font-bold bg-red-900/20",
+                  log.includes("earned") && "text-yellow-400 bg-yellow-900/20",
+                  log.includes("attacked") && "text-red-300",
+                  log.includes("healed") && "text-green-300",
+                  log.includes("energy") && "text-blue-300",
+                  log.includes("Special") && "text-purple-300",
+                  log.includes("Not enough") && "text-gray-400 italic",
+                )}
+              >
+                {log}
+              </p>
+            ))
+          ) : (
+            <p className="text-gray-400 italic">No battle logs yet. Start the battle!</p>
+          )}
         </div>
       </div>
     </div>
