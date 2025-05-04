@@ -237,6 +237,7 @@ export default function CardFlipGame() {
   const [gameMode, setGameMode] = useState<"demo" | "paid">("demo")
   const [selectedTheme, setSelectedTheme] = useState(CARD_THEMES[2]) // Default to Animals theme
   const [showThemeSelect, setShowThemeSelect] = useState(false)
+  const [showMasterSelect, setShowMasterSelect] = useState(false)
   const [transactionPending, setTransactionPending] = useState(false)
   const [transactionHash, setTransactionHash] = useState("")
 
@@ -1217,35 +1218,167 @@ export default function CardFlipGame() {
 
               {/* Card Theme Selection */}
               <div className="mb-6">
-                <Card className="border-gold/30 bg-black/60">
+                <Card className="border-gold/30 bg-black/60 backdrop-blur-sm">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-gold">Card Theme</CardTitle>
+                    <CardTitle className="text-lg text-gold flex justify-between items-center">
+                      <span>Card Theme</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs text-gold hover:bg-gold/10"
+                        onClick={() => setShowThemeSelect(!showThemeSelect)}
+                      >
+                        {showThemeSelect ? "Hide Details" : "Show All"}
+                      </Button>
+                    </CardTitle>
                     <CardDescription>Choose your favorite card theme</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-3 gap-2 mb-2">
-                      {CARD_THEMES.map((theme) => (
-                        <Button
-                          key={theme.id}
-                          variant="ghost"
-                          className={`p-1 ${selectedTheme.id === theme.id ? 'bg-gold/20 ring-2 ring-gold' : ''}`}
-                          onClick={() => setSelectedTheme(theme)}
-                        >
-                          <div className="flex flex-col items-center">
-                            <div className={`w-12 h-12 rounded-lg overflow-hidden ${theme.cardColor} flex items-center justify-center`}>
-                              <span className="text-2xl">{theme.symbols[0]}</span>
+                    {showThemeSelect ? (
+                      <div className="space-y-3">
+                        {CARD_THEMES.map((theme) => {
+                          const isUnlocked = unlockedThemes.includes(theme.id);
+                          const isSelected = selectedTheme.id === theme.id;
+
+                          return (
+                            <div
+                              key={theme.id}
+                              className={`p-3 rounded-lg border ${
+                                isSelected
+                                  ? 'border-gold bg-gold/20'
+                                  : isUnlocked
+                                    ? 'border-gray-700 hover:border-gold/50 bg-black/40'
+                                    : 'border-gray-800 bg-black/20 opacity-60'
+                              } transition-all`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-lg overflow-hidden ${
+                                  theme.rarity === 'legendary' ? 'bg-gradient-to-r from-purple-600 via-gold to-orange-500 p-0.5' :
+                                  theme.rarity === 'epic' ? 'bg-gradient-to-r from-purple-600 to-pink-500 p-0.5' :
+                                  theme.rarity === 'rare' ? 'bg-gradient-to-r from-blue-500 to-cyan-400 p-0.5' :
+                                  theme.rarity === 'uncommon' ? 'bg-gradient-to-r from-green-500 to-emerald-400 p-0.5' :
+                                  'bg-gradient-to-r from-gray-500 to-gray-400 p-0.5'
+                                }`}>
+                                  <div className="w-full h-full rounded-lg bg-black/60 flex items-center justify-center">
+                                    <span className="text-2xl">{theme.symbols[0]}</span>
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center">
+                                    <h4 className="font-bold">{theme.name}</h4>
+                                    <Badge className={`ml-2 ${
+                                      theme.rarity === 'legendary' ? 'bg-gradient-to-r from-purple-600 via-gold to-orange-500 text-white' :
+                                      theme.rarity === 'epic' ? 'bg-purple-600 text-white' :
+                                      theme.rarity === 'rare' ? 'bg-blue-600 text-white' :
+                                      theme.rarity === 'uncommon' ? 'bg-green-600 text-white' :
+                                      'bg-gray-600 text-white'
+                                    }`}>
+                                      {theme.rarity.charAt(0).toUpperCase() + theme.rarity.slice(1)}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-gray-400 mt-1">{theme.description}</p>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {theme.symbols.slice(0, 6).map((symbol, index) => (
+                                      <span key={index} className="text-lg">{symbol}</span>
+                                    ))}
+                                    <span className="text-xs text-gray-400">...</span>
+                                  </div>
+                                </div>
+                                {isUnlocked ? (
+                                  <Button
+                                    variant={isSelected ? "default" : "outline"}
+                                    size="sm"
+                                    className={isSelected ? "bg-gold text-black" : "border-gold/50 text-white hover:bg-gold/10"}
+                                    onClick={() => setSelectedTheme(theme)}
+                                  >
+                                    {isSelected ? "Selected" : "Select"}
+                                  </Button>
+                                ) : (
+                                  <div className="text-xs text-gray-500">
+                                    Unlock at level {theme.unlockLevel}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <span className="text-xs mt-1">{theme.name}</span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="flex items-center gap-4 p-3 rounded-lg border border-gold bg-gold/10 mb-3">
+                          <div className={`w-16 h-16 rounded-lg overflow-hidden ${
+                            selectedTheme.rarity === 'legendary' ? 'bg-gradient-to-r from-purple-600 via-gold to-orange-500 p-0.5' :
+                            selectedTheme.rarity === 'epic' ? 'bg-gradient-to-r from-purple-600 to-pink-500 p-0.5' :
+                            selectedTheme.rarity === 'rare' ? 'bg-gradient-to-r from-blue-500 to-cyan-400 p-0.5' :
+                            selectedTheme.rarity === 'uncommon' ? 'bg-gradient-to-r from-green-500 to-emerald-400 p-0.5' :
+                            'bg-gradient-to-r from-gray-500 to-gray-400 p-0.5'
+                          }`}>
+                            <div className="w-full h-full rounded-lg bg-black/60 flex items-center justify-center">
+                              <span className="text-3xl">{selectedTheme.symbols[0]}</span>
+                            </div>
                           </div>
-                        </Button>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-1 justify-center">
-                      {selectedTheme.symbols.slice(0, 6).map((symbol, index) => (
-                        <span key={index} className="text-xl">{symbol}</span>
-                      ))}
-                      <span className="text-xl">...</span>
-                    </div>
+                          <div className="flex-1">
+                            <div className="flex items-center">
+                              <h3 className="font-bold text-lg">{selectedTheme.name}</h3>
+                              <Badge className={`ml-2 ${
+                                selectedTheme.rarity === 'legendary' ? 'bg-gradient-to-r from-purple-600 via-gold to-orange-500 text-white' :
+                                selectedTheme.rarity === 'epic' ? 'bg-purple-600 text-white' :
+                                selectedTheme.rarity === 'rare' ? 'bg-blue-600 text-white' :
+                                selectedTheme.rarity === 'uncommon' ? 'bg-green-600 text-white' :
+                                'bg-gray-600 text-white'
+                              }`}>
+                                {selectedTheme.rarity.charAt(0).toUpperCase() + selectedTheme.rarity.slice(1)}
+                              </Badge>
+                            </div>
+                            <p className="text-sm mt-1">{selectedTheme.description}</p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {selectedTheme.symbols.slice(0, 8).map((symbol, index) => (
+                                <span key={index} className="text-xl bg-black/40 w-8 h-8 flex items-center justify-center rounded">{symbol}</span>
+                              ))}
+                              {selectedTheme.symbols.length > 8 && (
+                                <span className="text-xs text-gray-400 flex items-center">+{selectedTheme.symbols.length - 8} more</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          {CARD_THEMES.map((theme) => {
+                            const isUnlocked = unlockedThemes.includes(theme.id);
+                            return (
+                              <Button
+                                key={theme.id}
+                                variant="ghost"
+                                className={`p-1 ${
+                                  selectedTheme.id === theme.id
+                                    ? 'bg-gold/20 ring-2 ring-gold'
+                                    : isUnlocked
+                                      ? 'hover:bg-black/40'
+                                      : 'opacity-40 cursor-not-allowed'
+                                }`}
+                                onClick={() => isUnlocked && setSelectedTheme(theme)}
+                              >
+                                <div className="flex flex-col items-center">
+                                  <div className={`w-12 h-12 rounded-lg overflow-hidden ${
+                                    isUnlocked ? theme.cardColor : 'bg-gray-900'
+                                  } flex items-center justify-center relative`}>
+                                    <span className="text-2xl">{theme.symbols[0]}</span>
+                                    {!isUnlocked && (
+                                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-xs mt-1">{theme.name}</span>
+                                </div>
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
