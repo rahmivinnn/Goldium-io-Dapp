@@ -2,181 +2,270 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getUserBridgeTransactions, type BridgeTransaction } from "@/services/bridge-service"
-import { formatDistanceToNow } from "date-fns"
-import { CheckCircleIcon, XCircleIcon, ClockIcon, ExternalLinkIcon } from "lucide-react"
-import Image from "next/image"
+import { Badge } from "@/components/ui/badge"
+import { ExternalLink, Clock, CheckCircle, XCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { motion, AnimatePresence } from "framer-motion"
 
-interface BridgeHistoryProps {
-  walletAddress?: string
+interface Transaction {
+  id: string
+  sourceNetwork: string
+  destinationNetwork: string
+  sourceToken: string
+  destinationToken: string
+  amount: string
+  receivedAmount: string
+  status: "pending" | "completed" | "failed"
+  timestamp: number
+  txHash: string
 }
 
-const getNetworkIcon = (networkId: string) => {
-  const networkIcons: Record<string, string> = {
-    ethereum: "/images/ethereum-logo.png",
-    solana: "/images/solana-logo.png",
-    binance: "/images/binance-logo.png",
-    polygon: "/images/polygon-logo.png",
-    avalanche: "/images/avalanche-logo.png",
-  }
-
-  return networkIcons[networkId] || "/images/ethereum-logo.png"
-}
-
-const getExplorerUrl = (network: string, hash: string) => {
-  const explorers: Record<string, string> = {
-    ethereum: `https://etherscan.io/tx/${hash}`,
-    solana: `https://explorer.solana.com/tx/${hash}`,
-    binance: `https://bscscan.com/tx/${hash}`,
-    polygon: `https://polygonscan.com/tx/${hash}`,
-    avalanche: `https://snowtrace.io/tx/${hash}`,
-  }
-
-  return explorers[network] || "#"
-}
-
-export default function BridgeHistory({ walletAddress }: BridgeHistoryProps) {
-  const [transactions, setTransactions] = useState<BridgeTransaction[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function BridgeHistory() {
+  const { connected, walletAddress } = useSolanaWallet()
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [expandedTx, setExpandedTx] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      if (walletAddress) {
-        try {
-          setIsLoading(true)
-          const txs = await getUserBridgeTransactions(walletAddress)
-          setTransactions(txs)
-        } catch (error) {
-          console.error("Failed to fetch bridge transactions:", error)
-        } finally {
-          setIsLoading(false)
-        }
-      }
+    if (connected && walletAddress) {
+      fetchTransactions()
+    } else {
+      setTransactions([])
+    }
+  }, [connected, walletAddress])
+
+  const fetchTransactions = async () => {
+    setIsLoading(true)
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Mock data
+      const mockTransactions: Transaction[] = [
+        {
+          id: "tx1",
+          sourceNetwork: "ethereum",
+          destinationNetwork: "solana",
+          sourceToken: "ETH",
+          destinationToken: "SOL",
+          amount: "0.5",
+          receivedAmount: "10.25",
+          status: "completed",
+          timestamp: Date.now() - 3600000, // 1 hour ago
+          txHash: "0x" + Math.random().toString(16).substring(2, 42),
+        },
+        {
+          id: "tx2",
+          sourceNetwork: "solana",
+          destinationNetwork: "binance",
+          sourceToken: "SOL",
+          destinationToken: "BNB",
+          amount: "5",
+          receivedAmount: "0.12",
+          status: "pending",
+          timestamp: Date.now() - 1800000, // 30 minutes ago
+          txHash: "0x" + Math.random().toString(16).substring(2, 42),
+        },
+        {
+          id: "tx3",
+          sourceNetwork: "binance",
+          destinationNetwork: "ethereum",
+          sourceToken: "BNB",
+          destinationToken: "USDT",
+          amount: "0.2",
+          receivedAmount: "50",
+          status: "failed",
+          timestamp: Date.now() - 86400000, // 1 day ago
+          txHash: "0x" + Math.random().toString(16).substring(2, 42),
+        },
+      ]
+
+      setTransactions(mockTransactions)
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const toggleExpand = (txId: string) => {
+    if (expandedTx === txId) {
+      setExpandedTx(null)
+    } else {
+      setExpandedTx(txId)
+    }
+  }
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString()
+  }
+
+  const getExplorerLink = (network: string, txHash: string) => {
+    if (network === "ethereum") {
+      return `https://etherscan.io/tx/${txHash}`
+    } else if (network === "solana") {
+      return `https://explorer.solana.com/tx/${txHash}`
+    } else if (network === "binance") {
+      return `https://bscscan.com/tx/${txHash}`
+    } else if (network === "polygon") {
+      return `https://polygonscan.com/tx/${txHash}`
+    } else if (network === "avalanche") {
+      return `https://snowtrace.io/tx/${txHash}`
     }
 
-    fetchTransactions()
-  }, [walletAddress])
-
-  if (isLoading) {
-    return (
-      <Card className="border border-amber-500/20 bg-black/60 backdrop-blur-sm mt-8">
-        <CardHeader>
-          <CardTitle className="text-amber-500">Recent Bridge Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center items-center py-8">
-            <ClockIcon className="animate-spin h-8 w-8 text-amber-500" />
-          </div>
-        </CardContent>
-      </Card>
-    )
+    return "#"
   }
 
-  if (!walletAddress) {
-    return (
-      <Card className="border border-amber-500/20 bg-black/60 backdrop-blur-sm mt-8">
-        <CardHeader>
-          <CardTitle className="text-amber-500">Recent Bridge Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-400">
-            Connect your wallet to view your bridge transaction history
-          </div>
-        </CardContent>
-      </Card>
-    )
+  const getNetworkIcon = (network: string) => {
+    if (network === "ethereum") return "/ethereum-crystal.png"
+    if (network === "solana") return "/images/solana-logo.png"
+    if (network === "binance") return "/binance-logo.png"
+    if (network === "polygon") return "/polygon-logo.png"
+    if (network === "avalanche") return "/avalanche-logo.png"
+    return "/placeholder.svg"
   }
 
-  if (transactions.length === 0) {
-    return (
-      <Card className="border border-amber-500/20 bg-black/60 backdrop-blur-sm mt-8">
-        <CardHeader>
-          <CardTitle className="text-amber-500">Recent Bridge Transactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-400">No bridge transactions found</div>
-        </CardContent>
-      </Card>
-    )
+  const getStatusIcon = (status: string) => {
+    if (status === "pending") return <Clock className="h-4 w-4 text-amber-500" />
+    if (status === "completed") return <CheckCircle className="h-4 w-4 text-green-500" />
+    if (status === "failed") return <XCircle className="h-4 w-4 text-red-500" />
+    return null
+  }
+
+  const getStatusColor = (status: string) => {
+    if (status === "pending") return "bg-amber-500/20 text-amber-500 border-amber-500/30"
+    if (status === "completed") return "bg-green-500/20 text-green-500 border-green-500/30"
+    if (status === "failed") return "bg-red-500/20 text-red-500 border-red-500/30"
+    return ""
+  }
+
+  if (!connected) {
+    return null
   }
 
   return (
-    <Card className="border border-amber-500/20 bg-black/60 backdrop-blur-sm mt-8">
-      <CardHeader>
-        <CardTitle className="text-amber-500">Recent Bridge Transactions</CardTitle>
+    <Card className="border border-gold bg-black/60 backdrop-blur-sm mt-8">
+      <CardHeader className="bg-gradient-to-r from-amber-900/20 to-amber-700/20">
+        <CardTitle className="text-xl text-gold">Bridge Transaction History</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {transactions.map((tx) => (
-            <div key={tx.id} className="bg-gray-800/50 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center">
-                  {tx.status === "completed" && <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" />}
-                  {tx.status === "pending" && <ClockIcon className="h-5 w-5 text-amber-500 mr-2" />}
-                  {tx.status === "failed" && <XCircleIcon className="h-5 w-5 text-red-500 mr-2" />}
-                  <span className="text-sm capitalize">{tx.status}</span>
-                </div>
-                <div className="text-xs text-gray-400">{formatDistanceToNow(tx.timestamp, { addSuffix: true })}</div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 relative mr-2 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
-                    <Image
-                      src={getNetworkIcon(tx.sourceNetwork) || "/placeholder.svg"}
-                      alt={tx.sourceNetwork}
-                      width={24}
-                      height={24}
-                      className="object-contain"
-                    />
-                  </div>
-                  <div>
-                    <div className="text-white">
-                      {tx.amount} {tx.sourceToken}
+      <CardContent className="p-6">
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gold"></div>
+          </div>
+        ) : transactions.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-400">No bridge transactions found</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {transactions.map((tx) => (
+              <div key={tx.id} className="border border-gray-800 rounded-lg overflow-hidden">
+                <div
+                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-900/50"
+                  onClick={() => toggleExpand(tx.id)}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      <img
+                        src={getNetworkIcon(tx.sourceNetwork) || "/placeholder.svg"}
+                        alt={tx.sourceNetwork}
+                        className="w-8 h-8 rounded-full"
+                      />
+                      <div className="absolute -bottom-1 -right-1 bg-black rounded-full p-0.5">
+                        <img
+                          src={getNetworkIcon(tx.destinationNetwork) || "/placeholder.svg"}
+                          alt={tx.destinationNetwork}
+                          className="w-4 h-4 rounded-full"
+                        />
+                      </div>
                     </div>
-                    <div className="text-xs text-gray-400 capitalize">{tx.sourceNetwork}</div>
-                  </div>
-                </div>
-
-                <div className="text-amber-500">→</div>
-
-                <div className="flex items-center">
-                  <div className="w-8 h-8 relative mr-2 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
-                    <Image
-                      src={getNetworkIcon(tx.destinationNetwork) || "/placeholder.svg"}
-                      alt={tx.destinationNetwork}
-                      width={24}
-                      height={24}
-                      className="object-contain"
-                    />
-                  </div>
-                  <div>
-                    <div className="text-white">
-                      {(Number.parseFloat(tx.amount) - Number.parseFloat(tx.fee)).toFixed(4)} {tx.destinationToken}
+                    <div>
+                      <div className="font-medium">
+                        {tx.amount} {tx.sourceToken} → {tx.receivedAmount} {tx.destinationToken}
+                      </div>
+                      <div className="text-xs text-gray-400">{formatDate(tx.timestamp)}</div>
                     </div>
-                    <div className="text-xs text-gray-400 capitalize">{tx.destinationNetwork}</div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Badge className={`flex items-center space-x-1 ${getStatusColor(tx.status)}`}>
+                      {getStatusIcon(tx.status)}
+                      <span className="capitalize">{tx.status}</span>
+                    </Badge>
+                    {expandedTx === tx.id ? (
+                      <ChevronUp className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
+                    )}
                   </div>
                 </div>
-              </div>
 
-              {tx.hash && (
-                <div className="mt-4 flex justify-between items-center text-xs">
-                  <div className="text-gray-400">
-                    Tx: {tx.hash.substring(0, 8)}...{tx.hash.substring(tx.hash.length - 8)}
-                  </div>
-                  <a
-                    href={getExplorerUrl(tx.sourceNetwork, tx.hash)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-amber-500 hover:text-amber-400"
-                  >
-                    View <ExternalLinkIcon className="h-3 w-3 ml-1" />
-                  </a>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                <AnimatePresence>
+                  {expandedTx === tx.id && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-4 border-t border-gray-800 bg-gray-900/30">
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">From Network</span>
+                            <div className="flex items-center">
+                              <img
+                                src={getNetworkIcon(tx.sourceNetwork) || "/placeholder.svg"}
+                                alt={tx.sourceNetwork}
+                                className="w-4 h-4 rounded-full mr-1"
+                              />
+                              <span className="capitalize">{tx.sourceNetwork}</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">To Network</span>
+                            <div className="flex items-center">
+                              <img
+                                src={getNetworkIcon(tx.destinationNetwork) || "/placeholder.svg"}
+                                alt={tx.destinationNetwork}
+                                className="w-4 h-4 rounded-full mr-1"
+                              />
+                              <span className="capitalize">{tx.destinationNetwork}</span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Amount Sent</span>
+                            <span>
+                              {tx.amount} {tx.sourceToken}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Amount Received</span>
+                            <span>
+                              {tx.receivedAmount} {tx.destinationToken}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-400">Transaction Hash</span>
+                            <a
+                              href={getExplorerLink(tx.sourceNetwork, tx.txHash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center text-gold hover:text-amber-400"
+                            >
+                              {tx.txHash.substring(0, 6)}...{tx.txHash.substring(tx.txHash.length - 4)}
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

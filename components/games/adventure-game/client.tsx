@@ -12,10 +12,13 @@ import { GameProvider, useGameContext, type CharacterType } from "./game-context
 import CharacterSelection from "./character-selection"
 import FantasyGameScene from "./fantasy-game-scene"
 import { motion, AnimatePresence } from "framer-motion"
+import confetti from "canvas-confetti"
 
 export default function AdventureGameClient() {
-  const { connected, connecting, goldBalance, walletAddress } = useSolanaWallet()
-  const [gameState, setGameState] = useState<"intro" | "character" | "loading" | "playing" | "gameOver">("intro")
+  const { connected, connecting, goldBalance, walletAddress, openWalletModal } = useSolanaWallet()
+  const [gameState, setGameState] = useState<"intro" | "character" | "loading" | "playing" | "gameOver" | "rewards">(
+    "intro",
+  )
   const [stakeAmount, setStakeAmount] = useState(10)
   const [isStaking, setIsStaking] = useState(false)
   const { toast } = useToast()
@@ -26,6 +29,9 @@ export default function AdventureGameClient() {
   const [selectedCharacter, setSelectedCharacter] = useState<CharacterType>("cat")
   const [showCutscene, setShowCutscene] = useState(false)
   const [cutsceneText, setCutsceneText] = useState("")
+  const [gameRewards, setGameRewards] = useState<{ gold: number; nfts: string[] }>({ gold: 0, nfts: [] })
+  const [transactionPending, setTransactionPending] = useState(false)
+  const [transactionHash, setTransactionHash] = useState("")
 
   // Prevent hydration errors by only rendering client-side
   useEffect(() => {
@@ -53,10 +59,17 @@ export default function AdventureGameClient() {
     }
 
     setIsStaking(true)
+    setTransactionPending(true)
 
     try {
-      // Simulate staking transaction
+      // Simulate blockchain transaction
       await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Generate a fake transaction hash
+      const fakeHash = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("")
+      setTransactionHash(fakeHash)
+
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
       toast({
         title: "Tokens Staked",
@@ -74,6 +87,7 @@ export default function AdventureGameClient() {
       })
     } finally {
       setIsStaking(false)
+      setTransactionPending(false)
     }
   }
 
@@ -95,6 +109,71 @@ export default function AdventureGameClient() {
     }, 5000)
   }
 
+  // Handle game over and rewards
+  const handleGameOver = (finalScore: number, finalGold: number) => {
+    setScore(finalScore)
+    setGoldCollected(finalGold)
+
+    // Calculate rewards based on performance
+    const goldReward = Math.floor(finalGold * 1.5) + Math.floor(finalScore / 100)
+
+    // 10% chance to get NFT for every 1000 points
+    const nftChance = Math.min(0.5, (finalScore / 1000) * 0.1)
+    const gotNft = Math.random() < nftChance
+
+    const nfts = gotNft ? ["Goldium Adventure Trophy"] : []
+
+    setGameRewards({ gold: goldReward, nfts })
+    setGameState("gameOver")
+  }
+
+  // Handle claiming rewards
+  const handleClaimRewards = async () => {
+    if (!connected || !walletAddress) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to claim rewards.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setTransactionPending(true)
+
+    try {
+      // Simulate blockchain transaction
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Generate a fake transaction hash
+      const fakeHash = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("")
+      setTransactionHash(fakeHash)
+
+      toast({
+        title: "Rewards Claimed",
+        description: `Successfully claimed ${gameRewards.gold} GOLD tokens${gameRewards.nfts.length > 0 ? " and NFT rewards" : ""}.`,
+      })
+
+      // Show confetti for successful claim
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      })
+
+      // Go to rewards screen
+      setGameState("rewards")
+    } catch (error) {
+      console.error("Claiming error:", error)
+      toast({
+        title: "Claiming Failed",
+        description: "Failed to claim rewards. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setTransactionPending(false)
+    }
+  }
+
   // If not client-side yet, show loading
   if (!isClient) {
     return (
@@ -106,7 +185,7 @@ export default function AdventureGameClient() {
 
   // If wallet is not connected, show connect prompt
   if (!connected) {
-    return <WalletConnectPrompt />
+    return <WalletConnectPrompt onConnect={openWalletModal} />
   }
 
   // If in intro state, show game entrance
@@ -118,6 +197,8 @@ export default function AdventureGameClient() {
         stakeAmount={stakeAmount}
         setStakeAmount={setStakeAmount}
         isStaking={isStaking}
+        transactionPending={transactionPending}
+        transactionHash={transactionHash}
       />
     )
   }
@@ -137,7 +218,7 @@ export default function AdventureGameClient() {
     return (
       <GameProvider>
         <AdventureGame
-          onExit={() => setGameState("gameOver")}
+          onExit={() => handleGameOver(score, goldCollected)}
           onScoreChange={setScore}
           onGoldCollect={setGoldCollected}
           onHealthChange={setHealth}
@@ -155,10 +236,21 @@ export default function AdventureGameClient() {
     return (
       <GameResults
         onPlayAgain={() => setGameState("intro")}
+        onClaimRewards={handleClaimRewards}
         stakedAmount={stakeAmount}
         score={score}
         goldCollected={goldCollected}
+        rewards={gameRewards}
+        transactionPending={transactionPending}
+        transactionHash={transactionHash}
       />
+    )
+  }
+
+  // If rewards claimed, show rewards screen
+  if (gameState === "rewards") {
+    return (
+      <RewardsScreen onContinue={() => setGameState("intro")} rewards={gameRewards} transactionHash={transactionHash} />
     )
   }
 
@@ -167,9 +259,7 @@ export default function AdventureGameClient() {
 }
 
 // Component for wallet connect prompt
-function WalletConnectPrompt() {
-  const { openWalletModal } = useSolanaWallet()
-
+function WalletConnectPrompt({ onConnect }: { onConnect: () => void }) {
   return (
     <div className="relative h-screen flex flex-col justify-center items-center">
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-800">
@@ -203,10 +293,10 @@ function WalletConnectPrompt() {
               <div className="absolute inset-0 rounded-full animate-pulse bg-gold/20 filter blur-xl"></div>
             </div>
             <p className="text-gray-300 text-center">
-              You need to connect your Phantom wallet to play this game and stake GOLD tokens.
+              You need to connect your wallet to play this game and stake GOLD tokens.
             </p>
             <Button
-              onClick={openWalletModal}
+              onClick={onConnect}
               className="bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-600 hover:to-amber-600 text-black font-bold"
             >
               Connect Wallet
@@ -225,12 +315,16 @@ function GameEntrance({
   stakeAmount,
   setStakeAmount,
   isStaking,
+  transactionPending,
+  transactionHash,
 }: {
   goldBalance: number
   onStake: () => void
   stakeAmount: number
   setStakeAmount: (amount: number) => void
   isStaking: boolean
+  transactionPending: boolean
+  transactionHash: string
 }) {
   return (
     <div className="relative h-screen flex flex-col justify-center items-center">
@@ -319,13 +413,27 @@ function GameEntrance({
                     </div>
                   </div>
                 </div>
+
+                {transactionPending && (
+                  <div className="bg-black/50 p-3 rounded-lg border border-gold/30 flex items-center justify-center">
+                    <Loader2 className="h-4 w-4 animate-spin mr-2 text-gold" />
+                    <span className="text-sm text-gold">Processing transaction...</span>
+                  </div>
+                )}
+
+                {transactionHash && !transactionPending && (
+                  <div className="bg-black/50 p-3 rounded-lg border border-gold/30">
+                    <p className="text-xs text-gray-400 mb-1">Transaction Hash:</p>
+                    <p className="text-xs text-gold break-all">{transactionHash}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
             <CardFooter>
               <Button
                 className="w-full bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-600 hover:to-amber-600 text-black font-bold py-6"
                 onClick={onStake}
-                disabled={isStaking || goldBalance < stakeAmount}
+                disabled={isStaking || goldBalance < stakeAmount || transactionPending}
               >
                 {isStaking ? (
                   <>
@@ -643,17 +751,23 @@ function AdventureGame({
 // Game results screen
 function GameResults({
   onPlayAgain,
+  onClaimRewards,
   stakedAmount,
   score,
   goldCollected,
+  rewards,
+  transactionPending,
+  transactionHash,
 }: {
   onPlayAgain: () => void
+  onClaimRewards: () => void
   stakedAmount: number
   score: number
   goldCollected: number
+  rewards: { gold: number; nfts: string[] }
+  transactionPending: boolean
+  transactionHash: string
 }) {
-  const reward = Math.floor(stakedAmount * 2.5) + goldCollected
-
   return (
     <div className="relative h-screen flex flex-col justify-center items-center">
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-800">
@@ -691,9 +805,9 @@ function GameResults({
                 <div className="bg-gold/10 p-6 rounded-lg text-center border border-gold/30">
                   <h3 className="text-lg font-semibold mb-2 text-gold">Rewards Earned</h3>
                   <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500">
-                    {reward} GOLD
+                    {rewards.gold} GOLD
                   </div>
-                  <p className="text-sm text-gray-400 mt-2">Tokens have been added to your wallet</p>
+                  <p className="text-sm text-gray-400 mt-2">Claim your rewards to your wallet</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -707,8 +821,8 @@ function GameResults({
                   </div>
                 </div>
 
-                {/* NFT Reward (if score is high enough) */}
-                {score > 1000 && (
+                {/* NFT Reward (if available) */}
+                {rewards.nfts.length > 0 && (
                   <div className="bg-white/5 p-4 rounded-lg text-center border border-white/10">
                     <div className="text-sm text-gray-400 mb-2">NFT Reward Unlocked!</div>
                     <div className="w-32 h-32 mx-auto relative">
@@ -719,7 +833,119 @@ function GameResults({
                       />
                       <div className="absolute inset-0 rounded-full animate-pulse bg-purple-500/20 filter blur-xl"></div>
                     </div>
-                    <div className="text-lg font-bold text-purple-400 mt-2">Mythical Dragon Egg</div>
+                    <div className="text-lg font-bold text-purple-400 mt-2">{rewards.nfts[0]}</div>
+                  </div>
+                )}
+
+                {transactionPending && (
+                  <div className="bg-black/50 p-3 rounded-lg border border-gold/30 flex items-center justify-center">
+                    <Loader2 className="h-4 w-4 animate-spin mr-2 text-gold" />
+                    <span className="text-sm text-gold">Processing transaction...</span>
+                  </div>
+                )}
+
+                {transactionHash && !transactionPending && (
+                  <div className="bg-black/50 p-3 rounded-lg border border-gold/30">
+                    <p className="text-xs text-gray-400 mb-1">Transaction Hash:</p>
+                    <p className="text-xs text-gold break-all">{transactionHash}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-3">
+              <Button
+                className="w-full bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-600 hover:to-amber-600 text-black font-bold py-6"
+                onClick={onClaimRewards}
+                disabled={transactionPending}
+              >
+                {transactionPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  "Claim Rewards"
+                )}
+              </Button>
+
+              <Button variant="outline" className="w-full border-gold/30 text-gold hover:bg-">
+                Play Again
+              </Button>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      </div>
+    </div>
+  )
+}
+
+// Rewards screen
+function RewardsScreen({
+  onContinue,
+  rewards,
+  transactionHash,
+}: { onContinue: () => void; rewards: { gold: number; nfts: string[] }; transactionHash: string }) {
+  return (
+    <div className="relative h-screen flex flex-col justify-center items-center">
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-800">
+        <div className="absolute inset-0 opacity-20">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                width: `${Math.random() * 4 + 1}px`,
+                height: `${Math.random() * 4 + 1}px`,
+                opacity: Math.random() * 0.5 + 0.3,
+                animation: `twinkle ${Math.random() * 5 + 3}s infinite ${Math.random() * 5}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="z-10 w-full max-w-md px-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Card className="border-gold bg-black/40 backdrop-blur-md">
+            <CardHeader>
+              <CardTitle className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500 text-center text-2xl">
+                Rewards Claimed!
+              </CardTitle>
+              <CardDescription className="text-center text-gray-300">
+                Congratulations on claiming your rewards
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="bg-gold/10 p-6 rounded-lg text-center border border-gold/30">
+                  <h3 className="text-lg font-semibold mb-2 text-gold">You Received</h3>
+                  <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-300 to-gold-500">
+                    {rewards.gold} GOLD
+                  </div>
+                </div>
+
+                {/* NFT Reward (if available) */}
+                {rewards.nfts.length > 0 && (
+                  <div className="bg-white/5 p-4 rounded-lg text-center border border-white/10">
+                    <div className="text-sm text-gray-400 mb-2">NFT Reward:</div>
+                    <div className="w-32 h-32 mx-auto relative">
+                      <img
+                        src="/nft-images/dragon-egg.png"
+                        alt="Dragon Egg NFT"
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute inset-0 rounded-full animate-pulse bg-purple-500/20 filter blur-xl"></div>
+                    </div>
+                    <div className="text-lg font-bold text-purple-400 mt-2">{rewards.nfts[0]}</div>
+                  </div>
+                )}
+
+                {transactionHash && (
+                  <div className="bg-black/50 p-3 rounded-lg border border-gold/30">
+                    <p className="text-xs text-gray-400 mb-1">Transaction Hash:</p>
+                    <p className="text-xs text-gold break-all">{transactionHash}</p>
                   </div>
                 )}
               </div>
@@ -727,9 +953,9 @@ function GameResults({
             <CardFooter>
               <Button
                 className="w-full bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-600 hover:to-amber-600 text-black font-bold py-6"
-                onClick={onPlayAgain}
+                onClick={onContinue}
               >
-                Play Again
+                Continue
               </Button>
             </CardFooter>
           </Card>

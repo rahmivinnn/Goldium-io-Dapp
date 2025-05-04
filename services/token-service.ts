@@ -1,4 +1,5 @@
-import { type Connection, PublicKey, type TokenAccountsFilter, TOKEN_PROGRAM_ID } from "@solana/web3.js"
+import { type Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
+import { getAccount, getAssociatedTokenAddress } from "@solana/spl-token"
 import { NETWORKS, type NetworkType, GOLD_TOKEN_METADATA, SOL_TOKEN_METADATA } from "@/config/network-config"
 
 export interface TokenInfo {
@@ -14,7 +15,7 @@ export const getSOLBalance = async (connection: Connection, walletAddress: strin
   try {
     const publicKey = new PublicKey(walletAddress)
     const balance = await connection.getBalance(publicKey)
-    return balance / 10 ** SOL_TOKEN_METADATA.decimals
+    return balance / LAMPORTS_PER_SOL
   } catch (error) {
     console.error("Error fetching SOL balance:", error)
     return 0
@@ -30,37 +31,23 @@ export const getGOLDBalance = async (
     const publicKey = new PublicKey(walletAddress)
     const tokenAddress = new PublicKey(NETWORKS[network].goldTokenAddress)
 
-    // Get all token accounts owned by the wallet
-    const tokenAccountsFilter: TokenAccountsFilter = {
-      programId: TOKEN_PROGRAM_ID,
+    // Get the associated token account address
+    const associatedTokenAddress = await getAssociatedTokenAddress(tokenAddress, publicKey)
+
+    try {
+      // Try to get the token account
+      const tokenAccount = await getAccount(connection, associatedTokenAddress)
+
+      // Convert from raw balance to decimal balance
+      const balance = Number(tokenAccount.amount) / Math.pow(10, GOLD_TOKEN_METADATA.decimals)
+      return balance
+    } catch (error) {
+      // If the account doesn't exist or there's an error, return 0
+      console.log("Token account not found or error:", error)
+      return 0
     }
-
-    const { value: tokenAccounts } = await connection.getTokenAccountsByOwner(publicKey, tokenAccountsFilter)
-
-    // Find the token account for GOLD token
-    for (const tokenAccount of tokenAccounts) {
-      const accountInfo = await connection.getParsedAccountInfo(tokenAccount.pubkey)
-
-      if (accountInfo.value && "parsed" in accountInfo.value.data) {
-        const parsedData = accountInfo.value.data.parsed
-
-        if (parsedData.info && parsedData.info.mint && parsedData.info.mint === tokenAddress.toString()) {
-          const balance = parsedData.info.tokenAmount.uiAmount || 0
-          return balance
-        }
-      }
-    }
-
-    // If no token account found, return 0
-    return 0
   } catch (error) {
     console.error("Error fetching GOLD balance:", error)
-
-    // For demo purposes, return mock balance if real balance fetch fails
-    if (process.env.NODE_ENV === "development") {
-      return network === "mainnet" ? 1000 : 5000
-    }
-
     return 0
   }
 }

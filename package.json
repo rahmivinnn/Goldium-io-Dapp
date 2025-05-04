@@ -76,9 +76,8 @@
     "canvas-confetti": "latest",
     "@solana/spl-token": "latest",
     "@metaplex-foundation/js": "latest",
-    "@project-serum/anchor": "latest",
-    "@solana/wallet-adapter-wallets": "latest",
-    "@solana/wallet-adapter-react-ui": "latest"
+    "react-use": "latest",
+    "@project-serum/anchor": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

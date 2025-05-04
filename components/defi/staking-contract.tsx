@@ -83,8 +83,8 @@ export default function StakingContract() {
   const [isClaiming, setIsClaiming] = useState(false)
   const [program, setProgram] = useState<Program | null>(null)
 
-  // APY rates
-  const apy = 15 // 15% APY
+  // APY rates - increased to be more attractive
+  const apy = 18.5 // 18.5% APY
 
   // Initialize the program when wallet is connected
   useEffect(() => {
@@ -333,7 +333,7 @@ export default function StakingContract() {
       <CardHeader>
         <CardTitle className="text-xl text-gold">Stake GOLD Tokens</CardTitle>
         <CardDescription>
-          Stake your GOLD tokens to earn rewards
+          Stake your GOLD tokens to earn {apy}% APY
           {network === "testnet" && " (Testnet Mode)"}
         </CardDescription>
       </CardHeader>

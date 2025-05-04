@@ -96,3 +96,21 @@ export const getBridgeTransactionStatus = async (
     }, 1000)
   })
 }
+
+export const getNetworkInfo = (networkId: string) => {
+  // Mock implementation
+  return {
+    name: networkId,
+    chainId: "0x1",
+    currency: "ETH",
+  }
+}
+
+export const getTokenInfo = (tokenId: string) => {
+  // Mock implementation
+  return {
+    name: tokenId,
+    symbol: tokenId,
+    decimals: 18,
+  }
+}

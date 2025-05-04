@@ -1,32 +1,16 @@
-import { Suspense } from "react"
-import AdventureGameClient from "@/components/games/adventure-game/client"
+import type { Metadata } from "next"
+import Game3DWorld from "@/components/games/adventure-game/game-3d-world"
 
-export const metadata = {
-  title: "Goldium Adventure - 3D Game",
-  description: "Hunt for GOLD tokens in this immersive 3D adventure game",
+export const metadata: Metadata = {
+  title: "Goldium 3D Adventure Game",
+  description: "Play-to-earn 3D adventure game in the Goldium ecosystem",
 }
 
 export default function AdventureGamePage() {
   return (
-    <div className="min-h-screen w-full">
-      <Suspense fallback={<GameLoadingScreen />}>
-        <AdventureGameClient />
-      </Suspense>
-    </div>
-  )
-}
-
-function GameLoadingScreen() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black">
-      <div className="w-64 h-64 relative">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <img src="/gold-logo.png" alt="Goldium" className="w-32 h-32 animate-pulse" />
-        </div>
-        <div className="absolute inset-0 border-t-4 border-gold rounded-full animate-spin"></div>
-      </div>
-      <h2 className="text-2xl font-bold mt-8 gold-gradient">Loading Adventure Game...</h2>
-      <p className="text-gray-400 mt-2">Preparing your adventure in the Goldium world</p>
-    </div>
+    <main className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold text-center mb-8 text-yellow-400">Goldium 3D Adventure</h1>
+      <Game3DWorld />
+    </main>
   )
 }

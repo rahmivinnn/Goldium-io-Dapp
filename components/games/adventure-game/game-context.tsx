@@ -2,9 +2,11 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { useToast } from "@/hooks/use-toast"
 
 // Character types
-export type CharacterType = "egg" | "cat" | "wolf"
+export type CharacterType = "cat" | "wolf" | "coin"
 
 // Character abilities and stats
 export interface CharacterStats {
@@ -97,6 +99,14 @@ interface GameContextType {
   endBossBattle: (wasSuccessful: boolean) => void
   getBossById: (bossId: string) => BossData | undefined
   setCurrentIsland: (islandId: number) => void
+
+  // Web3 integration
+  stakeTokens: (amount: number) => Promise<boolean>
+  claimRewards: () => Promise<{ gold: number; nfts: string[] }>
+  stakedAmount: number
+  isStaking: boolean
+  canClaimRewards: boolean
+  lastRewardTime: number
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined)
@@ -111,13 +121,6 @@ export function useGameContext() {
 
 // Character base stats
 const CHARACTER_STATS: Record<CharacterType, CharacterStats> = {
-  egg: {
-    speed: 5,
-    jump: 7,
-    attack: 3,
-    defense: 8,
-    special: "Gold Magnet: Automatically attracts nearby gold tokens",
-  },
   cat: {
     speed: 8,
     jump: 6,
@@ -131,6 +134,13 @@ const CHARACTER_STATS: Record<CharacterType, CharacterStats> = {
     attack: 8,
     defense: 7,
     special: "Howling Wind: Area attack that pushes enemies away",
+  },
+  coin: {
+    speed: 5,
+    jump: 4,
+    attack: 4,
+    defense: 9,
+    special: "Gold Magnet: Automatically attracts nearby gold tokens",
   },
 }
 
@@ -283,6 +293,14 @@ const ISLANDS_DATA = [
 ]
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
+  // Web3 integration
+  const { connected, walletAddress, goldBalance, sendTransaction } = useSolanaWallet()
+  const { toast } = useToast()
+  const [stakedAmount, setStakedAmount] = useState(0)
+  const [isStaking, setIsStaking] = useState(false)
+  const [canClaimRewards, setCanClaimRewards] = useState(false)
+  const [lastRewardTime, setLastRewardTime] = useState(0)
+
   // Basic game stats
   const [score, setScore] = useState(0)
   const [goldCollected, setGoldCollected] = useState(0)
@@ -317,6 +335,143 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setHealth(100) // Reset health on character change
     setMaxHealth(100)
   }, [character])
+
+  // Web3 integration: Check if user has staked tokens
+  useEffect(() => {
+    if (connected && walletAddress) {
+      // Simulate fetching staked amount from blockchain
+      const fetchStakedAmount = async () => {
+        try {
+          // In a real implementation, this would be a blockchain call
+          // For now, we'll simulate it with a random amount
+          const mockStakedAmount = Math.floor(Math.random() * 50) + 10
+          setStakedAmount(mockStakedAmount)
+
+          // Check if rewards are available (every 24 hours)
+          const now = Date.now()
+          const lastReward = localStorage.getItem(`lastReward_${walletAddress}`)
+          const lastRewardTime = lastReward ? Number.parseInt(lastReward) : 0
+          const canClaim = now - lastRewardTime > 24 * 60 * 60 * 1000 // 24 hours
+
+          setCanClaimRewards(canClaim)
+          setLastRewardTime(lastRewardTime)
+        } catch (error) {
+          console.error("Error fetching staked amount:", error)
+        }
+      }
+
+      fetchStakedAmount()
+    } else {
+      setStakedAmount(0)
+      setCanClaimRewards(false)
+    }
+  }, [connected, walletAddress])
+
+  // Web3 integration: Stake tokens function
+  const stakeTokens = async (amount: number): Promise<boolean> => {
+    if (!connected || !walletAddress) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to stake tokens",
+        variant: "destructive",
+      })
+      return false
+    }
+
+    if (goldBalance < amount) {
+      toast({
+        title: "Insufficient balance",
+        description: `You need at least ${amount} GOLD to stake`,
+        variant: "destructive",
+      })
+      return false
+    }
+
+    setIsStaking(true)
+
+    try {
+      // In a real implementation, this would be a blockchain transaction
+      // For now, we'll simulate it with a timeout
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Update staked amount
+      setStakedAmount((prev) => prev + amount)
+
+      toast({
+        title: "Tokens staked successfully",
+        description: `You have staked ${amount} GOLD tokens`,
+      })
+
+      setIsStaking(false)
+      return true
+    } catch (error) {
+      console.error("Error staking tokens:", error)
+      toast({
+        title: "Staking failed",
+        description: "There was an error staking your tokens",
+        variant: "destructive",
+      })
+      setIsStaking(false)
+      return false
+    }
+  }
+
+  // Web3 integration: Claim rewards function
+  const claimRewards = async (): Promise<{ gold: number; nfts: string[] }> => {
+    if (!connected || !walletAddress) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to claim rewards",
+        variant: "destructive",
+      })
+      return { gold: 0, nfts: [] }
+    }
+
+    if (!canClaimRewards) {
+      toast({
+        title: "No rewards available",
+        description: "You can claim rewards once every 24 hours",
+        variant: "destructive",
+      })
+      return { gold: 0, nfts: [] }
+    }
+
+    try {
+      // Calculate rewards based on staked amount
+      const goldReward = Math.floor(stakedAmount * 0.1) // 10% daily return
+
+      // Random chance to get NFT (5% chance per 10 GOLD staked)
+      const nftChance = (stakedAmount / 10) * 0.05
+      const gotNft = Math.random() < nftChance
+
+      const nfts = gotNft ? ["Goldium Special NFT"] : []
+
+      // In a real implementation, this would be a blockchain transaction
+      // For now, we'll simulate it with a timeout
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Update last reward time
+      const now = Date.now()
+      localStorage.setItem(`lastReward_${walletAddress}`, now.toString())
+      setLastRewardTime(now)
+      setCanClaimRewards(false)
+
+      toast({
+        title: "Rewards claimed successfully",
+        description: `You received ${goldReward} GOLD${nfts.length > 0 ? " and a special NFT!" : ""}`,
+      })
+
+      return { gold: goldReward, nfts }
+    } catch (error) {
+      console.error("Error claiming rewards:", error)
+      toast({
+        title: "Claiming failed",
+        description: "There was an error claiming your rewards",
+        variant: "destructive",
+      })
+      return { gold: 0, nfts: [] }
+    }
+  }
 
   const addScore = (points: number) => {
     setScore((prev) => prev + points)
@@ -522,6 +677,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     endBossBattle,
     getBossById,
     setCurrentIsland,
+    // Web3 integration
+    stakeTokens,
+    claimRewards,
+    stakedAmount,
+    isStaking,
+    canClaimRewards,
+    lastRewardTime,
   }
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>

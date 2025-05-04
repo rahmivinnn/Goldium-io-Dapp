@@ -22,36 +22,30 @@ export function TokenContractCard({ className = "", compact = false }: TokenCont
     setIsClient(true)
   }, [])
 
-  // Untuk debugging
-  useEffect(() => {
-    console.log("TokenContractCard render:", { goldTokenAddress, network })
-  }, [goldTokenAddress, network])
+  // Hardcoded address for demo purposes
+  const tokenAddress = goldTokenAddress || "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump"
 
   // Fungsi untuk menyalin alamat ke clipboard
   const copyToClipboard = () => {
-    if (goldTokenAddress) {
-      navigator.clipboard.writeText(goldTokenAddress)
-      toast({
-        title: "Address Copied",
-        description: "Token address copied to clipboard",
-      })
-    }
+    navigator.clipboard.writeText(tokenAddress)
+    toast({
+      title: "Address Copied",
+      description: "Token address copied to clipboard",
+    })
   }
 
   // Fungsi untuk membuka explorer
   const openInExplorer = () => {
-    if (goldTokenAddress) {
-      let explorerUrl = ""
+    let explorerUrl = ""
 
-      // Tentukan URL explorer berdasarkan jaringan
-      if (network === "mainnet") {
-        explorerUrl = `https://explorer.solana.com/address/${goldTokenAddress}`
-      } else {
-        explorerUrl = `https://explorer.solana.com/address/${goldTokenAddress}?cluster=${network}`
-      }
-
-      window.open(explorerUrl, "_blank")
+    // Tentukan URL explorer berdasarkan jaringan
+    if (network === "mainnet") {
+      explorerUrl = `https://explorer.solana.com/address/${tokenAddress}`
+    } else {
+      explorerUrl = `https://explorer.solana.com/address/${tokenAddress}?cluster=${network}`
     }
+
+    window.open(explorerUrl, "_blank")
   }
 
   // Jika belum di client-side, tampilkan placeholder
@@ -74,7 +68,7 @@ export function TokenContractCard({ className = "", compact = false }: TokenCont
         onClick={copyToClipboard}
       >
         <Copy className="mr-2 h-4 w-4" />
-        {goldTokenAddress ? `${goldTokenAddress.slice(0, 4)}...${goldTokenAddress.slice(-4)}` : "Contract Address"}
+        {tokenAddress ? `${tokenAddress.slice(0, 4)}...${tokenAddress.slice(-4)}` : "Contract Address"}
       </Button>
     )
   }
@@ -86,9 +80,7 @@ export function TokenContractCard({ className = "", compact = false }: TokenCont
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-medium text-gray-400 mb-1">GOLD Token Contract Address ({network})</h3>
-            <p className="text-gold font-mono text-sm break-all">
-              {goldTokenAddress || "Contract address not available"}
-            </p>
+            <p className="text-gold font-mono text-sm break-all">{tokenAddress || "Contract address not available"}</p>
           </div>
           <div className="flex space-x-2 mt-2 sm:mt-0">
             <Button variant="outline" size="sm" className="border-gold/50 text-gold" onClick={copyToClipboard}>

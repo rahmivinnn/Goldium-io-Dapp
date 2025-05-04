@@ -17,7 +17,7 @@ export function StakingInterface() {
   const [stakeAmount, setStakeAmount] = useState<number>(0)
   const [stakedAmount, setStakedAmount] = useState<number>(0)
   const [rewards, setRewards] = useState<number>(0)
-  const [stakingAPY, setStakingAPY] = useState<number>(12.5)
+  const [stakingAPY, setStakingAPY] = useState<number>(15.5) // Increased APY
   const [isStaking, setIsStaking] = useState<boolean>(false)
   const [isClaiming, setIsClaiming] = useState<boolean>(false)
   const [isUnstaking, setIsUnstaking] = useState<boolean>(false)
@@ -32,7 +32,7 @@ export function StakingInterface() {
       // Simulate fetching staked amount from blockchain
       setStakedAmount(Math.floor(Math.random() * 1000))
 
-      // Calculate rewards based on staked amount
+      // Calculate rewards based on staked amount and APY
       const mockRewards = ((stakedAmount * stakingAPY) / 100 / 365) * 30 // 30 days of rewards
       setRewards(Number.parseFloat(mockRewards.toFixed(2)))
     } else {
@@ -139,15 +139,20 @@ export function StakingInterface() {
     }
   }
 
+  // Calculate estimated annual yield
+  const calculateAnnualYield = () => {
+    return (stakedAmount * stakingAPY) / 100
+  }
+
   if (!isClient) {
     return null
   }
 
   if (!connected) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-md mx-auto border-gold/30 bg-black/60 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle>GOLD Token Staking</CardTitle>
+          <CardTitle className="text-xl text-gold">GOLD Token Staking</CardTitle>
           <CardDescription>Stake your GOLD tokens to earn rewards</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center p-6 space-y-4">
@@ -159,9 +164,9 @@ export function StakingInterface() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto border-gold/30 bg-black/60 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>GOLD Token Staking</CardTitle>
+        <CardTitle className="text-xl text-gold">GOLD Token Staking</CardTitle>
         <CardDescription>Current APY: {stakingAPY}%</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -178,6 +183,10 @@ export function StakingInterface() {
             <span className="text-sm font-medium">Pending Rewards</span>
             <span className="text-sm">{rewards.toFixed(2)} GOLD</span>
           </div>
+          <div className="flex justify-between">
+            <span className="text-sm font-medium">Estimated Annual Yield</span>
+            <span className="text-sm">{calculateAnnualYield().toFixed(2)} GOLD</span>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -192,11 +201,13 @@ export function StakingInterface() {
                 max={goldBalance}
                 step={0.1}
                 disabled={isStaking || isTransacting}
+                className="bg-black/50 border-gold/30 focus:border-gold"
               />
               <Button
                 variant="outline"
                 onClick={handleMaxClick}
                 disabled={isStaking || isTransacting || goldBalance <= 0}
+                className="border-gold/50 text-gold hover:bg-gold/10"
               >
                 Max
               </Button>
@@ -209,6 +220,7 @@ export function StakingInterface() {
             step={0.1}
             onValueChange={handleStakeAmountChange}
             disabled={isStaking || isTransacting || goldBalance <= 0}
+            className="[&>span]:bg-gold"
           />
         </div>
       </CardContent>
@@ -217,7 +229,7 @@ export function StakingInterface() {
           <Button
             onClick={handleStake}
             disabled={!connected || stakeAmount <= 0 || stakeAmount > goldBalance || isStaking || isTransacting}
-            className="w-full"
+            className="w-full bg-gold hover:bg-gold/80 text-black"
           >
             {isStaking ? (
               <>
@@ -235,7 +247,7 @@ export function StakingInterface() {
             onClick={handleUnstake}
             disabled={!connected || stakedAmount <= 0 || isUnstaking || isTransacting}
             variant="outline"
-            className="w-full"
+            className="w-full border-gold/50 text-gold hover:bg-gold/10"
           >
             {isUnstaking ? (
               <>
@@ -254,7 +266,7 @@ export function StakingInterface() {
           onClick={handleClaimRewards}
           disabled={!connected || rewards <= 0 || isClaiming || isTransacting}
           variant="secondary"
-          className="w-full"
+          className="w-full bg-black/50 border border-gold/50 text-gold hover:bg-gold/10"
         >
           {isClaiming ? (
             <>

@@ -1,7 +1,10 @@
 "use client"
-import Image from "next/image"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRightIcon, CheckCircleIcon, LoaderIcon } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Loader2, CheckCircle, AlertCircle, ExternalLink } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface BridgeTransactionProps {
   sourceNetwork: string
@@ -11,38 +14,11 @@ interface BridgeTransactionProps {
   amount: string
   fee: string
   isProcessing: boolean
-  onConfirm: () => void
+  onConfirm: () => Promise<void>
   onCancel: () => void
 }
 
-const getNetworkIcon = (networkId: string) => {
-  const networkIcons: Record<string, string> = {
-    ethereum: "/images/ethereum-logo.png",
-    solana: "/images/solana-logo.png",
-    binance: "/images/binance-logo.png",
-    polygon: "/images/polygon-logo.png",
-    avalanche: "/images/avalanche-logo.png",
-  }
-
-  return networkIcons[networkId] || "/images/ethereum-logo.png"
-}
-
-const getTokenIcon = (tokenId: string) => {
-  const tokenIcons: Record<string, string> = {
-    ETH: "/images/ethereum-logo.png",
-    SOL: "/images/solana-logo.png",
-    BNB: "/images/binance-logo.png",
-    MATIC: "/images/polygon-logo.png",
-    AVAX: "/images/avalanche-logo.png",
-    USDT: "/abstract-tether.png",
-    USDC: "/usdc-digital-currency.png",
-    GOLD: "/gold_icon-removebg-preview.png",
-  }
-
-  return tokenIcons[tokenId] || "/images/ethereum-logo.png"
-}
-
-export default function BridgeTransaction({
+export function BridgeTransaction({
   sourceNetwork,
   destinationNetwork,
   sourceToken,
@@ -53,132 +29,163 @@ export default function BridgeTransaction({
   onConfirm,
   onCancel,
 }: BridgeTransactionProps) {
-  const receiveAmount = (Number.parseFloat(amount) - Number.parseFloat(fee)).toFixed(4)
+  const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle")
+  const [progress, setProgress] = useState(0)
+  const [txHash, setTxHash] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isProcessing && status === "idle") {
+      setStatus("pending")
+
+      // Simulate progress updates
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval)
+            return 100
+          }
+          return prev + 10
+        })
+      }, 500)
+
+      return () => clearInterval(interval)
+    }
+  }, [isProcessing, status])
+
+  useEffect(() => {
+    if (progress === 100 && status === "pending") {
+      // Simulate transaction hash
+      setTxHash("0x" + Math.random().toString(16).substring(2, 42))
+      setStatus("success")
+    }
+  }, [progress, status])
+
+  const getExplorerLink = () => {
+    if (!txHash) return "#"
+
+    if (sourceNetwork === "ethereum") {
+      return `https://etherscan.io/tx/${txHash}`
+    } else if (sourceNetwork === "solana") {
+      return `https://explorer.solana.com/tx/${txHash}`
+    } else if (sourceNetwork === "binance") {
+      return `https://bscscan.com/tx/${txHash}`
+    } else if (sourceNetwork === "polygon") {
+      return `https://polygonscan.com/tx/${txHash}`
+    } else if (sourceNetwork === "avalanche") {
+      return `https://snowtrace.io/tx/${txHash}`
+    }
+
+    return "#"
+  }
 
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-medium text-center text-amber-500">Confirm Bridge Transaction</h3>
-
-      <div className="flex items-center justify-center space-x-4 py-4">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 relative rounded-full overflow-hidden bg-gray-800 flex items-center justify-center border-2 border-amber-500">
-            <Image
-              src={getNetworkIcon(sourceNetwork) || "/placeholder.svg"}
-              alt={sourceNetwork}
-              width={32}
-              height={32}
-              className="object-contain"
-            />
-          </div>
-          <span className="text-sm text-gray-300 mt-2 capitalize">{sourceNetwork}</span>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-full h-0.5 bg-gradient-to-r from-amber-500 to-yellow-300 relative">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black p-1 rounded-full">
-              <ArrowRightIcon className="h-4 w-4 text-amber-500" />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 relative rounded-full overflow-hidden bg-gray-800 flex items-center justify-center border-2 border-amber-500">
-            <Image
-              src={getNetworkIcon(destinationNetwork) || "/placeholder.svg"}
-              alt={destinationNetwork}
-              width={32}
-              height={32}
-              className="object-contain"
-            />
-          </div>
-          <span className="text-sm text-gray-300 mt-2 capitalize">{destinationNetwork}</span>
-        </div>
+      <div className="text-center mb-4">
+        <h3 className="text-xl font-medium text-gold mb-2">Bridge Transaction</h3>
+        <p className="text-gray-400">
+          {status === "idle" && "Please confirm your transaction details"}
+          {status === "pending" && "Processing your transaction..."}
+          {status === "success" && "Transaction initiated successfully!"}
+          {status === "error" && "Transaction failed. Please try again."}
+        </p>
       </div>
 
-      <div className="bg-gray-800/50 rounded-lg p-4 space-y-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <div className="w-8 h-8 relative mr-2 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
-              <Image
-                src={getTokenIcon(sourceToken) || "/placeholder.svg"}
-                alt={sourceToken}
-                width={24}
-                height={24}
-                className="object-contain"
-              />
-            </div>
-            <div>
-              <div className="text-white font-medium">
-                {amount} {sourceToken}
-              </div>
-              <div className="text-xs text-gray-400">You send</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-700 pt-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <div className="w-8 h-8 relative mr-2 rounded-full overflow-hidden bg-gray-800 flex items-center justify-center">
-                <Image
-                  src={getTokenIcon(destinationToken) || "/placeholder.svg"}
-                  alt={destinationToken}
-                  width={24}
-                  height={24}
-                  className="object-contain"
-                />
-              </div>
-              <div>
-                <div className="text-white font-medium">
-                  {receiveAmount} {destinationToken}
-                </div>
-                <div className="text-xs text-gray-400">You receive</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
+      <div className="bg-gray-800/50 rounded-lg p-4 space-y-3">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-400">Bridge Fee</span>
+          <span className="text-gray-400">From</span>
+          <span className="text-white">
+            {amount} {sourceToken} on {sourceNetwork}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-400">To</span>
+          <span className="text-white">
+            {(Number.parseFloat(amount) - Number.parseFloat(fee)).toFixed(4)} {destinationToken} on {destinationNetwork}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-400">Fee</span>
           <span className="text-white">
             {fee} {sourceToken}
           </span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-400">Estimated Time</span>
-          <span className="text-white">10-30 minutes</span>
-        </div>
       </div>
+
+      {status === "pending" && (
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-400">Processing Transaction</span>
+            <span className="text-white">{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+          <div className="flex items-center justify-center text-sm text-gray-400">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Processing your bridge transaction...
+          </div>
+        </div>
+      )}
+
+      {status === "success" && (
+        <motion.div
+          className="bg-green-900/20 border border-green-500/30 rounded-lg p-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex items-start">
+            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="space-y-2">
+              <p className="text-green-500">
+                Bridge transaction initiated successfully! Your funds will arrive in approximately 15-30 minutes.
+              </p>
+              {txHash && (
+                <a
+                  href={getExplorerLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center text-sm text-green-400 hover:text-green-300"
+                >
+                  View on explorer <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {status === "error" && (
+        <motion.div
+          className="bg-red-900/20 border border-red-500/30 rounded-lg p-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+            <p className="text-red-500">There was an error processing your bridge transaction. Please try again.</p>
+          </div>
+        </motion.div>
+      )}
 
       <div className="flex space-x-4">
         <Button
           onClick={onCancel}
           variant="outline"
-          className="flex-1 border-gray-700 text-white hover:bg-gray-800 hover:text-white"
+          className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
           disabled={isProcessing}
         >
-          Cancel
+          {status === "success" ? "Close" : "Cancel"}
         </Button>
 
-        <Button
-          onClick={onConfirm}
-          className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-300 hover:from-amber-600 hover:to-yellow-400 text-black font-medium"
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <div className="flex items-center">
-              <LoaderIcon className="animate-spin h-4 w-4 mr-2" />
-              Processing...
-            </div>
-          ) : (
-            <div className="flex items-center">
-              <CheckCircleIcon className="h-4 w-4 mr-2" />
-              Confirm
-            </div>
-          )}
-        </Button>
+        {status === "idle" && (
+          <Button
+            onClick={onConfirm}
+            className="flex-1 bg-gradient-to-r from-gold to-amber-500 hover:from-amber-600 hover:to-amber-700 text-black font-medium"
+            disabled={isProcessing}
+          >
+            Confirm Bridge
+          </Button>
+        )}
       </div>
     </div>
   )
