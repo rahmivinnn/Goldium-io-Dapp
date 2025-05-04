@@ -1,98 +1,89 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { clusterApiUrl } from "@solana/web3.js"
 
-export type NetworkType = "mainnet" | "testnet" | "devnet"
+// Network configuration
+export type NetworkType = "mainnet" | "testnet"
 
-interface NetworkContextType {
-  network: NetworkType
-  setNetwork: (network: NetworkType) => void
-  endpoint: string
-  explorerUrl: string
-  goldTokenAddress: string
-  isTestnet: boolean
+export const DEFAULT_NETWORK: NetworkType = "testnet"
+
+// Token metadata
+export const GOLD_TOKEN_METADATA = {
+  symbol: "GOLD",
+  name: "Goldium Token",
+  decimals: 9,
+  logoURI: "/gold_icon-removebg-preview.png",
+  totalSupply: 1000000000, // 1 billion total supply
 }
 
-const defaultGoldTokenAddress = "GLD1ay7AxNJ349gKYUPRY8Vs2dqXCuMFhz1qhvNLT2Ph" // Example address
+export const SOL_TOKEN_METADATA = {
+  symbol: "SOL",
+  name: "Solana",
+  decimals: 9,
+  logoURI: "/images/solana-logo.png",
+}
 
 export const NETWORKS = {
   mainnet: {
     name: "Mainnet",
-    endpoint: clusterApiUrl("mainnet-beta"),
+    endpoint: "https://api.mainnet-beta.solana.com",
+    goldTokenAddress: "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump", // Real GOLD token address on mainnet
     explorerUrl: "https://explorer.solana.com",
-    goldTokenAddress: "GLD1ay7AxNJ349gKYUPRY8Vs2dqXCuMFhz1qhvNLT2Ph",
   },
   testnet: {
     name: "Testnet",
-    endpoint: clusterApiUrl("testnet"),
+    endpoint: "https://api.testnet.solana.com",
+    goldTokenAddress: "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump", // Using same address for demo, would be different in real scenario
     explorerUrl: "https://explorer.solana.com/?cluster=testnet",
-    goldTokenAddress: "GLD1ay7AxNJ349gKYUPRY8Vs2dqXCuMFhz1qhvNLT2Ph",
-  },
-  devnet: {
-    name: "Devnet",
-    endpoint: clusterApiUrl("devnet"),
-    explorerUrl: "https://explorer.solana.com/?cluster=devnet",
-    goldTokenAddress: "GLD1ay7AxNJ349gKYUPRY8Vs2dqXCuMFhz1qhvNLT2Ph",
   },
 }
 
+interface NetworkContextType {
+  network: NetworkType
+  setNetwork: (network: NetworkType) => void
+  goldTokenAddress: string
+  explorerUrl: string
+  isMainnet: boolean
+  endpoint: string
+}
+
 const NetworkContext = createContext<NetworkContextType>({
-  network: "devnet",
+  network: DEFAULT_NETWORK,
   setNetwork: () => {},
-  endpoint: NETWORKS.devnet.endpoint,
-  explorerUrl: NETWORKS.devnet.explorerUrl,
-  goldTokenAddress: defaultGoldTokenAddress,
-  isTestnet: true,
+  goldTokenAddress: NETWORKS[DEFAULT_NETWORK].goldTokenAddress,
+  explorerUrl: NETWORKS[DEFAULT_NETWORK].explorerUrl,
+  isMainnet: DEFAULT_NETWORK === "mainnet",
+  endpoint: NETWORKS[DEFAULT_NETWORK].endpoint,
 })
 
-export function NetworkProvider({ children }: { children: ReactNode }) {
-  const [network, setNetwork] = useState<NetworkType>("devnet")
-  const [endpoint, setEndpoint] = useState(NETWORKS.devnet.endpoint)
-  const [explorerUrl, setExplorerUrl] = useState(NETWORKS.devnet.explorerUrl)
-  const [goldTokenAddress, setGoldTokenAddress] = useState(defaultGoldTokenAddress)
-  const [isTestnet, setIsTestnet] = useState(true)
+export const useNetwork = () => useContext(NetworkContext)
+
+interface NetworkProviderProps {
+  children: ReactNode
+}
+
+export const NetworkProvider = ({ children }: NetworkProviderProps) => {
+  const [network, setNetwork] = useState<NetworkType>(DEFAULT_NETWORK)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    // Update endpoint based on network
-    switch (network) {
-      case "mainnet":
-        setEndpoint(NETWORKS.mainnet.endpoint)
-        setExplorerUrl(NETWORKS.mainnet.explorerUrl)
-        setGoldTokenAddress(NETWORKS.mainnet.goldTokenAddress)
-        setIsTestnet(false)
-        break
-      case "testnet":
-        setEndpoint(NETWORKS.testnet.endpoint)
-        setExplorerUrl(NETWORKS.testnet.explorerUrl)
-        setGoldTokenAddress(NETWORKS.testnet.goldTokenAddress)
-        setIsTestnet(true)
-        break
-      case "devnet":
-      default:
-        setNetwork("devnet")
-        setEndpoint(NETWORKS.devnet.endpoint)
-        setExplorerUrl(NETWORKS.devnet.explorerUrl)
-        setGoldTokenAddress(NETWORKS.devnet.goldTokenAddress)
-        setIsTestnet(true)
-        break
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem("goldium_network", network)
     }
-  }, [network])
+  }, [network, isClient])
+
+  const goldTokenAddress = NETWORKS[network].goldTokenAddress
+  const explorerUrl = NETWORKS[network].explorerUrl
+  const endpoint = NETWORKS[network].endpoint
+  const isMainnet = network === "mainnet"
 
   return (
-    <NetworkContext.Provider
-      value={{
-        network,
-        setNetwork,
-        endpoint,
-        explorerUrl,
-        goldTokenAddress,
-        isTestnet,
-      }}
-    >
+    <NetworkContext.Provider value={{ network, setNetwork, goldTokenAddress, explorerUrl, isMainnet, endpoint }}>
       {children}
     </NetworkContext.Provider>
   )
 }
-
-export const useNetwork = () => useContext(NetworkContext)

@@ -1,72 +1,99 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, ExternalLink } from "lucide-react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Copy, ExternalLink, Check } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface TokenContractDisplayProps {
-  compact?: boolean
+  tokenName: string
+  tokenSymbol: string
+  tokenIcon: string
+  contractAddress: string
+  decimals: number
+  totalSupply?: string
+  network: string
+  explorerUrl: string
 }
 
-export function TokenContractDisplay({ compact = false }: TokenContractDisplayProps) {
+export function TokenContractDisplay({
+  tokenName,
+  tokenSymbol,
+  tokenIcon,
+  contractAddress,
+  decimals,
+  totalSupply,
+  network,
+  explorerUrl,
+}: TokenContractDisplayProps) {
   const [copied, setCopied] = useState(false)
-  const contractAddress = "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump"
+  const { toast } = useToast()
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(contractAddress)
     setCopied(true)
+    toast({
+      title: "Address Copied",
+      description: "Contract address copied to clipboard",
+    })
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const openExplorer = () => {
-    window.open(`https://explorer.solana.com/address/${contractAddress}`, "_blank")
-  }
+  return (
+    <Card className="border-gold bg-black/60 backdrop-blur-sm">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <img src={tokenIcon || "/placeholder.svg"} alt={tokenName} className="w-10 h-10 rounded-full" />
+          <div>
+            <CardTitle className="text-gold">{tokenName}</CardTitle>
+            <CardDescription>{tokenSymbol} Token Contract</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <p className="text-sm text-gray-400 mb-1">Contract Address (CA)</p>
+          <div className="flex items-center gap-2 bg-black/40 p-3 rounded-md border border-gold/20 overflow-x-auto">
+            <code className="text-xs sm:text-sm text-gold break-all">{contractAddress}</code>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="flex-shrink-0 text-gray-400 hover:text-white"
+              onClick={copyToClipboard}
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
 
-  if (compact) {
-    return (
-      <div className="flex items-center space-x-2">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-400 mb-1">Network</p>
+            <p className="font-medium">{network}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400 mb-1">Decimals</p>
+            <p className="font-medium">{decimals}</p>
+          </div>
+          {totalSupply && (
+            <div className="col-span-2">
+              <p className="text-sm text-gray-400 mb-1">Total Supply</p>
+              <p className="font-medium">{totalSupply}</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+      <CardFooter>
         <Button
           variant="outline"
-          size="sm"
-          className="text-xs border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
-          onClick={copyToClipboard}
+          className="w-full border-gold/50 text-gold hover:bg-gold/10"
+          onClick={() => window.open(`${explorerUrl}/address/${contractAddress}`, "_blank")}
         >
-          {copied ? "Copied!" : "GOLD Token"}
+          <ExternalLink className="mr-2 h-4 w-4" />
+          View on Explorer
         </Button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="bg-black/30 backdrop-blur-sm border border-yellow-500/30 rounded-lg p-3 w-full">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-yellow-500 font-medium">GOLD Token CA:</span>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="bg-black/50 rounded px-3 py-2 text-white text-sm font-mono truncate max-w-[200px] sm:max-w-xs">
-          {contractAddress}
-        </div>
-        <div className="flex space-x-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-yellow-500 hover:bg-yellow-500/10"
-            onClick={copyToClipboard}
-          >
-            <Copy className="h-4 w-4" />
-            <span className="sr-only">Copy</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-yellow-500 hover:bg-yellow-500/10"
-            onClick={openExplorer}
-          >
-            <ExternalLink className="h-4 w-4" />
-            <span className="sr-only">View on Explorer</span>
-          </Button>
-        </div>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   )
 }

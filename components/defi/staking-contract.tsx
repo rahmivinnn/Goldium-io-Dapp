@@ -1,78 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useConnection } from "@solana/wallet-adapter-react"
-import { useSolanaWallet } from "@/contexts/solana-wallet-context"
-import { useNetwork } from "@/contexts/network-context"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { Program } from "@project-serum/anchor"
-import { PublicKey } from "@solana/web3.js"
 
-// This would be your actual IDL from the Anchor program
-const idl = {
-  // This is a simplified version of what would be your actual IDL
-  version: "0.1.0",
-  name: "goldium_staking",
-  instructions: [
-    {
-      name: "initialize",
-      accounts: [
-        /* ... */
-      ],
-      args: [
-        /* ... */
-      ],
-    },
-    {
-      name: "stake",
-      accounts: [
-        /* ... */
-      ],
-      args: [
-        /* ... */
-      ],
-    },
-    {
-      name: "unstake",
-      accounts: [
-        /* ... */
-      ],
-      args: [
-        /* ... */
-      ],
-    },
-    {
-      name: "claimReward",
-      accounts: [
-        /* ... */
-      ],
-      args: [
-        /* ... */
-      ],
-    },
-  ],
-  accounts: [
-    /* ... */
-  ],
-  errors: [
-    /* ... */
-  ],
-}
-
-// This would be your actual program ID
-const PROGRAM_ID = new PublicKey("GoldXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+// Define a placeholder for the program ID
+const PROGRAM_ID_STRING = "GoldXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 export default function StakingContract() {
-  const { connection } = useConnection()
-  const { publicKey, signTransaction, connected, goldTokenAddress, goldBalance } = useSolanaWallet()
-  const { network } = useNetwork()
+  const [mounted, setMounted] = useState(false)
   const { toast } = useToast()
 
+  // Client-side state
   const [stakeAmount, setStakeAmount] = useState("")
   const [unstakeAmount, setUnstakeAmount] = useState("")
   const [stakedAmount, setStakedAmount] = useState<number | null>(null)
@@ -81,55 +24,54 @@ export default function StakingContract() {
   const [isStaking, setIsStaking] = useState(false)
   const [isUnstaking, setIsUnstaking] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
-  const [program, setProgram] = useState<Program | null>(null)
+  const [connected, setConnected] = useState(false)
+  const [goldBalance, setGoldBalance] = useState(0)
+  const [network, setNetwork] = useState("testnet")
 
   // APY rates - increased to be more attractive
   const apy = 18.5 // 18.5% APY
 
-  // Initialize the program when wallet is connected
+  // Initialize client-side only code
   useEffect(() => {
-    if (connected && publicKey) {
-      try {
-        // In a real implementation, you would create an AnchorProvider and Program
-        // For now, we'll simulate this
+    setMounted(true)
 
-        // This is a mock implementation
-        // In production, you would use:
-        /*
-        const provider = new AnchorProvider(
-          connection,
-          {
-            publicKey,
-            signTransaction: signTransaction!,
-            signAllTransactions: wallet.signAllTransactions!,
-          },
-          { commitment: "confirmed" }
-        )
-        const program = new Program(idl as any, PROGRAM_ID, provider)
-        setProgram(program)
-        */
-
-        // For now, we'll just set a mock program
-        setProgram({} as any)
-
+    // Check if wallet is connected
+    const checkWallet = () => {
+      if (window.solana && window.solana.isConnected) {
+        setConnected(true)
+        // Mock gold balance for demo
+        setGoldBalance(1000)
         // Fetch staking data
         fetchStakingData()
-      } catch (error) {
-        console.error("Error initializing program:", error)
+      } else {
+        setConnected(false)
       }
     }
-  }, [connected, publicKey, network])
+
+    checkWallet()
+
+    // Listen for wallet connection changes
+    if (window.solana) {
+      window.solana.on("connect", checkWallet)
+      window.solana.on("disconnect", () => setConnected(false))
+    }
+
+    return () => {
+      // Cleanup listeners
+      if (window.solana) {
+        window.solana.removeAllListeners("connect")
+        window.solana.removeAllListeners("disconnect")
+      }
+    }
+  }, [])
 
   // Fetch staking data from the contract
   const fetchStakingData = async () => {
-    if (!connected || !publicKey) return
+    if (!connected) return
 
     setLoading(true)
 
     try {
-      // In a real implementation, you would fetch data from the contract
-      // For now, we'll simulate this with mock data
-
       // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
@@ -153,7 +95,7 @@ export default function StakingContract() {
 
   // Handle staking
   const handleStake = async () => {
-    if (!connected || !publicKey || !goldTokenAddress) {
+    if (!connected) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to stake GOLD tokens.",
@@ -184,9 +126,6 @@ export default function StakingContract() {
     try {
       setIsStaking(true)
 
-      // In a real implementation, you would call the stake function on the contract
-      // For now, we'll simulate this
-
       // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
@@ -214,7 +153,7 @@ export default function StakingContract() {
 
   // Handle unstaking
   const handleUnstake = async () => {
-    if (!connected || !publicKey) {
+    if (!connected) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to unstake GOLD tokens.",
@@ -245,9 +184,6 @@ export default function StakingContract() {
     try {
       setIsUnstaking(true)
 
-      // In a real implementation, you would call the unstake function on the contract
-      // For now, we'll simulate this
-
       // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
@@ -275,7 +211,7 @@ export default function StakingContract() {
 
   // Handle claiming rewards
   const handleClaimRewards = async () => {
-    if (!connected || !publicKey) {
+    if (!connected) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to claim rewards.",
@@ -295,9 +231,6 @@ export default function StakingContract() {
 
     try {
       setIsClaiming(true)
-
-      // In a real implementation, you would call the claimReward function on the contract
-      // For now, we'll simulate this
 
       // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -326,6 +259,29 @@ export default function StakingContract() {
   const calculateDailyRewards = () => {
     if (stakedAmount === null) return 0
     return (stakedAmount * (apy / 100)) / 365
+  }
+
+  // Don't render anything until client-side
+  if (!mounted) {
+    return (
+      <Card className="border-gold/30 bg-black/60 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="text-xl text-gold">Stake GOLD Tokens</CardTitle>
+          <CardDescription>Loading staking interface...</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="rounded-lg bg-black/50 border border-gold/20 p-3">
+                <Skeleton className="h-4 w-20 mb-2" />
+                <Skeleton className="h-6 w-24" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-10 w-full mt-4" />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

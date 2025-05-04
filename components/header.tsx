@@ -8,11 +8,19 @@ import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import { ChevronDown, Menu, X, Wallet } from "lucide-react"
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { connected } = useSolanaWallet()
+
+  // Safe default for server-side rendering
+  const connected = false
+
+  // Initialize wallet context outside of conditional
+  const walletContext = useSolanaWallet()
 
   useEffect(() => {
+    setMounted(true)
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
     }
@@ -20,6 +28,27 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Render a simpler version during SSR to avoid hydration issues
+  if (!mounted) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex items-center">
+              <div className="h-8 w-8 mr-2 bg-yellow-500/20 rounded-full"></div>
+              <span className="text-yellow-500 font-bold text-xl">Goldium.io</span>
+            </Link>
+            <div className="flex items-center space-x-3">
+              <div className="bg-black/50 backdrop-blur-sm border border-yellow-500/30 rounded-full px-3 py-1">
+                <span className="text-white text-sm">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <header
@@ -64,7 +93,7 @@ export default function Header() {
                   Bridge
                 </Link>
                 <Link
-                  href="/staking"
+                  href="/staking-client"
                   className="block px-4 py-2 text-sm text-white hover:bg-yellow-500/20 hover:text-yellow-500"
                 >
                   Staking
@@ -162,7 +191,7 @@ export default function Header() {
                     Bridge
                   </Link>
                   <Link
-                    href="/staking"
+                    href="/staking-client"
                     className="block text-white hover:text-yellow-500 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

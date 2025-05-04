@@ -27,6 +27,7 @@ interface SolanaWalletContextType {
   disconnect: () => Promise<void>
   refreshBalance: () => Promise<void>
   sendTransaction: (transaction: any) => Promise<string>
+  isPhantomInstalled: boolean
 }
 
 const SolanaWalletContext = createContext<SolanaWalletContextType>({
@@ -41,6 +42,7 @@ const SolanaWalletContext = createContext<SolanaWalletContextType>({
   disconnect: async () => {},
   refreshBalance: async () => {},
   sendTransaction: async () => "",
+  isPhantomInstalled: false,
 })
 
 export const useSolanaWallet = () => useContext(SolanaWalletContext)
@@ -57,57 +59,80 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
   const [solBalance, setSolBalance] = useState(0)
   const [goldBalance, setGoldBalance] = useState(0)
   const [connection, setConnection] = useState<Connection | null>(null)
-  const [provider, setProvider] = useState<PhantomProvider | null>(null)
+  const [isPhantomInstalled, setIsPhantomInstalled] = useState(false)
   const { toast } = useToast()
   const { network, goldTokenAddress } = useNetwork()
 
   // Initialize connection and check for wallet
   useEffect(() => {
-    const endpoint = network === "mainnet" ? "https://api.mainnet-beta.solana.com" : "https://api.devnet.solana.com"
+    // Skip if not in browser
+    if (typeof window === "undefined") return
 
+    const endpoint = network === "mainnet" ? "https://api.mainnet-beta.solana.com" : "https://api.devnet.solana.com"
     const conn = new Connection(endpoint, "confirmed")
     setConnection(conn)
 
+    // Check if Phantom is installed
     const checkForPhantom = () => {
-      if ("solana" in window && window.solana?.isPhantom) {
-        const provider = window.solana as unknown as PhantomProvider
-        setProvider(provider)
+      console.log("Checking for Phantom wallet...")
+      const isPhantomAvailable = window.solana && window.solana.isPhantom
+      console.log("Phantom available:", isPhantomAvailable)
+      setIsPhantomInstalled(isPhantomAvailable)
 
-        // Check if already connected
-        if (provider.isConnected && provider.publicKey) {
-          const publicKey = provider.publicKey
-          setPublicKey(publicKey)
-          setAddress(publicKey.toString())
-          setConnected(true)
-          fetchBalances(conn, publicKey.toString())
-        }
+      if (isPhantomAvailable) {
+        // Set up event listeners for Phantom
+        console.log("Setting up Phantom event listeners")
 
         // Listen for connection events
-        provider.on("connect", (publicKey: PublicKey) => {
+        window.solana.on("connect", (publicKey: PublicKey) => {
+          console.log("Phantom connected event received:", publicKey.toString())
           setPublicKey(publicKey)
           setAddress(publicKey.toString())
           setConnected(true)
+          setConnecting(false)
           fetchBalances(conn, publicKey.toString())
+
+          toast({
+            title: "Wallet Connected",
+            description: "Your wallet has been successfully connected.",
+          })
         })
 
         // Listen for disconnect events
-        provider.on("disconnect", () => {
+        window.solana.on("disconnect", () => {
+          console.log("Phantom disconnected event received")
           setPublicKey(null)
           setAddress(null)
           setConnected(false)
           setSolBalance(0)
           setGoldBalance(0)
+
+          toast({
+            title: "Wallet Disconnected",
+            description: "Your wallet has been disconnected.",
+          })
         })
+
+        // Check if already connected
+        if (window.solana.isConnected && window.solana.publicKey) {
+          console.log("Phantom already connected:", window.solana.publicKey.toString())
+          const publicKey = window.solana.publicKey
+          setPublicKey(publicKey)
+          setAddress(publicKey.toString())
+          setConnected(true)
+          fetchBalances(conn, publicKey.toString())
+        }
       }
     }
 
-    checkForPhantom()
+    // Run the check with a slight delay to ensure window.solana is available
+    setTimeout(checkForPhantom, 100)
 
     // Cleanup
     return () => {
       // No cleanup needed for event listeners as they're managed by Phantom
     }
-  }, [network, goldTokenAddress])
+  }, [network, goldTokenAddress, toast])
 
   // Fetch balances
   const fetchBalances = async (conn: Connection, walletAddress: string) => {
@@ -129,56 +154,41 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
     }
   }
 
-  // Connect wallet
+  // Connect wallet - this is now a simple wrapper around window.solana.connect()
   const connect = async () => {
     try {
+      console.log("Connect function called in context")
       setConnecting(true)
 
-      if (!provider) {
-        window.open("https://phantom.app/", "_blank")
-        toast({
-          title: "Phantom Wallet Required",
-          description: "Please install Phantom Wallet to connect.",
-          variant: "destructive",
-        })
-        return
+      // Check if we're in a browser environment
+      if (typeof window === "undefined") {
+        throw new Error("Cannot connect wallet in server environment")
       }
 
-      await provider.connect()
+      // Check if Phantom is installed
+      if (!window.solana || !window.solana.isPhantom) {
+        console.log("Phantom not installed")
+        setConnecting(false)
+        throw new Error("Phantom wallet is not installed")
+      }
 
-      toast({
-        title: "Wallet Connected",
-        description: "Your wallet has been successfully connected.",
-      })
+      console.log("Requesting connection from Phantom...")
+      // The actual connection will be handled by the event listener
+      await window.solana.connect()
+      console.log("Connection request sent to Phantom")
     } catch (error: any) {
       console.error("Failed to connect wallet:", error)
-      toast({
-        title: "Connection Failed",
-        description: error.message || "Failed to connect wallet. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
       setConnecting(false)
+      throw error
     }
   }
 
   // Disconnect wallet
   const disconnect = async () => {
     try {
-      if (provider) {
-        await provider.disconnect()
+      if (window.solana) {
+        await window.solana.disconnect()
       }
-
-      setConnected(false)
-      setPublicKey(null)
-      setAddress(null)
-      setSolBalance(0)
-      setGoldBalance(0)
-
-      toast({
-        title: "Wallet Disconnected",
-        description: "Your wallet has been disconnected.",
-      })
     } catch (error) {
       console.error("Error disconnecting wallet:", error)
       toast({
@@ -191,7 +201,7 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
 
   // Send transaction
   const sendTransaction = async (transaction: any) => {
-    if (!provider || !connected) {
+    if (!connected) {
       throw new Error("Wallet not connected")
     }
 
@@ -219,6 +229,7 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
         disconnect,
         refreshBalance,
         sendTransaction,
+        isPhantomInstalled,
       }}
     >
       {children}

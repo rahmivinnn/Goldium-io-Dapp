@@ -10,6 +10,7 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    domains: ["v0.blob.com"],
   },
   // Completely disable SSR for problematic pages
   experimental: {

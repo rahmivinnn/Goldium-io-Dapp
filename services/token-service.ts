@@ -1,6 +1,12 @@
 import { type Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { getAccount, getAssociatedTokenAddress } from "@solana/spl-token"
-import { NETWORKS, type NetworkType, GOLD_TOKEN_METADATA, SOL_TOKEN_METADATA } from "@/config/network-config"
+import {
+  NETWORKS,
+  type NetworkType,
+  GOLD_TOKEN_METADATA,
+  SOL_TOKEN_METADATA,
+  MANA_TOKEN_METADATA,
+} from "@/config/network-config"
 
 export interface TokenInfo {
   address: string
@@ -52,7 +58,9 @@ export const getGOLDBalance = async (
   }
 }
 
-export const getTokenInfo = (network: NetworkType): { SOL: TokenInfo; GOLD: TokenInfo } => {
+// Add MANA token to the getTokenInfo function
+
+export const getTokenInfo = (network: NetworkType): { SOL: TokenInfo; GOLD: TokenInfo; MANA: TokenInfo } => {
   return {
     SOL: {
       address: "native",
@@ -61,6 +69,10 @@ export const getTokenInfo = (network: NetworkType): { SOL: TokenInfo; GOLD: Toke
     GOLD: {
       address: NETWORKS[network].goldTokenAddress,
       ...GOLD_TOKEN_METADATA,
+    },
+    MANA: {
+      address: NETWORKS[network].manaTokenAddress,
+      ...MANA_TOKEN_METADATA,
     },
   }
 }

@@ -3,189 +3,114 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useNetwork } from "@/contexts/network-context"
-
-// Define token types
-export interface Token {
-  symbol: string
-  name: string
-  mint: string
-  decimals: number
-  balance: number
-  price: number
-  icon: string
-}
+import { GOLD_TOKEN_METADATA, MANA_TOKEN_METADATA } from "@/config/network-config"
 
 interface WalletContextType {
   connected: boolean
   connecting: boolean
   address: string | null
-  balance: number
-  solBalance: number
-  goldBalance: number
-  tokens: Token[]
-  connect: () => Promise<void | boolean>
+  connect: () => Promise<void>
   disconnect: () => void
-  refreshBalance: () => Promise<void>
-}
-
-// GOLD token addresses for different networks
-const GOLD_TOKEN_ADDRESSES = {
-  mainnet: "GLD1aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr", // Example mainnet address
-  testnet: "GLD7aose7SawAYZ5DLZKLmZU9UpEDGxwgQhvmSvczXr", // Example testnet address
+  tokens: Array<{
+    symbol: string
+    name: string
+    balance: number
+    price: number
+    icon: string
+  }>
 }
 
 const WalletContext = createContext<WalletContextType>({
   connected: false,
   connecting: false,
   address: null,
-  balance: 0,
-  solBalance: 0,
-  goldBalance: 0,
-  tokens: [],
   connect: async () => {},
   disconnect: () => {},
-  refreshBalance: async () => {},
+  tokens: [],
 })
 
+export const useWallet = () => useContext(WalletContext)
+
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const { network, endpoint } = useNetwork()
   const [connected, setConnected] = useState(false)
   const [connecting, setConnecting] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
-  const [balance, setBalance] = useState(0)
-  const [solBalance, setSolBalance] = useState(0)
-  const [goldBalance, setGoldBalance] = useState(0)
-  const [tokens, setTokens] = useState<Token[]>([])
   const { toast } = useToast()
+  const { network } = useNetwork()
 
-  // Check for existing connection on mount
+  // Mock token data
+  const [tokens, setTokens] = useState([
+    {
+      symbol: "SOL",
+      name: "Solana",
+      balance: 2.5,
+      price: 150,
+      icon: "/images/solana-logo.png",
+    },
+    {
+      symbol: "GOLD",
+      name: GOLD_TOKEN_METADATA.name,
+      balance: 1000,
+      price: 0.85,
+      icon: GOLD_TOKEN_METADATA.logoURI,
+    },
+    {
+      symbol: "MANA",
+      name: MANA_TOKEN_METADATA.name,
+      balance: 500,
+      price: 0.45,
+      icon: MANA_TOKEN_METADATA.logoURI,
+    },
+  ])
+
+  // Check if wallet is connected on mount
   useEffect(() => {
-    try {
-      const savedAddress = localStorage.getItem("walletAddress")
-      if (savedAddress) {
-        setAddress(savedAddress)
-        setConnected(true)
-        refreshBalance()
+    const checkConnection = async () => {
+      try {
+        // In a real app, this would check if the wallet is connected
+        const isConnected = localStorage.getItem("walletConnected") === "true"
+        if (isConnected) {
+          setConnected(true)
+          setAddress("8xGZsNVHbcJKPJALmDzsYtCKVXGBQMUyGJvuMsvBbEPmAb2KT7J2RPrKu1LwSUcQY")
+        }
+      } catch (error) {
+        console.error("Error checking wallet connection:", error)
       }
-    } catch (error) {
-      console.error("Error checking wallet connection:", error)
     }
+
+    checkConnection()
   }, [])
 
-  // Refresh balances when network changes
-  useEffect(() => {
-    if (connected) {
-      refreshBalance()
-    }
-  }, [network, connected])
-
-  const refreshBalance = async () => {
-    if (!connected) return
-
-    try {
-      // In a real implementation, this would fetch actual balances from the blockchain
-      // For now, we'll simulate different balances for testnet and mainnet
-
-      const isMainnet = network === "mainnet"
-
-      // Simulate SOL balance
-      const mockSolBalance = isMainnet ? 2.45 : 100.75
-      setSolBalance(mockSolBalance)
-
-      // Simulate GOLD balance
-      const mockGoldBalance = isMainnet ? 1250.5 : 5000.25
-      setGoldBalance(mockGoldBalance)
-
-      // Set total balance (in this case, just GOLD)
-      setBalance(mockGoldBalance)
-
-      // Create token list with only SOL and GOLD
-      const tokenList: Token[] = [
-        {
-          symbol: "SOL",
-          name: "Solana",
-          mint: "So11111111111111111111111111111111111111112",
-          decimals: 9,
-          balance: mockSolBalance,
-          price: isMainnet ? 150.25 : 150.25, // Same price for both networks
-          icon: "/ethereum-crystal.png", // Using existing icon as placeholder
-        },
-        {
-          symbol: "GOLD",
-          name: "Goldium",
-          mint: GOLD_TOKEN_ADDRESSES[network],
-          decimals: 9,
-          balance: mockGoldBalance,
-          price: isMainnet ? 2.34 : 2.34, // Same price for both networks
-          icon: "/gold-logo.png",
-        },
-      ]
-
-      setTokens(tokenList)
-    } catch (error) {
-      console.error("Error refreshing balance:", error)
-    }
-  }
-
+  // Connect wallet
   const connect = async () => {
     try {
       setConnecting(true)
-
-      // Simulate wallet connection delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // In a real implementation, this would connect to Phantom
-      // For now, we'll generate a random wallet address
-      const randomAddress = `${network === "mainnet" ? "Main" : "Test"}${Array.from({ length: 40 }, () =>
-        Math.floor(Math.random() * 16).toString(16),
-      ).join("")}`
-
-      setAddress(randomAddress)
+      // In a real app, this would connect to the wallet
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       setConnected(true)
-
-      // Refresh balance after connecting
-      await refreshBalance()
-
-      // Save to localStorage for session persistence
-      try {
-        localStorage.setItem("walletAddress", randomAddress)
-      } catch (error) {
-        console.error("Error saving to localStorage:", error)
-      }
-
+      setAddress("8xGZsNVHbcJKPJALmDzsYtCKVXGBQMUyGJvuMsvBbEPmAb2KT7J2RPrKu1LwSUcQY")
+      localStorage.setItem("walletConnected", "true")
       toast({
         title: "Wallet Connected",
-        description: `Connected to ${randomAddress.slice(0, 6)}...${randomAddress.slice(-4)}`,
+        description: "Your wallet has been connected successfully.",
       })
-
-      return true
     } catch (error) {
-      console.error("Wallet connection error:", error)
+      console.error("Error connecting wallet:", error)
       toast({
         title: "Connection Failed",
         description: "Failed to connect wallet. Please try again.",
         variant: "destructive",
       })
-      return false
     } finally {
       setConnecting(false)
     }
   }
 
+  // Disconnect wallet
   const disconnect = () => {
     setConnected(false)
     setAddress(null)
-    setBalance(0)
-    setSolBalance(0)
-    setGoldBalance(0)
-    setTokens([])
-
-    try {
-      localStorage.removeItem("walletAddress")
-    } catch (error) {
-      console.error("Error removing from localStorage:", error)
-    }
-
+    localStorage.removeItem("walletConnected")
     toast({
       title: "Wallet Disconnected",
       description: "Your wallet has been disconnected.",
@@ -198,18 +123,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         connected,
         connecting,
         address,
-        balance,
-        solBalance,
-        goldBalance,
-        tokens,
         connect,
         disconnect,
-        refreshBalance,
+        tokens,
       }}
     >
       {children}
     </WalletContext.Provider>
   )
 }
-
-export const useWallet = () => useContext(WalletContext)

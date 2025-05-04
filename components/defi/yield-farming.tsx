@@ -1,547 +1,286 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
-import { useWallet } from "@/hooks/use-wallet"
-import { WalletConnectOverlay } from "@/components/wallet-connect-overlay"
 
-// Farm type definition
-interface Farm {
-  id: string
-  name: string
-  token1: {
-    symbol: string
-    icon: string
-  }
-  token2: {
-    symbol: string
-    icon: string
-  }
-  apr: number
-  tvl: number
-  yourStake: number
-  yourRewards: number
-  multiplier: string
-}
-
-// Mock data for farms
-const mockFarms: Farm[] = [
-  {
-    id: "farm-1",
-    name: "GOLD-ETH LP",
-    token1: {
-      symbol: "GOLD",
-      icon: "/gold-logo.png",
+export default function YieldFarming() {
+  const [isClient, setIsClient] = useState(false)
+  const [connected, setConnected] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [farms, setFarms] = useState([
+    {
+      id: "gold-sol",
+      name: "GOLD-SOL LP",
+      tvl: 1250000,
+      apr: 42.5,
+      userStaked: 0,
+      rewards: 0,
+      token1: "GOLD",
+      token2: "SOL",
+      isStaking: false,
+      isClaiming: false,
     },
-    token2: {
-      symbol: "ETH",
-      icon: "/ethereum-crystal.png",
+    {
+      id: "gold-usdc",
+      name: "GOLD-USDC LP",
+      tvl: 750000,
+      apr: 36.8,
+      userStaked: 0,
+      rewards: 0,
+      token1: "GOLD",
+      token2: "USDC",
+      isStaking: false,
+      isClaiming: false,
     },
-    apr: 87.5,
-    tvl: 3450000,
-    yourStake: 1250,
-    yourRewards: 45.75,
-    multiplier: "40x",
-  },
-  {
-    id: "farm-2",
-    name: "GOLD-USDT LP",
-    token1: {
-      symbol: "GOLD",
-      icon: "/gold-logo.png",
-    },
-    token2: {
-      symbol: "USDT",
-      icon: "/abstract-tether.png",
-    },
-    apr: 65.2,
-    tvl: 2780000,
-    yourStake: 850,
-    yourRewards: 28.4,
-    multiplier: "30x",
-  },
-  {
-    id: "farm-3",
-    name: "GOLD-BTC LP",
-    token1: {
-      symbol: "GOLD",
-      icon: "/gold-logo.png",
-    },
-    token2: {
-      symbol: "BTC",
-      icon: "/bitcoin-symbol-gold.png",
-    },
-    apr: 92.8,
-    tvl: 4120000,
-    yourStake: 0,
-    yourRewards: 0,
-    multiplier: "50x",
-  },
-  {
-    id: "farm-4",
-    name: "GOLD-USDC LP",
-    token1: {
-      symbol: "GOLD",
-      icon: "/gold-logo.png",
-    },
-    token2: {
-      symbol: "USDC",
-      icon: "/usdc-digital-currency.png",
-    },
-    apr: 58.6,
-    tvl: 1950000,
-    yourStake: 0,
-    yourRewards: 0,
-    multiplier: "25x",
-  },
-]
-
-export function YieldFarming() {
+  ])
   const { toast } = useToast()
-  const { isConnected } = useWallet()
-  const [isLoading, setIsLoading] = useState(false)
-  const [expandedFarm, setExpandedFarm] = useState<string | null>(null)
-  const [farms, setFarms] = useState<Farm[]>(mockFarms)
-  const [stakeAmount, setStakeAmount] = useState<Record<string, string>>({})
-  const [unstakeAmount, setUnstakeAmount] = useState<Record<string, string>>({})
 
-  // Toggle farm expansion
-  const toggleExpand = (farmId: string) => {
-    if (expandedFarm === farmId) {
-      setExpandedFarm(null)
-    } else {
-      setExpandedFarm(farmId)
+  useEffect(() => {
+    setIsClient(true)
+
+    // Check if wallet is connected
+    const checkWallet = () => {
+      if (window.solana && window.solana.isConnected) {
+        setConnected(true)
+        // Fetch farm data
+        fetchFarmData()
+      } else {
+        setConnected(false)
+      }
+    }
+
+    checkWallet()
+
+    // Listen for wallet connection changes
+    if (window.solana) {
+      window.solana.on("connect", checkWallet)
+      window.solana.on("disconnect", () => setConnected(false))
+    }
+
+    return () => {
+      // Cleanup listeners
+      if (window.solana) {
+        window.solana.removeAllListeners("connect")
+        window.solana.removeAllListeners("disconnect")
+      }
+    }
+  }, [])
+
+  const fetchFarmData = async () => {
+    setLoading(true)
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Update with mock data
+      setFarms((prevFarms) =>
+        prevFarms.map((farm) => ({
+          ...farm,
+          userStaked: Math.floor(Math.random() * 1000),
+          rewards: Math.floor(Math.random() * 50),
+        })),
+      )
+    } catch (error) {
+      console.error("Error fetching farm data:", error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  // Handle staking
-  const handleStake = async (farm: Farm) => {
-    if (!isConnected) return
-    if (!stakeAmount[farm.id] || Number.parseFloat(stakeAmount[farm.id]) <= 0) {
+  const handleStake = async (farmId: string) => {
+    if (!connected) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount to stake.",
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to stake LP tokens.",
         variant: "destructive",
       })
       return
     }
 
-    setIsLoading(true)
+    // Update farm status
+    setFarms((prevFarms) => prevFarms.map((farm) => (farm.id === farmId ? { ...farm, isStaking: true } : farm)))
 
     try {
-      // Simulate transaction delay
+      // Simulate transaction
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
-      const amount = Number.parseFloat(stakeAmount[farm.id])
+      // Update farm data
+      setFarms((prevFarms) =>
+        prevFarms.map((farm) =>
+          farm.id === farmId
+            ? {
+                ...farm,
+                userStaked: farm.userStaked + 100, // Add 100 LP tokens
+                isStaking: false,
+              }
+            : farm,
+        ),
+      )
 
       toast({
         title: "Staking Successful",
-        description: `Successfully staked ${amount} LP tokens in ${farm.name} farm.`,
-        variant: "default",
-      })
-
-      // Update farms (simulate staking)
-      setFarms(
-        farms.map((f) => {
-          if (f.id === farm.id) {
-            return {
-              ...f,
-              yourStake: f.yourStake + amount,
-            }
-          }
-          return f
-        }),
-      )
-
-      // Reset stake amount
-      setStakeAmount({
-        ...stakeAmount,
-        [farm.id]: "",
+        description: `Successfully staked LP tokens in ${farmId} farm.`,
       })
     } catch (error) {
+      console.error("Staking error:", error)
       toast({
-        title: "Transaction Failed",
-        description: "Failed to stake LP tokens. Please try again.",
+        title: "Staking Failed",
+        description: "There was an error processing your stake. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
+
+      // Reset staking status
+      setFarms((prevFarms) => prevFarms.map((farm) => (farm.id === farmId ? { ...farm, isStaking: false } : farm)))
     }
   }
 
-  // Handle unstaking
-  const handleUnstake = async (farm: Farm) => {
-    if (!isConnected) return
-    if (
-      !unstakeAmount[farm.id] ||
-      Number.parseFloat(unstakeAmount[farm.id]) <= 0 ||
-      Number.parseFloat(unstakeAmount[farm.id]) > farm.yourStake
-    ) {
+  const handleClaim = async (farmId: string) => {
+    if (!connected) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount to unstake.",
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to claim rewards.",
         variant: "destructive",
       })
       return
     }
 
-    setIsLoading(true)
-
-    try {
-      // Simulate transaction delay
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      const amount = Number.parseFloat(unstakeAmount[farm.id])
-
-      toast({
-        title: "Unstaking Successful",
-        description: `Successfully unstaked ${amount} LP tokens from ${farm.name} farm.`,
-        variant: "default",
-      })
-
-      // Update farms (simulate unstaking)
-      setFarms(
-        farms.map((f) => {
-          if (f.id === farm.id) {
-            return {
-              ...f,
-              yourStake: f.yourStake - amount,
-            }
-          }
-          return f
-        }),
-      )
-
-      // Reset unstake amount
-      setUnstakeAmount({
-        ...unstakeAmount,
-        [farm.id]: "",
-      })
-    } catch (error) {
-      toast({
-        title: "Transaction Failed",
-        description: "Failed to unstake LP tokens. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Handle claiming rewards
-  const handleClaimRewards = async (farm: Farm) => {
-    if (!isConnected) return
-    if (farm.yourRewards <= 0) {
+    const farm = farms.find((f) => f.id === farmId)
+    if (!farm || farm.rewards <= 0) {
       toast({
         title: "No Rewards",
-        description: "You don't have any rewards to claim.",
+        description: "You don't have any rewards to claim from this farm.",
         variant: "destructive",
       })
       return
     }
 
-    setIsLoading(true)
+    // Update farm status
+    setFarms((prevFarms) => prevFarms.map((farm) => (farm.id === farmId ? { ...farm, isClaiming: true } : farm)))
 
     try {
-      // Simulate transaction delay
+      // Simulate transaction
       await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      // Update farm data
+      const claimedAmount = farm.rewards
+      setFarms((prevFarms) =>
+        prevFarms.map((farm) =>
+          farm.id === farmId
+            ? {
+                ...farm,
+                rewards: 0,
+                isClaiming: false,
+              }
+            : farm,
+        ),
+      )
 
       toast({
         title: "Rewards Claimed",
-        description: `Successfully claimed ${farm.yourRewards.toFixed(2)} GOLD rewards from ${farm.name} farm.`,
-        variant: "default",
+        description: `Successfully claimed ${claimedAmount} GOLD tokens from ${farmId} farm.`,
       })
-
-      // Update farms (simulate claiming)
-      setFarms(
-        farms.map((f) => {
-          if (f.id === farm.id) {
-            return {
-              ...f,
-              yourRewards: 0,
-            }
-          }
-          return f
-        }),
-      )
     } catch (error) {
+      console.error("Claiming error:", error)
       toast({
-        title: "Transaction Failed",
-        description: "Failed to claim rewards. Please try again.",
+        title: "Claiming Failed",
+        description: "There was an error claiming your rewards. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
+
+      // Reset claiming status
+      setFarms((prevFarms) => prevFarms.map((farm) => (farm.id === farmId ? { ...farm, isClaiming: false } : farm)))
     }
   }
 
-  // Format currency for display
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value)
-  }
-
-  // Calculate total staked value
-  const totalStaked = farms.reduce((sum, farm) => sum + farm.yourStake, 0)
-
-  // Calculate total rewards
-  const totalRewards = farms.reduce((sum, farm) => sum + farm.yourRewards, 0)
-
-  return (
-    <div className="w-full max-w-4xl mx-auto relative">
-      {!isConnected && <WalletConnectOverlay />}
-
-      <Card className="border-2 border-amber-500/20 bg-gradient-to-b from-amber-50/10 to-amber-100/10 backdrop-blur-sm">
+  // Don't render anything on the server
+  if (!isClient) {
+    return (
+      <Card className="border-gold/30 bg-black/60 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-amber-800">Yield Farming</CardTitle>
-          <CardDescription className="text-amber-700">
-            Stake your LP tokens to earn additional GOLD rewards
-          </CardDescription>
+          <CardTitle className="text-xl text-gold">Yield Farming</CardTitle>
+          <CardDescription>Loading yield farming interface...</CardDescription>
         </CardHeader>
-
-        <CardContent>
-          {/* Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="bg-white/80 border border-amber-200">
-              <CardContent className="p-4">
-                <div className="text-sm text-amber-700 mb-1">Total Value Locked</div>
-                <div className="text-2xl font-bold text-amber-900">
-                  {formatCurrency(farms.reduce((sum, farm) => sum + farm.tvl, 0))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/80 border border-amber-200">
-              <CardContent className="p-4">
-                <div className="text-sm text-amber-700 mb-1">Your Total Staked</div>
-                <div className="text-2xl font-bold text-amber-900">{formatCurrency(totalStaked)}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/80 border border-amber-200">
-              <CardContent className="p-4">
-                <div className="text-sm text-amber-700 mb-1">Pending Rewards</div>
-                <div className="text-2xl font-bold text-amber-900">{totalRewards.toFixed(2)} GOLD</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Farms List */}
-          <div className="space-y-4">
-            {farms.map((farm) => (
-              <Card key={farm.id} className="border border-amber-200 overflow-hidden">
-                <div
-                  className="p-4 cursor-pointer hover:bg-amber-50 transition-colors"
-                  onClick={() => toggleExpand(farm.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <img
-                          src={farm.token1.icon || "/placeholder.svg"}
-                          alt={farm.token1.symbol}
-                          className="w-8 h-8 rounded-full"
-                        />
-                        <img
-                          src={farm.token2.icon || "/placeholder.svg"}
-                          alt={farm.token2.symbol}
-                          className="w-8 h-8 rounded-full absolute -bottom-1 -right-1"
-                        />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-amber-900">{farm.name}</h3>
-                        <div className="text-xs text-amber-700">Multiplier: {farm.multiplier}</div>
-                      </div>
-                    </div>
-
-                    <div className="hidden md:block text-center">
-                      <div className="text-xs text-amber-700">APR</div>
-                      <div className="font-bold text-amber-900">{farm.apr}%</div>
-                    </div>
-
-                    <div className="hidden md:block text-center">
-                      <div className="text-xs text-amber-700">TVL</div>
-                      <div className="font-bold text-amber-900">{formatCurrency(farm.tvl)}</div>
-                    </div>
-
-                    <div className="hidden md:block text-center">
-                      <div className="text-xs text-amber-700">Your Stake</div>
-                      <div className="font-bold text-amber-900">{formatCurrency(farm.yourStake)}</div>
-                    </div>
-
-                    <div className="hidden md:block text-center">
-                      <div className="text-xs text-amber-700">Rewards</div>
-                      <div className="font-bold text-amber-900">{farm.yourRewards.toFixed(2)} GOLD</div>
-                    </div>
-
-                    <div className="text-amber-500">
-                      {expandedFarm === farm.id ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="m18 15-6-6-6 6" />
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Mobile view stats */}
-                  <div className="grid grid-cols-3 gap-2 mt-3 md:hidden">
-                    <div className="text-center">
-                      <div className="text-xs text-amber-700">APR</div>
-                      <div className="font-bold text-amber-900">{farm.apr}%</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs text-amber-700">Your Stake</div>
-                      <div className="font-bold text-amber-900">{formatCurrency(farm.yourStake)}</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xs text-amber-700">Rewards</div>
-                      <div className="font-bold text-amber-900">{farm.yourRewards.toFixed(2)} GOLD</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expanded content */}
-                {expandedFarm === farm.id && (
-                  <div className="p-4 border-t border-amber-200 bg-amber-50/50">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Stake section */}
-                      <div className="p-4 bg-white rounded-lg border border-amber-200">
-                        <h4 className="font-bold text-amber-900 mb-2">Stake LP Tokens</h4>
-                        <div className="flex space-x-2 mb-4">
-                          <input
-                            type="number"
-                            placeholder="Amount"
-                            className="flex-1 px-3 py-2 border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            value={stakeAmount[farm.id] || ""}
-                            onChange={(e) => setStakeAmount({ ...stakeAmount, [farm.id]: e.target.value })}
-                            disabled={isLoading}
-                          />
-                          <Button
-                            variant="outline"
-                            className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-white"
-                            onClick={() => setStakeAmount({ ...stakeAmount, [farm.id]: "100" })}
-                            disabled={isLoading}
-                          >
-                            MAX
-                          </Button>
-                        </div>
-                        <Button
-                          className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-                          onClick={() => handleStake(farm)}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? "Processing..." : "Stake"}
-                        </Button>
-                      </div>
-
-                      {/* Unstake section */}
-                      <div className="p-4 bg-white rounded-lg border border-amber-200">
-                        <h4 className="font-bold text-amber-900 mb-2">Unstake LP Tokens</h4>
-                        <div className="flex space-x-2 mb-4">
-                          <input
-                            type="number"
-                            placeholder="Amount"
-                            className="flex-1 px-3 py-2 border border-amber-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            value={unstakeAmount[farm.id] || ""}
-                            onChange={(e) => setUnstakeAmount({ ...unstakeAmount, [farm.id]: e.target.value })}
-                            disabled={isLoading || farm.yourStake <= 0}
-                          />
-                          <Button
-                            variant="outline"
-                            className="border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-white"
-                            onClick={() => setUnstakeAmount({ ...unstakeAmount, [farm.id]: farm.yourStake.toString() })}
-                            disabled={isLoading || farm.yourStake <= 0}
-                          >
-                            MAX
-                          </Button>
-                        </div>
-                        <Button
-                          className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-                          onClick={() => handleUnstake(farm)}
-                          disabled={isLoading || farm.yourStake <= 0}
-                        >
-                          {isLoading ? "Processing..." : "Unstake"}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Rewards section */}
-                    <div className="mt-4 p-4 bg-white rounded-lg border border-amber-200">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-bold text-amber-900">Pending Rewards</h4>
-                        <span className="font-bold text-amber-900">{farm.yourRewards.toFixed(2)} GOLD</span>
-                      </div>
-                      <Progress value={(farm.yourRewards / (farm.yourRewards + 10)) * 100} className="mb-4" />
-                      <Button
-                        className="w-full bg-amber-500 hover:bg-amber-600 text-white"
-                        onClick={() => handleClaimRewards(farm)}
-                        disabled={isLoading || farm.yourRewards <= 0}
-                      >
-                        {isLoading ? "Processing..." : "Claim Rewards"}
-                      </Button>
-                    </div>
-
-                    {/* Farm details */}
-                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <div className="text-xs text-amber-700">Total Value Locked</div>
-                        <div className="font-bold text-amber-900">{formatCurrency(farm.tvl)}</div>
-                      </div>
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <div className="text-xs text-amber-700">APR</div>
-                        <div className="font-bold text-amber-900">{farm.apr}%</div>
-                      </div>
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <div className="text-xs text-amber-700">Multiplier</div>
-                        <div className="font-bold text-amber-900">{farm.multiplier}</div>
-                      </div>
-                      <div className="p-3 bg-white rounded-lg border border-amber-200">
-                        <div className="text-xs text-amber-700">Your Share</div>
-                        <div className="font-bold text-amber-900">
-                          {farm.tvl > 0 ? ((farm.yourStake / farm.tvl) * 100).toFixed(4) : "0"}%
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </Card>
-            ))}
-          </div>
+        <CardContent className="space-y-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="rounded-lg bg-black/50 border border-gold/20 p-4 space-y-3">
+              <Skeleton className="h-6 w-32" />
+              <div className="grid grid-cols-2 gap-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <div className="flex justify-between mt-2">
+                <Skeleton className="h-10 w-28" />
+                <Skeleton className="h-10 w-28" />
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
-    </div>
+    )
+  }
+
+  return (
+    <Card className="border-gold/30 bg-black/60 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-xl text-gold">Yield Farming</CardTitle>
+        <CardDescription>Provide liquidity and earn GOLD rewards</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {farms.map((farm) => (
+          <Card key={farm.id} className="bg-black/50 border-gold/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg text-gold">{farm.name}</CardTitle>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <div className="grid grid-cols-2 gap-y-2 text-sm">
+                <div className="text-gray-400">Total Value Locked:</div>
+                <div className="text-right font-medium">
+                  {loading ? <Skeleton className="h-4 w-20 ml-auto" /> : `$${farm.tvl.toLocaleString()}`}
+                </div>
+                <div className="text-gray-400">APR:</div>
+                <div className="text-right font-medium text-green-500">
+                  {loading ? <Skeleton className="h-4 w-16 ml-auto" /> : `${farm.apr}%`}
+                </div>
+                <div className="text-gray-400">Your Staked LP:</div>
+                <div className="text-right font-medium">
+                  {loading ? <Skeleton className="h-4 w-20 ml-auto" /> : `${farm.userStaked.toLocaleString()}`}
+                </div>
+                <div className="text-gray-400">Pending Rewards:</div>
+                <div className="text-right font-medium text-gold">
+                  {loading ? <Skeleton className="h-4 w-20 ml-auto" /> : `${farm.rewards.toLocaleString()} GOLD`}
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                className="border-gold/50 text-gold hover:bg-gold/10"
+                onClick={() => handleStake(farm.id)}
+                disabled={!connected || farm.isStaking}
+              >
+                {farm.isStaking ? "Staking..." : "Stake LP"}
+              </Button>
+              <Button
+                className="bg-gold hover:bg-gold/80 text-black"
+                onClick={() => handleClaim(farm.id)}
+                disabled={!connected || farm.rewards <= 0 || farm.isClaiming}
+              >
+                {farm.isClaiming ? "Claiming..." : "Harvest"}
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </CardContent>
+      <CardFooter className="flex justify-center">
+        <Button variant="link" className="text-gold hover:text-gold/80">
+          Add Liquidity to Earn LP Tokens
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }
-
-export default YieldFarming

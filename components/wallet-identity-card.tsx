@@ -1,34 +1,39 @@
 "use client"
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useSolanaWallet } from "@/contexts/solana-wallet-context"
-import { Copy, ExternalLink, X } from "lucide-react"
-import { useState } from "react"
+import { Copy, ExternalLink } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface WalletIdentityCardProps {
-  onClose?: () => void
+  onDisconnect: () => void
 }
 
-export function WalletIdentityCard({ onClose }: WalletIdentityCardProps) {
-  const { address, balance, disconnect } = useSolanaWallet()
+export function WalletIdentityCard({ onDisconnect }: WalletIdentityCardProps) {
+  const [mounted, setMounted] = useState(false)
+  const [address, setAddress] = useState<string | null>(null)
+  const [solBalance, setSolBalance] = useState<number>(0)
+  const [goldBalance, setGoldBalance] = useState<number>(0)
   const { toast } = useToast()
-  const [copied, setCopied] = useState(false)
 
-  // Shorten wallet address for display
-  const shortenAddress = (addr: string | null) => {
-    if (!addr) return ""
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-  }
+  useEffect(() => {
+    setMounted(true)
 
-  // Copy address to clipboard
+    // Get wallet address if connected
+    if (typeof window !== "undefined" && window.solana && window.solana.isConnected) {
+      const publicKey = window.solana.publicKey?.toString()
+      setAddress(publicKey || null)
+
+      // Mock balances for demo
+      setSolBalance(2.5)
+      setGoldBalance(1000)
+    }
+  }, [])
+
   const copyAddress = () => {
     if (address) {
       navigator.clipboard.writeText(address)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-
       toast({
         title: "Address Copied",
         description: "Wallet address copied to clipboard",
@@ -36,71 +41,53 @@ export function WalletIdentityCard({ onClose }: WalletIdentityCardProps) {
     }
   }
 
-  // Get explorer link based on selected network
-  const getExplorerLink = () => {
-    if (!address) return "#"
-    return `https://solscan.io/account/${address}`
+  const openExplorer = () => {
+    if (address) {
+      window.open(`https://explorer.solana.com/address/${address}`, "_blank")
+    }
   }
 
-  // Handle disconnect
-  const handleDisconnect = () => {
-    disconnect()
-    if (onClose) onClose()
+  if (!mounted || !address) {
+    return null
   }
+
+  // Format address for display
+  const shortAddress = address ? `${address.slice(0, 4)}...${address.slice(-4)}` : ""
 
   return (
-    <Card className="w-80 border border-yellow-500/30 bg-black shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <h4 className="text-sm font-medium text-yellow-500">Wallet</h4>
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6">
-            <X className="h-4 w-4" />
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent className="pb-3">
+    <Card className="w-72 border-gold/30 bg-black/90 backdrop-blur-sm">
+      <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-yellow-500">{shortenAddress(address)}</span>
-            </div>
-            <div className="flex space-x-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10"
-                onClick={copyAddress}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10"
-                asChild
-              >
-                <a href={getExplorerLink()} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </Button>
+            <span className="text-sm font-medium">Wallet</span>
+            <div className="flex items-center space-x-1">
+              <span className="text-sm font-mono">{shortAddress}</span>
+              <button onClick={copyAddress} className="text-gold hover:text-gold/80">
+                <Copy className="h-3.5 w-3.5" />
+              </button>
+              <button onClick={openExplorer} className="text-gold hover:text-gold/80">
+                <ExternalLink className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-yellow-500/20">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-400">Balance</span>
-              <span className="font-medium text-yellow-500">{balance.toFixed(4)} SOL</span>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm">SOL Balance</span>
+              <span className="text-sm font-medium">{solBalance.toFixed(2)} SOL</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm">GOLD Balance</span>
+              <span className="text-sm font-medium">{goldBalance.toFixed(2)} GOLD</span>
             </div>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="pt-0">
+      <CardFooter className="p-4 pt-0">
         <Button
           variant="outline"
-          size="sm"
-          onClick={handleDisconnect}
-          className="w-full border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+          className="w-full border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-400"
+          onClick={onDisconnect}
         >
           Disconnect
         </Button>

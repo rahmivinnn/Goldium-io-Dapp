@@ -1,56 +1,40 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { ConnectWalletButton } from "@/components/connect-wallet-button"
-import { motion } from "framer-motion"
-import { useSolanaWallet } from "@/contexts/solana-wallet-context"
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
-interface WalletConnectOverlayProps {
-  message?: string
-  showOnlyButton?: boolean
-  className?: string
-}
+export function WalletConnectOverlay() {
+  const [connecting, setConnecting] = useState(false)
 
-export function WalletConnectOverlay({
-  message = "Connect your wallet to interact",
-  showOnlyButton = false,
-  className = "",
-}: WalletConnectOverlayProps) {
-  const { connected } = useSolanaWallet()
-  const [isClient, setIsClient] = useState(false)
+  const handleConnect = async () => {
+    setConnecting(true)
+    try {
+      // Mock connection
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  // Prevent hydration errors by only rendering client-side
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  // If not client-side yet, return null to prevent hydration mismatch
-  if (!isClient) {
-    return null
-  }
-
-  // If wallet is connected, don't show the overlay
-  if (connected) {
-    return null
-  }
-
-  if (showOnlyButton) {
-    return <ConnectWalletButton variant="outline" size="sm" className="gold-button-sm" />
+      // In a real app, this would connect to the wallet
+      if (window.solana) {
+        await window.solana.connect()
+      } else {
+        window.localStorage.setItem("walletConnected", "true")
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error("Failed to connect wallet:", error)
+    } finally {
+      setConnecting(false)
+    }
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className={`flex justify-center items-center p-4 ${className}`}
-    >
-      <Card className="border-gold bg-black/80 backdrop-blur-sm w-full max-w-md mx-auto">
-        <CardContent className="pt-6 text-center">
-          <p className="mb-4 text-gray-300">{message}</p>
-          <ConnectWalletButton className="gold-button" />
-        </CardContent>
-      </Card>
-    </motion.div>
+    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
+      <div className="text-center p-6">
+        <h3 className="text-xl font-bold text-gold mb-4">Connect Wallet</h3>
+        <p className="text-gray-300 mb-6">Connect your wallet to access staking features</p>
+        <Button onClick={handleConnect} disabled={connecting} className="bg-gold hover:bg-gold/80 text-black">
+          {connecting ? "Connecting..." : "Connect Wallet"}
+        </Button>
+      </div>
+    </div>
   )
 }

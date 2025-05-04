@@ -6,35 +6,37 @@ import { Button } from "@/components/ui/button"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import Image from "next/image"
 import { useNetwork } from "@/contexts/network-context"
-import { Copy } from "lucide-react"
+import { Copy, ExternalLink } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-export function WalletConnectPopup() {
-  const [isOpen, setIsOpen] = useState(false)
-  const { connected, connecting, connect } = useSolanaWallet()
+export function WalletConnectPopup({ onClose }: { onClose?: () => void }) {
+  const [isOpen, setIsOpen] = useState(true) // Always start as open
+  const { connected, connecting, connect, isPhantomInstalled } = useSolanaWallet()
   const { goldTokenAddress } = useNetwork()
   const { toast } = useToast()
 
-  // Show popup on initial load if not connected - ALWAYS show it
+  // Force the popup to appear if not connected
   useEffect(() => {
-    if (!connected) {
-      // Short delay to ensure the popup doesn't appear immediately on page load
-      const timer = setTimeout(() => {
-        setIsOpen(true)
-      }, 1000)
-      return () => clearTimeout(timer)
-    } else {
+    if (connected) {
       setIsOpen(false)
+      if (onClose) onClose()
+    } else {
+      setIsOpen(true)
     }
-  }, [connected])
+  }, [connected, onClose])
 
   const handleConnect = async () => {
-    await connect()
-    setIsOpen(false)
+    try {
+      await connect()
+      // Don't close the popup here - let the connected state change trigger it
+    } catch (error) {
+      console.error("Connection error:", error)
+    }
   }
 
   const handleClose = () => {
     setIsOpen(false)
+    if (onClose) onClose()
   }
 
   const copyToClipboard = (text: string) => {
@@ -43,6 +45,10 @@ export function WalletConnectPopup() {
       title: "Copied!",
       description: "Token address copied to clipboard",
     })
+  }
+
+  const openPhantomWebsite = () => {
+    window.open("https://phantom.app/", "_blank")
   }
 
   return (
@@ -75,22 +81,38 @@ export function WalletConnectPopup() {
             <div className="flex justify-between items-center mb-1">
               <p className="text-sm">Token Contract Address:</p>
               <button
-                onClick={() => copyToClipboard("APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")}
+                onClick={() => copyToClipboard(goldTokenAddress || "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")}
                 className="text-yellow-500 hover:text-yellow-400"
               >
                 <Copy size={14} />
               </button>
             </div>
-            <p className="text-yellow-500 font-mono text-xs break-all">APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump</p>
+            <p className="text-yellow-500 font-mono text-xs break-all">
+              {goldTokenAddress || "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump"}
+            </p>
           </div>
 
-          <Button
-            onClick={handleConnect}
-            disabled={connecting}
-            className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium"
-          >
-            {connecting ? "Connecting..." : "Connect Phantom Wallet"}
-          </Button>
+          {isPhantomInstalled ? (
+            <Button
+              onClick={handleConnect}
+              disabled={connecting}
+              className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium"
+            >
+              {connecting ? "Connecting..." : "Connect Phantom Wallet"}
+            </Button>
+          ) : (
+            <div className="space-y-4 w-full">
+              <Button
+                onClick={openPhantomWebsite}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium"
+              >
+                Install Phantom Wallet <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+              <p className="text-xs text-center text-gray-400">
+                Phantom Wallet is not installed. Click above to install it first.
+              </p>
+            </div>
+          )}
 
           <Button variant="ghost" onClick={handleClose} className="text-gray-400">
             I'll do this later

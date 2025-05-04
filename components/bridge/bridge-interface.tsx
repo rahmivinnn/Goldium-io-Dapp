@@ -84,30 +84,35 @@ export function BridgeInterface() {
             { id: "ETH", name: "Ethereum", symbol: "ETH", icon: "/ethereum-crystal.png", decimals: 18 },
             { id: "USDT", name: "Tether", symbol: "USDT", icon: "/abstract-tether.png", decimals: 6 },
             { id: "GOLD", name: "Goldium", symbol: "GOLD", icon: "/gold-logo.png", decimals: 9 },
+            { id: "MANA", name: "Decentraland", symbol: "MANA", icon: "/images/mana-logo.png", decimals: 18 },
           ]
         } else if (sourceNetwork === "solana") {
           tokens = [
             { id: "SOL", name: "Solana", symbol: "SOL", icon: "/images/solana-logo.png", decimals: 9 },
             { id: "USDC", name: "USD Coin", symbol: "USDC", icon: "/usdc-digital-currency.png", decimals: 6 },
             { id: "GOLD", name: "Goldium", symbol: "GOLD", icon: "/gold-logo.png", decimals: 9 },
+            { id: "MANA", name: "Decentraland", symbol: "MANA", icon: "/images/mana-logo.png", decimals: 18 },
           ]
         } else if (sourceNetwork === "binance") {
           tokens = [
             { id: "BNB", name: "Binance Coin", symbol: "BNB", icon: "/binance-logo.png", decimals: 18 },
             { id: "BUSD", name: "Binance USD", symbol: "BUSD", icon: "/busd-logo.png", decimals: 18 },
             { id: "GOLD", name: "Goldium", symbol: "GOLD", icon: "/gold-logo.png", decimals: 9 },
+            { id: "MANA", name: "Decentraland", symbol: "MANA", icon: "/images/mana-logo.png", decimals: 18 },
           ]
         } else if (sourceNetwork === "polygon") {
           tokens = [
             { id: "MATIC", name: "Polygon", symbol: "MATIC", icon: "/polygon-logo.png", decimals: 18 },
             { id: "USDT", name: "Tether", symbol: "USDT", icon: "/abstract-tether.png", decimals: 6 },
             { id: "GOLD", name: "Goldium", symbol: "GOLD", icon: "/gold-logo.png", decimals: 9 },
+            { id: "MANA", name: "Decentraland", symbol: "MANA", icon: "/images/mana-logo.png", decimals: 18 },
           ]
         } else if (sourceNetwork === "avalanche") {
           tokens = [
             { id: "AVAX", name: "Avalanche", symbol: "AVAX", icon: "/avalanche-logo.png", decimals: 18 },
             { id: "USDC", name: "USD Coin", symbol: "USDC", icon: "/usdc-digital-currency.png", decimals: 6 },
             { id: "GOLD", name: "Goldium", symbol: "GOLD", icon: "/gold-logo.png", decimals: 9 },
+            { id: "MANA", name: "Decentraland", symbol: "MANA", icon: "/images/mana-logo.png", decimals: 18 },
           ]
         }
 
@@ -343,6 +348,7 @@ export function BridgeInterface() {
     if (tokenId === "AVAX") return { name: "Avalanche", symbol: "AVAX", icon: "/avalanche-logo.png" }
     if (tokenId === "USDT") return { name: "Tether", symbol: "USDT", icon: "/abstract-tether.png" }
     if (tokenId === "USDC") return { name: "USD Coin", symbol: "USDC", icon: "/usdc-digital-currency.png" }
+    if (tokenId === "MANA") return { name: "Decentraland", symbol: "MANA", icon: "/images/mana-logo.png" }
 
     return { name: tokenId, symbol: tokenId, icon: "/placeholder.svg" }
   }

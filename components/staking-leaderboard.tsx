@@ -1,36 +1,52 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
 export default function StakingLeaderboard() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div className="animate-pulse space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center space-x-2">
+            <div className="rounded-full bg-gold/20 h-8 w-8"></div>
+            <div className="flex-1">
+              <div className="h-3 bg-gold/20 rounded w-1/2 mb-2"></div>
+              <div className="h-3 bg-gold/20 rounded w-1/4"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Mock data
   const leaderboard = [
-    { rank: 1, player: "GoldenKnight", staked: 25000 },
-    { rank: 2, player: "CryptoWizard", staked: 18750 },
-    { rank: 3, player: "TokenMaster", staked: 15420 },
-    { rank: 4, player: "NFTHunter", staked: 12950 },
-    { rank: 5, player: "BlockchainBaron", staked: 11340 },
+    { address: "8xGZ...cQY", amount: 25000, rank: 1 },
+    { address: "7tHJ...dFR", amount: 18750, rank: 2 },
+    { address: "9pLM...gTY", amount: 12500, rank: 3 },
+    { address: "3kRS...hJK", amount: 7500, rank: 4 },
   ]
 
   return (
     <div className="space-y-3">
-      {leaderboard.map((item) => (
+      {leaderboard.map((staker) => (
         <div
-          key={item.rank}
-          className="flex items-center justify-between p-2 border border-gold/20 rounded-lg hover:bg-gold/5"
+          key={staker.rank}
+          className="flex items-center justify-between p-2 rounded-md bg-black/30 border border-gold/10"
         >
-          <div className="flex items-center">
-            <div
-              className={`w-6 h-6 flex items-center justify-center rounded-full mr-2 ${
-                item.rank === 1
-                  ? "bg-gold text-black"
-                  : item.rank === 2
-                    ? "bg-gray-300 text-black"
-                    : item.rank === 3
-                      ? "bg-amber-700 text-white"
-                      : "bg-gray-700 text-white"
-              }`}
-            >
-              {item.rank}
+          <div className="flex items-center space-x-2">
+            <div className="w-6 h-6 rounded-full bg-gold/20 flex items-center justify-center text-xs">
+              {staker.rank}
             </div>
-            <span>{item.player}</span>
+            <div className="text-sm font-mono">{staker.address}</div>
           </div>
-          <span className="font-bold text-gold">{item.staked.toLocaleString()} GOLD</span>
+          <div className="text-gold font-bold">{staker.amount.toLocaleString()} GOLD</div>
         </div>
       ))}
     </div>

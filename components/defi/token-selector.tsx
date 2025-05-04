@@ -20,9 +20,10 @@ export default function TokenSelector({ value, onChange, excludeToken }: TokenSe
   const { tokens } = useWallet()
   const { network } = useNetwork()
 
-  // Filter tokens to only include SOL and GOLD
+  // Filter tokens to include SOL, GOLD, and MANA
   const filteredTokens = tokens.filter(
-    (token) => (token.symbol === "SOL" || token.symbol === "GOLD") && token.symbol !== excludeToken,
+    (token) =>
+      (token.symbol === "SOL" || token.symbol === "GOLD" || token.symbol === "MANA") && token.symbol !== excludeToken,
   )
 
   // If the current value is not in the filtered tokens, reset it
