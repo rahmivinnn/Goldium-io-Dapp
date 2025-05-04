@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -6,11 +8,12 @@ import LiveStats from "@/components/live-stats"
 import FeaturedNFTs from "@/components/featured-nfts"
 import GameShowcase from "@/components/game-showcase"
 import EventsPreview from "@/components/events-preview"
-import { ArrowRight, Trophy, Coins, Sword, ShoppingBag } from "lucide-react"
+import { Trophy, Coins, Sword, ShoppingBag, Copy, ExternalLink } from "lucide-react"
 import FloatingParticles from "@/components/floating-particles"
 import { ScrollAnimation, ScrollStaggerContainer, ScrollStaggerItem } from "@/components/ui/scroll-animation"
 import { ScrollReveal, GoldReveal } from "@/components/ui/scroll-reveal"
 import { ParallaxScroll } from "@/components/ui/parallax-scroll"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export default function Home() {
   return (
@@ -36,9 +39,35 @@ export default function Home() {
           <ScrollAnimation type="slide-up" delay={0.5} duration={0.8}>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <ConnectWalletButton className="gold-button text-lg py-3 px-8" />
-              <Button variant="outline" className="border-gold text-gold hover:bg-gold/10 text-lg py-3 px-8">
-                Learn More <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+
+              {/* Contract Address Button - Replacing "Learn More" */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="relative group">
+                      <Button
+                        variant="outline"
+                        className="border-gold text-gold hover:bg-gold/10 text-lg py-3 px-8 flex items-center"
+                        onClick={() => {
+                          navigator.clipboard.writeText("APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")
+                          // You could add a toast notification here
+                        }}
+                      >
+                        <span className="mr-2 font-mono text-sm sm:text-base truncate max-w-[120px] sm:max-w-[180px]">
+                          APkBg8...4pump
+                        </span>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <div className="absolute -bottom-8 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-gold">
+                        GOLD Token CA
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Copy GOLD Token Contract Address</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </ScrollAnimation>
 
@@ -62,9 +91,39 @@ export default function Home() {
               <p className="text-sm text-gray-400 mt-2">RATED 5 STARS BY USERS</p>
             </div>
           </ScrollAnimation>
+
+          {/* Full Contract Address Display */}
+          <ScrollAnimation type="fade" delay={1} duration={1}>
+            <div className="mt-8 flex flex-col items-center">
+              <div className="bg-black/30 backdrop-blur-sm border border-gold/20 rounded-lg px-4 py-2 flex items-center gap-2 max-w-full overflow-hidden">
+                <span className="text-xs text-gold/80 whitespace-nowrap">GOLD Token CA:</span>
+                <code className="font-mono text-xs sm:text-sm text-gold truncate">
+                  APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump
+                </code>
+                <button
+                  className="text-gold/80 hover:text-gold p-1 transition-colors"
+                  onClick={() => {
+                    navigator.clipboard.writeText("APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")
+                    // You could add a toast notification here
+                  }}
+                >
+                  <Copy className="h-3 w-3" />
+                </button>
+                <a
+                  href="https://explorer.solana.com/address/APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold/80 hover:text-gold p-1 transition-colors"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+          </ScrollAnimation>
         </div>
       </section>
 
+      {/* Rest of the page content remains unchanged */}
       {/* Live Stats Section */}
       <section className="py-16 bg-gradient-to-b from-slate-900/80 to-slate-800/80 backdrop-blur-sm relative">
         <FloatingParticles count={20} speed={0.5} />
