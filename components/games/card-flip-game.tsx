@@ -258,6 +258,7 @@ export default function CardFlipGame() {
   const [specialAbilityMessage, setSpecialAbilityMessage] = useState("")
   const [revealedCard, setRevealedCard] = useState<number | null>(null)
   const [perfectGame, setPerfectGame] = useState(true) // Track if no mistakes were made
+  const [showThemeSelect, setShowThemeSelect] = useState(false)
   const [bonusTime, setBonusTime] = useState(0) // Extra time from abilities
   const [comboMultiplier, setComboMultiplier] = useState(1) // Multiplier for fast matches
   const [lastMatchTime, setLastMatchTime] = useState(0) // Time of last match for combo tracking
