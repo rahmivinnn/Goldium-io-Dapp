@@ -1,102 +1,127 @@
 "use client"
 
-import { useState } from "react"
-import { X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { WalletIdentityCard } from "./wallet-identity-card"
 import { PhantomLogo } from "./phantom-logo"
-import { useToast } from "@/hooks/use-toast"
-import { Copy, Check } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 interface WalletConnectPopupProps {
-  onClose: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function WalletConnectPopup({ onClose }: WalletConnectPopupProps) {
-  const { toast } = useToast()
-  const [copied, setCopied] = useState(false)
-  const contractAddress = "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump"
+export function WalletConnectPopup({ open, onOpenChange }: WalletConnectPopupProps) {
+  const { connected, connecting, connect, disconnect, isPhantomInstalled, solBalance } = useSolanaWallet()
+  const [isLoading, setIsLoading] = useState(false)
+  const [showBalance, setShowBalance] = useState(false)
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(contractAddress)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-    toast({
-      title: "Address Copied",
-      description: "Token contract address copied to clipboard",
-    })
+  // Handle connect button click
+  const handleConnect = async () => {
+    setIsLoading(true)
+    try {
+      const result = await connect()
+      if (result.success) {
+        // Connection successful, balance will be fetched automatically
+        console.log("Connection successful")
+        setShowBalance(true)
+      } else if (result.rejected) {
+        console.log("Connection rejected by user")
+      } else {
+        console.log("Connection failed")
+      }
+    } catch (error) {
+      console.error("Error connecting wallet:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const connectWallet = () => {
-    // Connect wallet logic would go here
-    toast({
-      title: "Connecting Wallet",
-      description: "Attempting to connect to Phantom wallet...",
-    })
-
-    // Simulate connection
-    setTimeout(() => {
-      onClose()
-    }, 1500)
+  // Handle disconnect button click
+  const handleDisconnect = async () => {
+    try {
+      await disconnect()
+      setShowBalance(false)
+    } catch (error) {
+      console.error("Error disconnecting wallet:", error)
+    }
   }
+
+  // Reset loading state when popup closes
+  useEffect(() => {
+    if (!open) {
+      setIsLoading(false)
+    }
+  }, [open])
+
+  // Show balance after a successful connection
+  useEffect(() => {
+    if (connected && solBalance > 0) {
+      setShowBalance(true)
+    }
+  }, [connected, solBalance])
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-black border-2 border-yellow-500/30">
-        <CardHeader className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2 text-gray-400 hover:text-white hover:bg-transparent"
-            onClick={onClose}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          <CardTitle className="text-2xl text-yellow-500 text-center">Connect to Goldium.io</CardTitle>
-          <CardDescription className="text-center text-gray-300">
-            Connect your Phantom wallet to access all features of Goldium.io and interact with the GOLD token
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-6">
-          <div className="w-20 h-20 rounded-full bg-purple-700 flex items-center justify-center">
-            <PhantomLogo size={48} />
-          </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-black/90 border border-yellow-500/30 text-white">
+        <DialogHeader>
+          <DialogTitle className="text-center text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">
+            Connect to Goldium.io
+          </DialogTitle>
+        </DialogHeader>
 
-          <div className="text-center">
-            <h3 className="text-xl font-bold text-white">Phantom Wallet</h3>
-            <p className="text-gray-400 text-sm">The most popular Solana wallet</p>
-          </div>
+        <div className="flex flex-col items-center justify-center p-4 space-y-6">
+          {connected ? (
+            <WalletIdentityCard onDisconnect={handleDisconnect} />
+          ) : (
+            <>
+              <div className="text-center mb-4">
+                <p className="text-gray-300">Connect your wallet to access Goldium.io features</p>
+              </div>
 
-          <div className="w-full">
-            <p className="text-sm text-gray-400 mb-1">Token Contract Address:</p>
-            <div className="flex items-center justify-between bg-black/70 rounded-md p-2 border border-yellow-500/20">
-              <code className="text-yellow-500 font-mono text-sm overflow-x-auto scrollbar-hide">
-                {contractAddress}
-              </code>
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-yellow-500 hover:bg-yellow-500/10"
-                onClick={copyToClipboard}
+                onClick={handleConnect}
+                disabled={connecting || isLoading || !isPhantomInstalled}
+                className="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-black font-bold py-2 px-4 rounded flex items-center justify-center space-x-2"
               >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {connecting || isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Connecting...</span>
+                  </>
+                ) : (
+                  <>
+                    <PhantomLogo size={20} />
+                    <span>Connect Phantom Wallet</span>
+                  </>
+                )}
               </Button>
-            </div>
+
+              {!isPhantomInstalled && (
+                <div className="text-center mt-2">
+                  <p className="text-red-400 text-sm">Phantom wallet not detected</p>
+                  <a
+                    href="https://phantom.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-yellow-500 hover:text-yellow-400 text-sm underline mt-1 inline-block"
+                  >
+                    Install Phantom
+                  </a>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="w-full border-t border-gray-800 pt-4 text-center">
+            <p className="text-xs text-gray-400">
+              By connecting your wallet, you agree to our Terms of Service and Privacy Policy
+            </p>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-3">
-          <Button className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium" onClick={connectWallet}>
-            Connect Phantom Wallet
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full text-gray-400 hover:text-white hover:bg-transparent"
-            onClick={onClose}
-          >
-            I'll do this later
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

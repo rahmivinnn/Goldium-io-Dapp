@@ -147,7 +147,7 @@ const SAMPLE_NFTS = [
   {
     id: "16",
     name: "Celestial Plate",
-    image: "/placeholder.svg?key=a5tzp",
+    image: "/placeholder.svg?height=400&width=400&query=celestial+plate+armor+fantasy",
     price: 1450,
     rarity: "legendary",
     category: "armor",
@@ -156,7 +156,7 @@ const SAMPLE_NFTS = [
   {
     id: "17",
     name: "Healing Potion",
-    image: "/placeholder.svg?key=b4nik",
+    image: "/placeholder.svg?height=400&width=400&query=healing+potion+spell+fantasy+rpg",
     price: 220,
     rarity: "common",
     category: "spells",
@@ -165,7 +165,7 @@ const SAMPLE_NFTS = [
   {
     id: "18",
     name: "Sapphire Pendant",
-    image: "/placeholder.svg?key=gb9qj",
+    image: "/placeholder.svg?height=400&width=400&query=sapphire+pendant+fantasy+gem+jewelry",
     price: 890,
     rarity: "epic",
     category: "gems",
@@ -174,7 +174,7 @@ const SAMPLE_NFTS = [
   {
     id: "19",
     name: "War Hammer",
-    image: "/placeholder.svg?key=hg7hf",
+    image: "/placeholder.svg?height=400&width=400&query=fantasy+war+hammer+weapon",
     price: 980,
     rarity: "rare",
     category: "weapons",
@@ -183,7 +183,7 @@ const SAMPLE_NFTS = [
   {
     id: "20",
     name: "Phoenix Feather",
-    image: "/placeholder.svg?key=ht13s",
+    image: "/placeholder.svg?height=400&width=400&query=phoenix+feather+magical+artifact+fantasy",
     price: 1750,
     rarity: "legendary",
     category: "artifacts",
@@ -425,7 +425,7 @@ export default function MarketplacePage() {
   }
 
   return (
-    <div className="pt-24 min-h-screen">
+    <div className="pt-24 min-h-screen font-orbitron">
       <div className="container mx-auto px-4 py-8">
         <MarketplaceHeader />
         <MarketplaceTabs />

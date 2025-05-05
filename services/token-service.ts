@@ -1,5 +1,5 @@
 import { type Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
-import { getAccount, getAssociatedTokenAddress } from "@solana/spl-token"
+import { getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import {
   NETWORKS,
   type NetworkType,
@@ -17,49 +17,161 @@ export interface TokenInfo {
   balance?: number
 }
 
+// Improved SOL balance fetching with better error handling and debugging
 export const getSOLBalance = async (connection: Connection, walletAddress: string): Promise<number> => {
   try {
+    console.log(`[getSOLBalance] Fetching for address: ${walletAddress}`)
+
+    if (!walletAddress || !connection) {
+      console.error("[getSOLBalance] Invalid wallet address or connection")
+      return 0
+    }
+
+    // Create a PublicKey from the wallet address
     const publicKey = new PublicKey(walletAddress)
-    const balance = await connection.getBalance(publicKey)
-    return balance / LAMPORTS_PER_SOL
+
+    // Get the balance with explicit commitment level for better reliability
+    const balance = await connection.getBalance(publicKey, "confirmed")
+    console.log(`[getSOLBalance] Raw balance in lamports: ${balance}`)
+
+    // Convert lamports to SOL
+    const solBalance = balance / LAMPORTS_PER_SOL
+    console.log(`[getSOLBalance] Converted SOL balance: ${solBalance}`)
+
+    return solBalance
   } catch (error) {
-    console.error("Error fetching SOL balance:", error)
+    console.error("[getSOLBalance] Error:", error)
+    // Return 0 on error
     return 0
   }
 }
 
+// Improved GOLD balance fetching with better error handling and debugging
 export const getGOLDBalance = async (
   connection: Connection,
   walletAddress: string,
   network: NetworkType,
 ): Promise<number> => {
   try {
+    console.log(`[getGOLDBalance] Fetching for address: ${walletAddress} on network: ${network}`)
+
+    if (!walletAddress || !connection) {
+      console.error("[getGOLDBalance] Invalid wallet address or connection")
+      return 0
+    }
+
     const publicKey = new PublicKey(walletAddress)
-    const tokenAddress = new PublicKey(NETWORKS[network].goldTokenAddress)
+    const tokenMintAddress = NETWORKS[network].goldTokenAddress
+    console.log(`[getGOLDBalance] Token mint address: ${tokenMintAddress}`)
+
+    if (!tokenMintAddress) {
+      console.error("[getGOLDBalance] Token mint address not found for network:", network)
+      return 0
+    }
+
+    const tokenAddress = new PublicKey(tokenMintAddress)
 
     // Get the associated token account address
     const associatedTokenAddress = await getAssociatedTokenAddress(tokenAddress, publicKey)
+    console.log(`[getGOLDBalance] Associated token address: ${associatedTokenAddress.toString()}`)
 
     try {
       // Try to get the token account
       const tokenAccount = await getAccount(connection, associatedTokenAddress)
+      console.log(`[getGOLDBalance] Token account found, raw amount: ${tokenAccount.amount.toString()}`)
 
       // Convert from raw balance to decimal balance
       const balance = Number(tokenAccount.amount) / Math.pow(10, GOLD_TOKEN_METADATA.decimals)
+      console.log(`[getGOLDBalance] Converted balance: ${balance}`)
       return balance
     } catch (error) {
-      // If the account doesn't exist or there's an error, return 0
-      console.log("Token account not found or error:", error)
-      return 0
+      // If the account doesn't exist or there's an error, try to find it another way
+      console.log("[getGOLDBalance] Token account not found via getAccount, trying alternative method")
+
+      try {
+        // Try to find all token accounts owned by this wallet
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID })
+
+        console.log(`[getGOLDBalance] Found ${tokenAccounts.value.length} token accounts`)
+
+        // Look for the GOLD token account
+        for (const accountInfo of tokenAccounts.value) {
+          const parsedInfo = accountInfo.account.data.parsed.info
+          const mintAddress = parsedInfo.mint
+
+          if (mintAddress === tokenMintAddress) {
+            const amount = parsedInfo.tokenAmount.uiAmount
+            console.log(`[getGOLDBalance] Found GOLD token account with balance: ${amount}`)
+            return amount
+          }
+        }
+
+        console.log("[getGOLDBalance] No GOLD token account found in wallet")
+        return 0
+      } catch (err) {
+        console.error("[getGOLDBalance] Error finding token accounts:", err)
+        return 0
+      }
     }
   } catch (error) {
-    console.error("Error fetching GOLD balance:", error)
+    console.error("[getGOLDBalance] Error:", error)
     return 0
   }
 }
 
-// Add MANA token to the getTokenInfo function
+// Get token balance for a specific mint
+export async function getTokenBalance(
+  connection: Connection,
+  walletAddress: PublicKey,
+  mintAddress: PublicKey,
+): Promise<number> {
+  try {
+    // Find token accounts for this wallet
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletAddress, {
+      programId: TOKEN_PROGRAM_ID,
+    })
 
+    // Find the token account for the specific mint
+    const tokenAccount = tokenAccounts.value.find(
+      (account) => account.account.data.parsed.info.mint === mintAddress.toString(),
+    )
+
+    if (tokenAccount) {
+      const amount = tokenAccount.account.data.parsed.info.tokenAmount.uiAmount
+      return amount
+    }
+
+    return 0
+  } catch (error) {
+    console.error("Error getting token balance:", error)
+    return 0
+  }
+}
+
+// Get all token balances for a wallet
+export async function getAllTokenBalances(
+  connection: Connection,
+  walletAddress: PublicKey,
+): Promise<{ mint: string; balance: number }[]> {
+  try {
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletAddress, {
+      programId: TOKEN_PROGRAM_ID,
+    })
+
+    return tokenAccounts.value.map((account) => {
+      const { mint, tokenAmount } = account.account.data.parsed.info
+      return {
+        mint,
+        balance: tokenAmount.uiAmount,
+      }
+    })
+  } catch (error) {
+    console.error("Error getting all token balances:", error)
+    return []
+  }
+}
+
+// Rest of the file remains the same...
 export const getTokenInfo = (network: NetworkType): { SOL: TokenInfo; GOLD: TokenInfo; MANA: TokenInfo } => {
   return {
     SOL: {

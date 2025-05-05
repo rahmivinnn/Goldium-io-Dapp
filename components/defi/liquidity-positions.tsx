@@ -16,7 +16,7 @@ interface Token {
   price: number
 }
 
-// Change all instances of apr to apy in the interface and component
+// Liquidity Position type definition
 interface LiquidityPosition {
   id: string
   token1: Token
@@ -25,13 +25,13 @@ interface LiquidityPosition {
   token2Amount: number
   lpTokens: number
   shareOfPool: number
-  apy: number // Changed from apr to apy
+  apr: number
   totalValue: number
   rewards: number
   createdAt: Date
 }
 
-// Update the mock data to use apy instead of apr
+// Mock data for liquidity positions
 const mockLiquidityPositions: LiquidityPosition[] = [
   {
     id: "lp-1",
@@ -53,7 +53,7 @@ const mockLiquidityPositions: LiquidityPosition[] = [
     token2Amount: 0.365,
     lpTokens: 1250.75,
     shareOfPool: 0.12,
-    apy: 24.5, // Changed from apr to apy
+    apr: 24.5,
     totalValue: 2350,
     rewards: 12.5,
     createdAt: new Date("2023-10-15"),
@@ -78,7 +78,7 @@ const mockLiquidityPositions: LiquidityPosition[] = [
     token2Amount: 2808,
     lpTokens: 2808,
     shareOfPool: 0.35,
-    apy: 18.2,
+    apr: 18.2,
     totalValue: 5616,
     rewards: 28.4,
     createdAt: new Date("2023-11-05"),
@@ -103,7 +103,7 @@ const mockLiquidityPositions: LiquidityPosition[] = [
     token2Amount: 3250,
     lpTokens: 3250,
     shareOfPool: 0.08,
-    apy: 15.7,
+    apr: 15.7,
     totalValue: 6500,
     rewards: 18.2,
     createdAt: new Date("2023-12-20"),

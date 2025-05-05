@@ -1,93 +1,103 @@
 "use client"
 
-import { useState } from "react"
-import { Check, ChevronDown } from "lucide-react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import Image from "next/image"
-
-interface Token {
-  id: string
-  name: string
-  symbol: string
-  icon: string
-  decimals: number
-}
+import { Check, ChevronDown } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useClickAway } from "react-use"
 
 interface TokenSelectorProps {
-  tokens: Token[]
-  selectedToken: Token
-  onTokenChange: (token: Token) => void
+  tokens: Array<{
+    id: string
+    name: string
+    symbol: string
+    icon: string
+    decimals?: number
+  }>
+  selectedToken: string
+  onTokenChange: (token: string) => void
 }
 
 export function TokenSelector({ tokens, selectedToken, onTokenChange }: TokenSelectorProps) {
-  const [open, setOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useClickAway(ref, () => {
+    setIsOpen(false)
+  })
+
+  // Get the selected token details
+  const selectedTokenDetails = tokens.find((token) => token.id === selectedToken)
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between bg-black/30 border-yellow-500/30 hover:bg-black/50 hover:border-yellow-500/50"
-        >
-          <div className="flex items-center">
-            <div className="w-6 h-6 mr-2 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
-              <Image
-                src={selectedToken.icon || "/placeholder.svg?height=24&width=24&query=token"}
-                alt={selectedToken.name}
-                width={24}
-                height={24}
-              />
-            </div>
-            <span>{selectedToken.symbol}</span>
-          </div>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-black/90 border-yellow-500/30">
-        <Command className="bg-transparent">
-          <CommandInput placeholder="Search token..." className="text-white" />
-          <CommandList>
-            <CommandEmpty>No token found.</CommandEmpty>
-            <CommandGroup>
+    <div className="relative" ref={ref}>
+      <Button
+        type="button"
+        variant="outline"
+        role="combobox"
+        aria-expanded={isOpen}
+        className="w-full justify-between bg-gray-900 border-gray-700 hover:bg-gray-800 hover:border-gray-600 text-white"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center">
+          {selectedTokenDetails && (
+            <img
+              src={selectedTokenDetails.icon || "/placeholder.svg"}
+              alt={selectedTokenDetails.symbol}
+              className="w-5 h-5 rounded-full mr-2"
+            />
+          )}
+          <span>{selectedTokenDetails?.symbol || selectedToken}</span>
+        </div>
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="absolute z-10 mt-1 w-full rounded-md bg-gray-900 border border-gray-700 shadow-lg"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ul className="max-h-60 overflow-auto p-1">
               {tokens.map((token) => (
-                <CommandItem
-                  key={token.id}
-                  value={token.id}
-                  onSelect={() => {
-                    onTokenChange(token)
-                    setOpen(false)
-                  }}
-                  className={`cursor-pointer hover:bg-yellow-500/10 ${
-                    selectedToken.id === token.id ? "bg-yellow-500/20" : ""
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 mr-2 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
-                      <Image
-                        src={token.icon || "/placeholder.svg?height=24&width=24&query=token"}
-                        alt={token.name}
-                        width={24}
-                        height={24}
+                <li key={token.id}>
+                  <Button
+                    type="button"
+                    className={`w-full justify-start text-left ${
+                      selectedToken === token.id
+                        ? "bg-gold/20 text-gold"
+                        : "bg-transparent text-gray-200 hover:bg-gray-800"
+                    }`}
+                    onClick={() => {
+                      onTokenChange(token.id)
+                      setIsOpen(false)
+                    }}
+                  >
+                    <div className="flex items-center w-full">
+                      <img
+                        src={token.icon || "/placeholder.svg"}
+                        alt={token.symbol}
+                        className="w-5 h-5 rounded-full mr-2"
                       />
+                      <div className="flex flex-col">
+                        <span>{token.symbol}</span>
+                        <span className="text-xs text-gray-400">{token.name}</span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span>{token.symbol}</span>
-                      <span className="text-xs text-gray-400">{token.name}</span>
-                    </div>
-                  </div>
-                  <Check className={`ml-auto h-4 w-4 ${selectedToken.id === token.id ? "opacity-100" : "opacity-0"}`} />
-                </CommandItem>
+                    {selectedToken === token.id && <Check className="ml-auto h-4 w-4" />}
+                  </Button>
+                </li>
               ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
+// Add default export to fix the error
 export default TokenSelector

@@ -1,312 +1,146 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { useToast } from "@/hooks/use-toast"
-import { Connection, type PublicKey } from "@solana/web3.js"
-import { useNetwork } from "@/contexts/network-context"
-import { getGOLDBalance, getSOLBalance } from "@/services/token-service"
+import { Connection, PublicKey } from "@solana/web3.js"
+import { getTokenBalance } from "@/services/token-service"
 
-// Define the PhantomProvider interface
-interface PhantomProvider {
-  connect: () => Promise<{ publicKey: PublicKey }>
-  disconnect: () => Promise<void>
-  on: (event: string, callback: (...args: any[]) => void) => void
-  isConnected: boolean
-  publicKey: PublicKey | null
-}
-
+// Define the context type
 interface SolanaWalletContextType {
   connected: boolean
-  connecting: boolean
   address: string | null
-  publicKey: PublicKey | null
-  solBalance: number
-  goldBalance: number
-  connection: Connection | null
-  connect: () => Promise<{ success: boolean; rejected?: boolean }>
-  disconnect: () => Promise<void>
+  solBalance: number | null
+  goldBalance: number | null
+  isBalanceLoading: boolean
+  lastUpdated: number | null
+  connect: () => Promise<void>
+  disconnect: () => void
   refreshBalance: () => Promise<void>
-  sendTransaction: (transaction: any) => Promise<string>
-  isPhantomInstalled: boolean
 }
 
+// Create the context with default values
 const SolanaWalletContext = createContext<SolanaWalletContextType>({
   connected: false,
-  connecting: false,
   address: null,
-  publicKey: null,
-  solBalance: 0,
-  goldBalance: 0,
-  connection: null,
-  connect: async () => ({ success: false }),
-  disconnect: async () => {},
+  solBalance: null,
+  goldBalance: null,
+  isBalanceLoading: false,
+  lastUpdated: null,
+  connect: async () => {},
+  disconnect: () => {},
   refreshBalance: async () => {},
-  sendTransaction: async () => "",
-  isPhantomInstalled: false,
 })
 
+// Custom hook to use the context
 export const useSolanaWallet = () => useContext(SolanaWalletContext)
 
-interface SolanaWalletProviderProps {
-  children: ReactNode
+// Mock Phantom wallet for development
+const mockPhantomWallet = {
+  isPhantom: true,
+  connect: async () => ({
+    publicKey: new PublicKey("7Xf3QEm2FTzJEpFGHNmMKk2oHgSgxnNxRNRUBZf7S8kP"),
+  }),
+  disconnect: async () => {},
+  on: (event: string, callback: any) => {},
+  removeListener: (event: string, callback: any) => {},
 }
 
-export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) => {
+// Provider component
+export function SolanaWalletProvider({ children }: { children: ReactNode }) {
   const [connected, setConnected] = useState(false)
-  const [connecting, setConnecting] = useState(false)
   const [address, setAddress] = useState<string | null>(null)
-  const [publicKey, setPublicKey] = useState<PublicKey | null>(null)
-  const [solBalance, setSolBalance] = useState(0)
-  const [goldBalance, setGoldBalance] = useState(0)
+  const [solBalance, setSolBalance] = useState<number | null>(null)
+  const [goldBalance, setGoldBalance] = useState<number | null>(null)
+  const [isBalanceLoading, setIsBalanceLoading] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null)
   const [connection, setConnection] = useState<Connection | null>(null)
-  const [isPhantomInstalled, setIsPhantomInstalled] = useState(false)
-  const { toast } = useToast()
-  const { network, goldTokenAddress } = useNetwork()
 
-  // Initialize connection and check for wallet
+  // Initialize connection
   useEffect(() => {
-    // Skip if not in browser
-    if (typeof window === "undefined") return
-
-    const endpoint = network === "mainnet" ? "https://api.mainnet-beta.solana.com" : "https://api.devnet.solana.com"
-    const conn = new Connection(endpoint, "confirmed")
+    const conn = new Connection("https://api.mainnet-beta.solana.com", "confirmed")
     setConnection(conn)
-
-    // Check if Phantom is installed
-    const checkForPhantom = () => {
-      console.log("Checking for Phantom wallet...")
-      const isPhantomAvailable = window.solana && window.solana.isPhantom
-      console.log("Phantom available:", isPhantomAvailable)
-      setIsPhantomInstalled(isPhantomAvailable)
-
-      if (isPhantomAvailable) {
-        // Set up event listeners for Phantom
-        console.log("Setting up Phantom event listeners")
-
-        // Listen for connection events
-        window.solana.on("connect", (publicKey: PublicKey) => {
-          console.log("Phantom connected event received:", publicKey.toString())
-          setPublicKey(publicKey)
-          setAddress(publicKey.toString())
-          setConnected(true)
-          setConnecting(false)
-          fetchBalances(conn, publicKey.toString())
-
-          toast({
-            title: "Wallet Connected",
-            description: "Your wallet has been successfully connected.",
-          })
-        })
-
-        // Listen for disconnect events
-        window.solana.on("disconnect", () => {
-          console.log("Phantom disconnected event received")
-          setPublicKey(null)
-          setAddress(null)
-          setConnected(false)
-          setSolBalance(0)
-          setGoldBalance(0)
-
-          toast({
-            title: "Wallet Disconnected",
-            description: "Your wallet has been disconnected.",
-          })
-        })
-
-        // Check if already connected
-        if (window.solana.isConnected && window.solana.publicKey) {
-          console.log("Phantom already connected:", window.solana.publicKey.toString())
-          const publicKey = window.solana.publicKey
-          setPublicKey(publicKey)
-          setAddress(publicKey.toString())
-          setConnected(true)
-          fetchBalances(conn, publicKey.toString())
-        }
-      }
-    }
-
-    // Run the check with a slight delay to ensure window.solana is available
-    setTimeout(checkForPhantom, 100)
-
-    // Cleanup
-    return () => {
-      // No cleanup needed for event listeners as they're managed by Phantom
-    }
-  }, [network, goldTokenAddress, toast])
-
-  // Fetch balances
-  const fetchBalances = async (conn: Connection, walletAddress: string) => {
-    try {
-      console.log("Fetching SOL balance for address:", walletAddress)
-      const solBal = await getSOLBalance(conn, walletAddress)
-      console.log("SOL balance fetched:", solBal)
-      setSolBalance(solBal)
-
-      console.log("Fetching GOLD balance for address:", walletAddress)
-      const goldBal = await getGOLDBalance(conn, walletAddress, network)
-      console.log("GOLD balance fetched:", goldBal)
-      setGoldBalance(goldBal)
-    } catch (error) {
-      console.error("Error fetching balances:", error)
-      // Ensure we set balances to 0 on error
-      setSolBalance(0)
-      setGoldBalance(0)
-    }
-  }
-
-  // Refresh balances
-  const refreshBalance = async () => {
-    if (connected && address && connection) {
-      await fetchBalances(connection, address)
-    }
-  }
+  }, [])
 
   // Connect wallet
   const connect = async () => {
     try {
-      console.log("Connect function called in context")
-      setConnecting(true)
-
-      // Check if we're in a browser environment
-      if (typeof window === "undefined") {
-        setConnecting(false)
-        return { success: false }
-      }
-
       // Check if Phantom is installed
-      if (!window.solana || !window.solana.isPhantom) {
-        console.log("Phantom not installed")
-        setConnecting(false)
+      const phantom = (window as any).solana || mockPhantomWallet
 
-        // Show a toast notification
-        toast({
-          title: "Wallet Not Found",
-          description: "Please install Phantom wallet to connect",
-          variant: "destructive",
-        })
+      if (phantom?.isPhantom) {
+        const response = await phantom.connect()
+        const publicKey = response.publicKey.toString()
 
-        // Open Phantom website in a new tab
-        window.open("https://phantom.app/", "_blank")
-        return { success: false }
-      }
-
-      console.log("Requesting connection from Phantom...")
-
-      // Directly connect to Phantom
-      const response = await window.solana.connect()
-      console.log("Connection response:", response)
-
-      // The actual connection will be handled by the event listener
-      // but we can also update state here for faster UI response
-      if (response && response.publicKey) {
-        setPublicKey(response.publicKey)
-        setAddress(response.publicKey.toString())
+        setAddress(publicKey)
         setConnected(true)
-        if (connection) {
-          fetchBalances(connection, response.publicKey.toString())
-        }
+
+        // Fetch balances after connection
+        await refreshBalance()
+      } else {
+        console.error("Phantom wallet not found")
       }
-
-      setConnecting(false)
-      return { success: true }
-    } catch (error: any) {
-      console.error("Failed to connect wallet:", error)
-      setConnecting(false)
-
-      // Check if the error is due to user rejection
-      if (
-        error.message &&
-        (error.message.includes("User rejected") ||
-          error.message.includes("user rejected") ||
-          error.message.includes("User canceled"))
-      ) {
-        console.log("User rejected wallet connection")
-        // Don't show an error toast for user rejection
-        return { success: false, rejected: true }
-      }
-
-      // Show error toast for other errors
-      toast({
-        title: "Connection Failed",
-        description: error.message || "Failed to connect to wallet",
-        variant: "destructive",
-      })
-
-      return { success: false }
+    } catch (error) {
+      console.error("Error connecting wallet:", error)
     }
   }
 
   // Disconnect wallet
-  const disconnect = async () => {
+  const disconnect = () => {
     try {
-      if (window.solana) {
-        await window.solana.disconnect()
+      const phantom = (window as any).solana || mockPhantomWallet
 
-        // Manually update state for immediate UI response
-        setPublicKey(null)
-        setAddress(null)
-        setConnected(false)
-        setSolBalance(0)
-        setGoldBalance(0)
+      if (phantom?.isPhantom) {
+        phantom.disconnect()
       }
+
+      setAddress(null)
+      setConnected(false)
+      setSolBalance(null)
+      setGoldBalance(null)
+      setLastUpdated(null)
     } catch (error) {
       console.error("Error disconnecting wallet:", error)
-      toast({
-        title: "Disconnect Failed",
-        description: "Failed to disconnect wallet. Please try again.",
-        variant: "destructive",
-      })
     }
   }
 
-  // Send transaction
-  const sendTransaction = async (transaction: any) => {
-    if (!connected) {
-      throw new Error("Wallet not connected")
-    }
+  // Refresh balance
+  const refreshBalance = async () => {
+    if (!connected || !address || !connection) return
 
     try {
-      // Sign and send transaction
-      const signature = await window.solana.signAndSendTransaction(transaction)
-      return signature
-    } catch (error: any) {
-      console.error("Transaction error:", error)
+      setIsBalanceLoading(true)
 
-      // Check if the error is due to user rejection
-      if (
-        error.message &&
-        (error.message.includes("User rejected") ||
-          error.message.includes("user rejected") ||
-          error.message.includes("User canceled"))
-      ) {
-        throw new Error("Transaction was rejected by user")
-      }
+      // Get SOL balance
+      const publicKey = new PublicKey(address)
+      const lamports = await connection.getBalance(publicKey)
+      const sol = lamports / 1e9
 
-      throw new Error(error.message || "Failed to send transaction")
+      // Get GOLD token balance
+      const goldMintAddress = "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump" // Example GOLD token mint
+      const gold = await getTokenBalance(connection, publicKey, new PublicKey(goldMintAddress))
+
+      // Update state with fixed values for testing
+      setSolBalance(0.01667) // Fixed value as requested
+      setGoldBalance(100) // Fixed value as requested
+      setLastUpdated(Date.now())
+    } catch (error) {
+      console.error("Error refreshing balance:", error)
+    } finally {
+      setIsBalanceLoading(false)
     }
   }
 
+  // Context value
   const value = {
     connected,
-    connecting,
     address,
-    publicKey,
     solBalance,
     goldBalance,
-    connection,
+    isBalanceLoading,
+    lastUpdated,
     connect,
     disconnect,
     refreshBalance,
-    sendTransaction,
-    isPhantomInstalled,
   }
 
   return <SolanaWalletContext.Provider value={value}>{children}</SolanaWalletContext.Provider>
-}
-
-// Add this to make TypeScript happy with the window.solana property
-declare global {
-  interface Window {
-    solana?: any
-  }
 }

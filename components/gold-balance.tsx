@@ -75,10 +75,10 @@ export default function GoldBalance() {
               </div>
               <span>GOLD</span>
             </div>
-            {loading ? (
+            {loading || (connected && goldBalance === null) ? (
               <Skeleton className="h-6 w-20" />
             ) : (
-              <span className="font-bold text-gold">{goldBalance?.toLocaleString() || "0"}</span>
+              <span className="font-bold text-gold">{goldBalance !== null ? goldBalance.toLocaleString() : "—"}</span>
             )}
           </div>
           <div className="flex items-center justify-between">
@@ -88,10 +88,12 @@ export default function GoldBalance() {
               </div>
               <span>SOL</span>
             </div>
-            {loading ? (
+            {loading || (connected && solBalance === null) ? (
               <Skeleton className="h-6 w-20" />
             ) : (
-              <span className="font-bold text-purple-400">{solBalance?.toLocaleString() || "0"}</span>
+              <span className="font-bold text-purple-400">
+                {solBalance !== null ? solBalance.toLocaleString() : "—"}
+              </span>
             )}
           </div>
         </div>

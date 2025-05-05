@@ -15,7 +15,7 @@ export default function YieldFarming() {
       id: "gold-sol",
       name: "GOLD-SOL LP",
       tvl: 1250000,
-      apy: 42.5,
+      apr: 42.5,
       userStaked: 0,
       rewards: 0,
       token1: "GOLD",
@@ -27,7 +27,7 @@ export default function YieldFarming() {
       id: "gold-usdc",
       name: "GOLD-USDC LP",
       tvl: 750000,
-      apy: 36.8,
+      apr: 36.8,
       userStaked: 0,
       rewards: 0,
       token1: "GOLD",
@@ -242,9 +242,9 @@ export default function YieldFarming() {
                 <div className="text-right font-medium">
                   {loading ? <Skeleton className="h-4 w-20 ml-auto" /> : `$${farm.tvl.toLocaleString()}`}
                 </div>
-                <div className="text-gray-400">APY:</div>
+                <div className="text-gray-400">APR:</div>
                 <div className="text-right font-medium text-green-500">
-                  {loading ? <Skeleton className="h-4 w-16 ml-auto" /> : `${farm.apy}%`}
+                  {loading ? <Skeleton className="h-4 w-16 ml-auto" /> : `${farm.apr}%`}
                 </div>
                 <div className="text-gray-400">Your Staked LP:</div>
                 <div className="text-right font-medium">

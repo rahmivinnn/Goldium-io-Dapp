@@ -99,7 +99,7 @@ export default function TransactionsPage() {
         <h1
           className={`text-4xl md:text-5xl font-bold mb-10 ${orbitron.className} tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600`}
         >
-          Transaction History
+          TRANSACTION HISTORY
         </h1>
 
         <div className="flex items-center justify-center mb-6">

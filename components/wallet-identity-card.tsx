@@ -2,22 +2,29 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Copy, ExternalLink } from "lucide-react"
+import { Copy, ExternalLink, RefreshCw } from "lucide-react"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import { useNetwork } from "@/contexts/network-context"
 import { useToast } from "@/hooks/use-toast"
 import { useState } from "react"
 import { PhantomLogo } from "./phantom-logo"
+import { cn } from "@/lib/utils"
 
 interface WalletIdentityCardProps {
   onDisconnect: () => Promise<void>
 }
 
 export function WalletIdentityCard({ onDisconnect }: WalletIdentityCardProps) {
-  const { address, solBalance, goldBalance } = useSolanaWallet()
+  const { address, solBalance, goldBalance, refreshBalance, isBalanceLoading, lastUpdated } = useSolanaWallet()
   const { network } = useNetwork()
   const { toast } = useToast()
   const [copied, setCopied] = useState(false)
+
+  // Format timestamp to readable date
+  const formatLastUpdated = () => {
+    if (!lastUpdated) return "Never updated"
+    return new Date(lastUpdated).toLocaleTimeString()
+  }
 
   // Copy address to clipboard
   const copyAddress = () => {
@@ -29,6 +36,23 @@ export function WalletIdentityCard({ onDisconnect }: WalletIdentityCardProps) {
       toast({
         title: "Address Copied",
         description: "Wallet address copied to clipboard",
+      })
+    }
+  }
+
+  // Handle refresh balance
+  const handleRefresh = async () => {
+    try {
+      await refreshBalance()
+      toast({
+        title: "Balance Updated",
+        description: "Your wallet balance has been refreshed",
+      })
+    } catch (error) {
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh balance. Please try again.",
+        variant: "destructive",
       })
     }
   }
@@ -87,22 +111,57 @@ export function WalletIdentityCard({ onDisconnect }: WalletIdentityCardProps) {
           <div className="grid grid-cols-2 gap-2 text-center">
             <div className="bg-gray-900/60 rounded-md p-2">
               <div className="text-xs text-gray-400">SOL</div>
-              <div className="font-medium">{solBalance.toFixed(4)}</div>
+              <div className="font-medium">
+                {isBalanceLoading ? (
+                  <div className="flex justify-center">
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                  </div>
+                ) : solBalance !== null ? (
+                  solBalance.toFixed(4)
+                ) : (
+                  "Loading..."
+                )}
+              </div>
             </div>
             <div className="bg-gray-900/60 rounded-md p-2">
               <div className="text-xs text-gray-400">GOLD</div>
-              <div className="font-medium text-yellow-500">{goldBalance.toFixed(4)}</div>
+              <div className={cn("font-medium", goldBalance !== null && goldBalance > 0 ? "text-yellow-500" : "")}>
+                {isBalanceLoading ? (
+                  <div className="flex justify-center">
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                  </div>
+                ) : goldBalance !== null ? (
+                  goldBalance.toFixed(4)
+                ) : (
+                  "Loading..."
+                )}
+              </div>
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full border-red-500/30 text-red-500 hover:bg-red-500/10 hover:text-red-400"
-            onClick={onDisconnect}
-          >
-            Disconnect Wallet
-          </Button>
+          <div className="text-xs text-center text-gray-500">Last updated: {formatLastUpdated()}</div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/10"
+              onClick={handleRefresh}
+              disabled={isBalanceLoading}
+            >
+              {isBalanceLoading ? <RefreshCw className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+              <span className="ml-1">Refresh</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 border-red-500/30 text-red-500 hover:bg-red-500/10 hover:text-red-400"
+              onClick={onDisconnect}
+            >
+              Disconnect
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

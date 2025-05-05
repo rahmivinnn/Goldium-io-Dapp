@@ -6,6 +6,7 @@ import { WalletIdentityCard } from "@/components/wallet-identity-card"
 import { WalletConnectPopup } from "@/components/wallet-connect-popup"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import { PhantomLogo } from "./phantom-logo"
+import { CompactWalletDisplay } from "./compact-wallet-display"
 
 interface ConnectWalletButtonProps {
   showIdentityCard?: boolean
@@ -43,11 +44,6 @@ export function ConnectWalletButton({ showIdentityCard = true, className = "" }:
     }
   }
 
-  const shortenAddress = (addr: string) => {
-    if (!addr) return "Connected"
-    return `${addr.slice(0, 4)}...${addr.slice(-4)}`
-  }
-
   const handlePopupClose = () => {
     setShowPopup(false)
   }
@@ -80,16 +76,9 @@ export function ConnectWalletButton({ showIdentityCard = true, className = "" }:
 
   return (
     <div className="relative">
-      <Button
-        variant="outline"
-        className={`border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 ${className}`}
-        onClick={toggleIdentityCard}
-      >
-        <div className="flex items-center gap-2">
-          <PhantomLogo size={16} className="mr-1" />
-          {connected ? shortenAddress(address || "") : "Connect Wallet"}
-        </div>
-      </Button>
+      <div onClick={toggleIdentityCard} className="cursor-pointer">
+        <CompactWalletDisplay className={className} />
+      </div>
 
       {showIdentity && showIdentityCard && (
         <div className="absolute right-0 mt-2 z-50">
