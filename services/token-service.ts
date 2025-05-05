@@ -1,12 +1,7 @@
 import { type Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import { getAccount, getAssociatedTokenAddress, TOKEN_PROGRAM_ID } from "@solana/spl-token"
-import {
-  NETWORKS,
-  type NetworkType,
-  GOLD_TOKEN_METADATA,
-  SOL_TOKEN_METADATA,
-  MANA_TOKEN_METADATA,
-} from "@/config/network-config"
+import { NETWORKS, type NetworkType, GOLD_TOKEN_METADATA } from "@/config/network-config"
+import { useNetwork } from "@/contexts/network-context"
 
 export interface TokenInfo {
   address: string
@@ -171,23 +166,37 @@ export async function getAllTokenBalances(
   }
 }
 
-// Rest of the file remains the same...
-export const getTokenInfo = (network: NetworkType): { SOL: TokenInfo; GOLD: TokenInfo; MANA: TokenInfo } => {
+// Example function that uses the token address
+export const getTokenInfo = async (tokenAddress?: string) => {
+  // Use the provided token address or get it from the network context
+  // This is just an example - actual implementation would depend on your app's structure
+  const { goldTokenAddress } = useNetwork()
+  const address = tokenAddress || goldTokenAddress
+
+  // Rest of the function...
   return {
-    SOL: {
-      address: "native",
-      ...SOL_TOKEN_METADATA,
-    },
-    GOLD: {
-      address: NETWORKS[network].goldTokenAddress,
-      ...GOLD_TOKEN_METADATA,
-    },
-    MANA: {
-      address: NETWORKS[network].manaTokenAddress,
-      ...MANA_TOKEN_METADATA,
-    },
+    address,
+    // Other token info...
   }
 }
+
+// Rest of the file remains the same...
+// export const getTokenInfo = (network: NetworkType): { SOL: TokenInfo; GOLD: TokenInfo; MANA: TokenInfo } => {
+//   return {
+//     SOL: {
+//       address: "native",
+//       ...SOL_TOKEN_METADATA,
+//     },
+//     GOLD: {
+//       address: NETWORKS[network].goldTokenAddress,
+//       ...GOLD_TOKEN_METADATA,
+//     },
+//     MANA: {
+//       address: NETWORKS[network].manaTokenAddress,
+//       ...MANA_TOKEN_METADATA,
+//     },
+//   }
+// }
 
 // Add this function after the getTokenInfo function:
 export const getTokenSupplyInfo = (

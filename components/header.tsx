@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ConnectWalletButton } from "@/components/connect-wallet-button"
 import { WalletConnectButton } from "@/components/wallet-connect-button"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
+import { NetworkSelector } from "@/components/network-selector"
 import { ChevronDown, Menu, X, Wallet } from "lucide-react"
 
 export default function Header() {
@@ -77,48 +78,36 @@ export default function Header() {
               </button>
               <div className="absolute left-0 mt-2 w-48 bg-black/90 backdrop-blur-md rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                 <Link
-                  href="/swap"
+                  href="/send"
                   className="block px-4 py-2 text-sm text-white hover:bg-yellow-500/20 hover:text-yellow-500"
                 >
-                  Swap
+                  Send GOLD
                 </Link>
                 <Link
-                  href="/bridge"
+                  href="/faucet"
                   className="block px-4 py-2 text-sm text-white hover:bg-yellow-500/20 hover:text-yellow-500"
                 >
-                  Bridge
+                  Faucet
                 </Link>
                 <Link
-                  href="/staking-client"
+                  href="/staking"
                   className="block px-4 py-2 text-sm text-white hover:bg-yellow-500/20 hover:text-yellow-500"
                 >
                   Staking
-                </Link>
-                <Link
-                  href="/burn"
-                  className="block px-4 py-2 text-sm text-white hover:bg-yellow-500/20 hover:text-yellow-500"
-                >
-                  Burn
-                </Link>
-                <Link
-                  href="/wallet-guide"
-                  className="block px-4 py-2 text-sm text-white hover:bg-yellow-500/20 hover:text-yellow-500"
-                >
-                  Wallet Guide
                 </Link>
               </div>
             </div>
             <Link href="/games" className="text-white hover:text-yellow-500 transition-colors">
               Games
             </Link>
-            <Link href="/governance" className="text-white hover:text-yellow-500 transition-colors">
-              Governance
+            <Link href="/gallery" className="text-white hover:text-yellow-500 transition-colors">
+              NFT Gallery
             </Link>
             <Link href="/transactions" className="text-white hover:text-yellow-500 transition-colors">
               Transactions
             </Link>
-            <Link href="/adventure-game" className="text-white hover:text-yellow-500 transition-colors">
-              3D Adventure
+            <Link href="/game" className="text-white hover:text-yellow-500 transition-colors">
+              3D Game
             </Link>
             <Link href="/wallet" className="text-white hover:text-yellow-500 transition-colors flex items-center">
               <Wallet className="h-4 w-4 mr-1" /> Wallet
@@ -127,10 +116,7 @@ export default function Header() {
 
           {/* Network and Connect Wallet */}
           <div className="hidden md:flex items-center space-x-3">
-            <div className="bg-black/50 backdrop-blur-sm border border-yellow-500/30 rounded-full px-3 py-1 flex items-center">
-              <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-              <span className="text-white text-sm">Mainnet</span>
-            </div>
+            <NetworkSelector />
             {connected ? <ConnectWalletButton /> : <WalletConnectButton />}
           </div>
 
@@ -179,39 +165,25 @@ export default function Header() {
                 </div>
                 <div className="pl-4 mt-2 space-y-2">
                   <Link
-                    href="/swap"
+                    href="/send"
                     className="block text-white hover:text-yellow-500 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Swap
+                    Send GOLD
                   </Link>
                   <Link
-                    href="/bridge"
+                    href="/faucet"
                     className="block text-white hover:text-yellow-500 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Bridge
+                    Faucet
                   </Link>
                   <Link
-                    href="/staking-client"
+                    href="/staking"
                     className="block text-white hover:text-yellow-500 transition-colors py-1"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Staking
-                  </Link>
-                  <Link
-                    href="/burn"
-                    className="block text-white hover:text-yellow-500 transition-colors py-1"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Burn
-                  </Link>
-                  <Link
-                    href="/wallet-guide"
-                    className="block text-white hover:text-yellow-500 transition-colors py-1"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Wallet Guide
                   </Link>
                 </div>
               </div>
@@ -223,11 +195,11 @@ export default function Header() {
                 Games
               </Link>
               <Link
-                href="/governance"
+                href="/gallery"
                 className="text-white hover:text-yellow-500 transition-colors py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Governance
+                NFT Gallery
               </Link>
               <Link
                 href="/transactions"
@@ -237,11 +209,11 @@ export default function Header() {
                 Transactions
               </Link>
               <Link
-                href="/adventure-game"
+                href="/game"
                 className="text-white hover:text-yellow-500 transition-colors py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                3D Adventure
+                3D Game
               </Link>
               <Link
                 href="/wallet"
@@ -254,13 +226,10 @@ export default function Header() {
 
             {/* Network Status in Mobile Menu */}
             <div className="py-2 flex justify-center">
-              <div className="bg-black/50 backdrop-blur-sm border border-yellow-500/30 rounded-full px-3 py-1 flex items-center">
-                <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                <span className="text-white text-sm">Mainnet</span>
-              </div>
+              <NetworkSelector />
             </div>
 
-            <div className="py-2">
+            <div className="py-2 flex justify-center">
               {connected ? <ConnectWalletButton className="w-full" /> : <WalletConnectButton className="w-full" />}
             </div>
           </div>

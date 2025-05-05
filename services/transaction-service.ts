@@ -1,27 +1,34 @@
 import { type Connection, PublicKey } from "@solana/web3.js"
 import { NETWORKS } from "@/contexts/network-context"
 
-export type TransactionType = "send" | "receive" | "swap" | "nft" | "stake" | "unknown"
+export type TransactionType = "send" | "receive" | "swap" | "nft" | "stake" | "unstake" | "claim" | "all"
 
 export interface Transaction {
   signature: string
   blockTime: number
   type: TransactionType
-  status: "confirmed" | "failed"
+  status: "confirmed" | "failed" | "pending"
   amount?: number
   fee: number
   from: string
   to: string
   description: string
+  token: string
 }
 
 // Function to get transaction history
 export async function getTransactionHistory(
   connection: Connection,
   walletAddress: string,
-  network: "mainnet" | "testnet",
+  network: "mainnet" | "testnet" | "devnet",
   limit = 10,
   before?: string,
+  type?: TransactionType,
+  dateFrom?: Date,
+  dateTo?: Date,
+  amountMin?: number,
+  amountMax?: number,
+  token?: string,
 ): Promise<Transaction[]> {
   try {
     const publicKey = new PublicKey(walletAddress)
@@ -49,9 +56,10 @@ export async function getTransactionHistory(
           }
 
           // Determine transaction type (simplified)
-          let type: TransactionType = "unknown"
+          let type: TransactionType = "all"
           let description = "Unknown transaction"
           let amount: number | undefined = undefined
+          let token = "SOL"
 
           // This is a simplified implementation
           // In a real app, you would parse the transaction instructions to determine the type
@@ -75,13 +83,32 @@ export async function getTransactionHistory(
           } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Swap"))) {
             type = "swap"
             description = "Token swap"
+            token = "GOLD" // Simplified, in reality would need to parse the token
           } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Mint"))) {
             type = "nft"
             description = "NFT transaction"
+            token = "NFT"
           } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Stake"))) {
             type = "stake"
             description = "Staking transaction"
+            token = "GOLD"
+          } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Unstake"))) {
+            type = "unstake"
+            description = "Unstaking transaction"
+            token = "GOLD"
+          } else if (txDetails.meta?.logMessages?.some((log) => log.includes("Claim"))) {
+            type = "claim"
+            description = "Claimed rewards"
+            token = "GOLD"
           }
+
+          // Apply filters
+          if (type !== "all" && type !== type) return null
+          if (dateFrom && sig.blockTime && sig.blockTime * 1000 < dateFrom.getTime()) return null
+          if (dateTo && sig.blockTime && sig.blockTime * 1000 > dateTo.getTime()) return null
+          if (amountMin !== undefined && amount !== undefined && amount < amountMin) return null
+          if (amountMax !== undefined && amount !== undefined && amount > amountMax) return null
+          if (token && token !== "all" && token !== token) return null
 
           return {
             signature: sig.signature,
@@ -93,6 +120,7 @@ export async function getTransactionHistory(
             from: txDetails.transaction.message.accountKeys[0].toString(),
             to: txDetails.transaction.message.accountKeys[1].toString(),
             description,
+            token,
           }
         } catch (error) {
           console.error("Error fetching transaction details:", error)
@@ -109,13 +137,13 @@ export async function getTransactionHistory(
 }
 
 // Function to get transaction explorer URL
-export function getTransactionExplorerUrl(signature: string, network: "mainnet" | "testnet"): string {
+export function getTransactionExplorerUrl(signature: string, network: "mainnet" | "testnet" | "devnet"): string {
   const baseUrl = NETWORKS[network].explorerUrl
   return `${baseUrl}/tx/${signature}`
 }
 
 // Function to get address explorer URL
-export function getAddressExplorerUrl(address: string, network: "mainnet" | "testnet"): string {
+export function getAddressExplorerUrl(address: string, network: "mainnet" | "testnet" | "devnet"): string {
   const baseUrl = NETWORKS[network].explorerUrl
   return `${baseUrl}/address/${address}`
 }

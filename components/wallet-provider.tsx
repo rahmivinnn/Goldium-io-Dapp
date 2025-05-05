@@ -1,77 +1,44 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { useToast } from "@/hooks/use-toast"
-import { useNetwork } from "@/contexts/network-context"
-import { GOLD_TOKEN_METADATA, MANA_TOKEN_METADATA } from "@/config/network-config"
 
 interface WalletContextType {
-  connected: boolean
-  connecting: boolean
-  address: string | null
-  connect: () => Promise<void>
+  isConnected: boolean
+  walletAddress: string | null
+  balance: string | null
+  connect: () => void
   disconnect: () => void
-  tokens: Array<{
-    symbol: string
-    name: string
-    balance: number
-    price: number
-    icon: string
-  }>
 }
 
 const WalletContext = createContext<WalletContextType>({
-  connected: false,
-  connecting: false,
-  address: null,
-  connect: async () => {},
+  isConnected: false,
+  walletAddress: null,
+  balance: null,
+  connect: () => {},
   disconnect: () => {},
-  tokens: [],
 })
 
 export const useWallet = () => useContext(WalletContext)
 
-export function WalletProvider({ children }: { children: ReactNode }) {
-  const [connected, setConnected] = useState(false)
-  const [connecting, setConnecting] = useState(false)
-  const [address, setAddress] = useState<string | null>(null)
-  const { toast } = useToast()
-  const { network } = useNetwork()
+interface WalletProviderProps {
+  children: ReactNode
+}
 
-  // Mock token data
-  const [tokens, setTokens] = useState([
-    {
-      symbol: "SOL",
-      name: "Solana",
-      balance: 2.5,
-      price: 150,
-      icon: "/images/solana-logo.png",
-    },
-    {
-      symbol: "GOLD",
-      name: GOLD_TOKEN_METADATA.name,
-      balance: 1000,
-      price: 0.85,
-      icon: GOLD_TOKEN_METADATA.logoURI,
-    },
-    {
-      symbol: "MANA",
-      name: MANA_TOKEN_METADATA.name,
-      balance: 500,
-      price: 0.45,
-      icon: MANA_TOKEN_METADATA.logoURI,
-    },
-  ])
+export const WalletProvider = ({ children }: WalletProviderProps) => {
+  const [isConnected, setIsConnected] = useState(false)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [balance, setBalance] = useState<string | null>(null)
 
-  // Check if wallet is connected on mount
   useEffect(() => {
+    // Check if wallet is already connected
     const checkConnection = async () => {
       try {
-        // In a real app, this would check if the wallet is connected
-        const isConnected = localStorage.getItem("walletConnected") === "true"
-        if (isConnected) {
-          setConnected(true)
-          setAddress("8xGZsNVHbcJKPJALmDzsYtCKVXGBQMUyGJvuMsvBbEPmAb2KT7J2RPrKu1LwSUcQY")
+        // This is a mock implementation
+        const connected = localStorage.getItem("wallet_connected") === "true"
+        if (connected) {
+          setIsConnected(true)
+          setWalletAddress(localStorage.getItem("wallet_address") || null)
+          setBalance(localStorage.getItem("wallet_balance") || null)
         }
       } catch (error) {
         console.error("Error checking wallet connection:", error)
@@ -79,56 +46,59 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
 
     checkConnection()
+
+    // Listen for wallet connection events
+    const handleConnect = () => {
+      setIsConnected(true)
+      const mockAddress = "7Xf3bGGdT5zFQGAqJdUNJGBKMUaJeGXKA5FeHkj8kP"
+      const mockBalance = "100.5"
+      setWalletAddress(mockAddress)
+      setBalance(mockBalance)
+      localStorage.setItem("wallet_connected", "true")
+      localStorage.setItem("wallet_address", mockAddress)
+      localStorage.setItem("wallet_balance", mockBalance)
+    }
+
+    const handleDisconnect = () => {
+      setIsConnected(false)
+      setWalletAddress(null)
+      setBalance(null)
+      localStorage.removeItem("wallet_connected")
+      localStorage.removeItem("wallet_address")
+      localStorage.removeItem("wallet_balance")
+    }
+
+    window.addEventListener("wallet-connected", handleConnect)
+    window.addEventListener("wallet-disconnected", handleDisconnect)
+    window.addEventListener("connect-wallet-requested", () => {
+      // Simulate wallet connection
+      setTimeout(() => {
+        window.dispatchEvent(new Event("wallet-connected"))
+      }, 1000)
+    })
+
+    return () => {
+      window.removeEventListener("wallet-connected", handleConnect)
+      window.removeEventListener("wallet-disconnected", handleDisconnect)
+      window.removeEventListener("connect-wallet-requested", () => {})
+    }
   }, [])
 
-  // Connect wallet
-  const connect = async () => {
-    try {
-      setConnecting(true)
-      // In a real app, this would connect to the wallet
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setConnected(true)
-      setAddress("8xGZsNVHbcJKPJALmDzsYtCKVXGBQMUyGJvuMsvBbEPmAb2KT7J2RPrKu1LwSUcQY")
-      localStorage.setItem("walletConnected", "true")
-      toast({
-        title: "Wallet Connected",
-        description: "Your wallet has been connected successfully.",
-      })
-    } catch (error) {
-      console.error("Error connecting wallet:", error)
-      toast({
-        title: "Connection Failed",
-        description: "Failed to connect wallet. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setConnecting(false)
-    }
+  const connect = () => {
+    window.dispatchEvent(new Event("connect-wallet-requested"))
   }
 
-  // Disconnect wallet
   const disconnect = () => {
-    setConnected(false)
-    setAddress(null)
-    localStorage.removeItem("walletConnected")
-    toast({
-      title: "Wallet Disconnected",
-      description: "Your wallet has been disconnected.",
-    })
+    window.dispatchEvent(new Event("wallet-disconnected"))
   }
 
-  return (
-    <WalletContext.Provider
-      value={{
-        connected,
-        connecting,
-        address,
-        connect,
-        disconnect,
-        tokens,
-      }}
-    >
-      {children}
-    </WalletContext.Provider>
-  )
+  const value = {
+    isConnected,
+    walletAddress,
+    balance,
+    connect,
+    disconnect,
+  }
+
+  return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
 }
