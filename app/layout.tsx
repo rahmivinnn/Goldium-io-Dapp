@@ -1,20 +1,18 @@
 import type React from "react"
+import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
+import Header from "@/components/header"
+import Footer from "@/components/footer"
 import { ThemeProvider } from "@/components/theme-provider"
-import { NetworkProvider } from "@/contexts/network-context"
 import { SolanaWalletProvider } from "@/contexts/solana-wallet-context"
 import { Toaster } from "@/components/ui/toaster"
-import Header from "@/components/header"
-import { AutoWalletPopup } from "@/components/auto-wallet-popup"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Goldium.io - Web3 Gaming & DeFi Platform",
-  description:
-    "Experience the future of gaming with Goldium.io's Web3 platform featuring NFTs, DeFi, and play-to-earn games.",
+  description: "Experience the future of gaming with Goldium.io - Play, earn, and trade in our Web3 ecosystem.",
     generator: 'v0.dev'
 }
 
@@ -26,16 +24,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <NetworkProvider>
-            <SolanaWalletProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark">
+          <SolanaWalletProvider>
+            <div className="flex flex-col min-h-screen bg-black text-white">
               <Header />
-              {children}
-              <Toaster />
-              <AutoWalletPopup autoShow={false} />{" "}
-              {/* Set to false to prevent auto popup, users will click the button instead */}
-            </SolanaWalletProvider>
-          </NetworkProvider>
+              <main className="flex-grow pt-16">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
+          </SolanaWalletProvider>
         </ThemeProvider>
       </body>
     </html>

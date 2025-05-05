@@ -123,8 +123,8 @@ export function BridgeHistory() {
     if (network === "ethereum") return "/ethereum-crystal.png"
     if (network === "solana") return "/images/solana-logo.png"
     if (network === "binance") return "/binance-logo.png"
-    if (network === "polygon") return "/polygon-logo.png"
-    if (network === "avalanche") return "/avalanche-logo.png"
+    if (network === "polygon") return "/placeholder.svg?key=1emyn"
+    if (network === "avalanche") return "/placeholder.svg?key=2ofl7"
     return "/placeholder.svg"
   }
 
@@ -279,5 +279,4 @@ export function BridgeHistory() {
   )
 }
 
-// Add default export to fix the error
 export default BridgeHistory

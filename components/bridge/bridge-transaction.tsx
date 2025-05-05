@@ -1,188 +1,194 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ArrowRight, Info } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { Loader2, CheckCircle, AlertCircle, ExternalLink } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface BridgeTransactionProps {
-  amount: string
-  setAmount: (amount: string) => void
   sourceNetwork: string
-  targetNetwork: string
-  selectedToken: string
+  destinationNetwork: string
+  sourceToken: string
+  destinationToken: string
+  amount: string
+  fee: string
+  isProcessing: boolean
+  onConfirm: () => Promise<void>
+  onCancel: () => void
 }
 
 export function BridgeTransaction({
-  amount,
-  setAmount,
   sourceNetwork,
-  targetNetwork,
-  selectedToken,
+  destinationNetwork,
+  sourceToken,
+  destinationToken,
+  amount,
+  fee,
+  isProcessing,
+  onConfirm,
+  onCancel,
 }: BridgeTransactionProps) {
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle")
+  const [progress, setProgress] = useState(0)
+  const [txHash, setTxHash] = useState<string | null>(null)
 
-  // Calculate estimated fee (0.5% of the amount)
-  const fee = amount ? (Number.parseFloat(amount) * 0.005).toFixed(4) : "0.0000"
+  const handleConfirm = async () => {
+    try {
+      setStatus("pending")
 
-  // Calculate estimated time based on networks
-  const getEstimatedTime = () => {
-    if (sourceNetwork === "solana" || targetNetwork === "solana") {
-      return "15-30 minutes"
-    } else if (sourceNetwork === "ethereum" || targetNetwork === "ethereum") {
-      return "30-45 minutes"
-    } else {
-      return "15-20 minutes"
+      // Simulate progress updates
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval)
+            return 100
+          }
+          return prev + 10
+        })
+      }, 500)
+
+      await onConfirm()
+
+      // Simulate transaction hash
+      setTxHash("0x" + Math.random().toString(16).substring(2, 42))
+      setStatus("success")
+    } catch (error) {
+      setStatus("error")
+      console.error("Bridge transaction failed:", error)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setShowConfirmation(true)
-  }
+  const getExplorerLink = () => {
+    if (!txHash) return "#"
 
-  const handleConfirm = async () => {
-    setIsProcessing(true)
-    // Simulate processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsProcessing(false)
-    setShowConfirmation(false)
-    setAmount("")
-  }
+    if (sourceNetwork === "ethereum") {
+      return `https://etherscan.io/tx/${txHash}`
+    } else if (sourceNetwork === "solana") {
+      return `https://explorer.solana.com/tx/${txHash}`
+    } else if (sourceNetwork === "binance") {
+      return `https://bscscan.com/tx/${txHash}`
+    } else if (sourceNetwork === "polygon") {
+      return `https://polygonscan.com/tx/${txHash}`
+    } else if (sourceNetwork === "avalanche") {
+      return `https://snowtrace.io/tx/${txHash}`
+    }
 
-  const handleCancel = () => {
-    setShowConfirmation(false)
+    return "#"
   }
 
   return (
-    <div>
-      {!showConfirmation ? (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <label htmlFor="amount" className="text-sm font-medium">
-                Amount
-              </label>
-              <span className="text-xs text-gray-400">
-                Fee: {fee} {selectedToken}
-              </span>
-            </div>
-            <div className="relative">
-              <Input
-                id="amount"
-                type="number"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="bg-gray-900 border-gray-700 text-white pr-16"
-                step="0.0001"
-                min="0.0001"
-                required
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-400">{selectedToken}</span>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="text-center mb-4">
+        <h3 className="text-xl font-medium text-gold mb-2">Bridge Transaction</h3>
+        <p className="text-gray-400">
+          {status === "idle" && "Please confirm your transaction details"}
+          {status === "pending" && "Processing your transaction..."}
+          {status === "success" && "Transaction initiated successfully!"}
+          {status === "error" && "Transaction failed. Please try again."}
+        </p>
+      </div>
 
-          <div className="bg-gray-800/50 rounded-lg p-4 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Estimated Fee</span>
-              <span className="text-white">
-                {fee} {selectedToken}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">You will receive</span>
-              <span className="text-white">
-                {amount ? (Number.parseFloat(amount) - Number.parseFloat(fee)).toFixed(4) : "0.0000"} {selectedToken}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Estimated Time</span>
-              <span className="text-white">{getEstimatedTime()}</span>
-            </div>
-          </div>
+      <div className="bg-gray-800/50 rounded-lg p-4 space-y-3">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-400">From</span>
+          <span className="text-white">
+            {amount} {sourceToken} on {sourceNetwork}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-400">To</span>
+          <span className="text-white">
+            {(Number.parseFloat(amount || "0") - Number.parseFloat(fee || "0")).toFixed(4)} {destinationToken} on{" "}
+            {destinationNetwork}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-400">Fee</span>
+          <span className="text-white">
+            {fee} {sourceToken}
+          </span>
+        </div>
+      </div>
 
-          <div className="flex items-start space-x-2 text-xs text-amber-400/80">
-            <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <p>
-              Bridge transactions are irreversible. Please ensure the destination address and network are correct before
-              proceeding.
-            </p>
+      {status === "pending" && (
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-400">Processing Transaction</span>
+            <span className="text-white">{progress}%</span>
           </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-gradient-to-r from-gold to-amber-500 hover:from-amber-600 hover:to-amber-700 text-black font-medium"
-            disabled={!amount || Number.parseFloat(amount) <= 0}
-          >
-            Bridge {selectedToken} <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </form>
-      ) : (
-        <div className="space-y-6">
-          <div className="text-center mb-4">
-            <h3 className="text-xl font-medium text-gold mb-2">Confirm Bridge Transaction</h3>
-            <p className="text-gray-400">Please review your transaction details</p>
-          </div>
-
-          <div className="bg-gray-800/50 rounded-lg p-4 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">From</span>
-              <span className="text-white">
-                {amount} {selectedToken} on {sourceNetwork}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">To</span>
-              <span className="text-white">
-                {(Number.parseFloat(amount) - Number.parseFloat(fee)).toFixed(4)} {selectedToken} on {targetNetwork}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Fee</span>
-              <span className="text-white">
-                {fee} {selectedToken}
-              </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Estimated Time</span>
-              <span className="text-white">{getEstimatedTime()}</span>
-            </div>
-          </div>
-
-          <div className="flex space-x-4">
-            <Button
-              onClick={handleCancel}
-              variant="outline"
-              className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
-              disabled={isProcessing}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              className="flex-1 bg-gradient-to-r from-gold to-amber-500 hover:from-amber-600 hover:to-amber-700 text-black font-medium"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <>
-                  <span className="animate-spin mr-2">⟳</span> Processing...
-                </>
-              ) : (
-                "Confirm Bridge"
-              )}
-            </Button>
+          <Progress value={progress} className="h-2" />
+          <div className="flex items-center justify-center text-sm text-gray-400">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Processing your bridge transaction...
           </div>
         </div>
       )}
+
+      {status === "success" && (
+        <motion.div
+          className="bg-green-900/20 border border-green-500/30 rounded-lg p-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex items-start">
+            <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="space-y-2">
+              <p className="text-green-500">
+                Bridge transaction initiated successfully! Your funds will arrive in approximately 15-30 minutes.
+              </p>
+              {txHash && (
+                <a
+                  href={getExplorerLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center text-sm text-green-400 hover:text-green-300"
+                >
+                  View on explorer <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {status === "error" && (
+        <motion.div
+          className="bg-red-900/20 border border-red-500/30 rounded-lg p-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+            <p className="text-red-500">There was an error processing your bridge transaction. Please try again.</p>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="flex space-x-4">
+        <Button
+          onClick={onCancel}
+          variant="outline"
+          className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
+          disabled={isProcessing || status === "pending"}
+        >
+          {status === "success" ? "Close" : "Cancel"}
+        </Button>
+
+        {status === "idle" && (
+          <Button
+            onClick={handleConfirm}
+            className="flex-1 bg-gradient-to-r from-gold to-amber-500 hover:from-amber-600 hover:to-amber-700 text-black font-medium"
+            disabled={isProcessing || !amount || Number.parseFloat(amount || "0") <= 0}
+          >
+            Confirm Bridge
+          </Button>
+        )}
+      </div>
     </div>
   )
 }
 
-// Add default export to fix the error
 export default BridgeTransaction

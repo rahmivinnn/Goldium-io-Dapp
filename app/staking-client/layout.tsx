@@ -1,11 +1,8 @@
 import type React from "react"
-export const dynamic = "force-dynamic"
-export const runtime = "edge"
-
 export default function StakingClientLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <div className="staking-client-layout">{children}</div>
+  return <div className="min-h-screen bg-gradient-to-b from-black to-gray-900">{children}</div>
 }

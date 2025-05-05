@@ -1,4 +1,4 @@
-import { BridgeInterface } from "@/components/bridge/bridge-interface"
+import BridgeInterface from "@/components/bridge/bridge-interface"
 
 export default function BridgePage() {
   return (

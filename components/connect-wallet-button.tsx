@@ -2,11 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { WalletIdentityCard } from "@/components/wallet-identity-card"
-import { WalletConnectPopup } from "@/components/wallet-connect-popup"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
-import { PhantomLogo } from "./phantom-logo"
-import { CompactWalletDisplay } from "./compact-wallet-display"
+import { ChevronDown, LogOut, RefreshCw } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface ConnectWalletButtonProps {
   showIdentityCard?: boolean
@@ -15,38 +20,30 @@ interface ConnectWalletButtonProps {
 
 export function ConnectWalletButton({ showIdentityCard = true, className = "" }: ConnectWalletButtonProps) {
   const [mounted, setMounted] = useState(false)
-  const [showIdentity, setShowIdentity] = useState(false)
-  const [showPopup, setShowPopup] = useState(false)
-  const { connected, connecting, connect, disconnect, address } = useSolanaWallet()
+  const { connected, address, disconnect, solBalance, goldBalance, refreshBalance, isBalanceLoading } =
+    useSolanaWallet()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleConnect = async () => {
-    if (!mounted || connecting) return
-    setShowPopup(true)
-  }
-
   const handleDisconnect = async () => {
     if (!mounted) return
     try {
       await disconnect()
-      setShowIdentity(false)
     } catch (error) {
       console.error("Error disconnecting wallet:", error)
     }
   }
 
-  const toggleIdentityCard = () => {
-    if (showIdentityCard) {
-      setShowIdentity(!showIdentity)
-    }
+  const handleRefresh = async () => {
+    await refreshBalance()
   }
 
-  const handlePopupClose = () => {
-    setShowPopup(false)
-  }
+  // Format the wallet address for display
+  const formattedAddress = address
+    ? `${address.substring(0, 4)}...${address.substring(address.length - 4)}`
+    : "Not Connected"
 
   if (!mounted) {
     return (
@@ -57,34 +54,54 @@ export function ConnectWalletButton({ showIdentityCard = true, className = "" }:
   }
 
   if (!connected) {
-    return (
-      <>
-        <Button
-          className={`bg-yellow-500 hover:bg-yellow-600 text-black font-medium ${className}`}
-          onClick={handleConnect}
-          disabled={connecting}
-        >
-          <div className="flex items-center gap-2">
-            <PhantomLogo size={20} className="mr-1" />
-            {connecting ? "Connecting..." : "Connect Wallet"}
-          </div>
-        </Button>
-        {showPopup && <WalletConnectPopup onClose={handlePopupClose} />}
-      </>
-    )
+    return null // WalletConnectButton will be shown instead
   }
 
   return (
-    <div className="relative">
-      <div onClick={toggleIdentityCard} className="cursor-pointer">
-        <CompactWalletDisplay className={className} />
-      </div>
-
-      {showIdentity && showIdentityCard && (
-        <div className="absolute right-0 mt-2 z-50">
-          <WalletIdentityCard onDisconnect={handleDisconnect} />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button className={`bg-yellow-500 hover:bg-yellow-600 text-black font-medium ${className}`}>
+          <div className="relative w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center mr-2">
+            <span className="text-white text-xs font-bold">P</span>
+          </div>
+          {formattedAddress}
+          <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56 bg-black/90 border border-yellow-500/30 text-white">
+        <DropdownMenuLabel>Wallet</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-yellow-500/30" />
+        <div className="px-2 py-2">
+          <div className="mb-2">
+            <p className="text-xs text-gray-400">Address</p>
+            <p className="text-sm font-mono break-all">{address}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <div>
+              <p className="text-xs text-gray-400">SOL Balance</p>
+              <p className="text-sm">{isBalanceLoading ? "Loading..." : solBalance?.toFixed(4) || "0.0000"}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400">GOLD Balance</p>
+              <p className="text-sm text-yellow-500">
+                {isBalanceLoading ? "Loading..." : goldBalance?.toFixed(2) || "0.00"}
+              </p>
+            </div>
+          </div>
         </div>
-      )}
-    </div>
+        <DropdownMenuSeparator className="bg-yellow-500/30" />
+        <DropdownMenuItem
+          onClick={handleRefresh}
+          className="cursor-pointer hover:bg-yellow-500/20 hover:text-yellow-500"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh Balance
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleDisconnect} className="cursor-pointer hover:bg-red-500/20 hover:text-red-500">
+          <LogOut className="mr-2 h-4 w-4" />
+          Disconnect
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

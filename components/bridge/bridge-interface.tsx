@@ -5,15 +5,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { ArrowDownUp } from "lucide-react"
-import { NetworkSelector } from "./network-selector"
-import { TokenSelector } from "./token-selector"
-import { BridgeTransaction } from "./bridge-transaction"
-import { BridgeHistory } from "./bridge-history"
+import NetworkSelector from "./network-selector"
+import TokenSelector from "./token-selector"
+import BridgeTransaction from "./bridge-transaction"
+import BridgeHistory from "./bridge-history"
 import { useWallet } from "@/hooks/use-wallet"
 import { WalletConnectOverlay } from "@/components/wallet-connect-overlay"
-import { Orbitron } from "next/font/google"
 
-const orbitron = Orbitron({ subsets: ["latin"] })
+// Define networks and tokens
+const networks = [
+  { id: "ethereum", name: "Ethereum", icon: "/ethereum-crystal.png" },
+  { id: "solana", name: "Solana", icon: "/images/solana-logo.png" },
+  { id: "binance", name: "Binance Smart Chain", icon: "/binance-logo.png" },
+  { id: "polygon", name: "Polygon", icon: "/placeholder.svg?key=tpsqi" },
+  { id: "avalanche", name: "Avalanche", icon: "/placeholder.svg?key=w9m3o" },
+]
+
+const tokens = [
+  { id: "GOLD", name: "Goldium", symbol: "GOLD", icon: "/gold-logo.png" },
+  { id: "ETH", name: "Ethereum", symbol: "ETH", icon: "/ethereum-crystal.png" },
+  { id: "SOL", name: "Solana", symbol: "SOL", icon: "/images/solana-logo.png" },
+  { id: "BNB", name: "Binance Coin", symbol: "BNB", icon: "/binance-logo.png" },
+  { id: "USDT", name: "Tether", symbol: "USDT", icon: "/abstract-tether.png" },
+  { id: "USDC", name: "USD Coin", symbol: "USDC", icon: "/usdc-digital-currency.png" },
+]
 
 export function BridgeInterface() {
   const { isConnected } = useWallet()
@@ -29,14 +44,21 @@ export function BridgeInterface() {
     setTargetNetwork(temp)
   }
 
-  return (
-    <div className="mt-12 pt-8">
-      <h1
-        className={`text-4xl font-bold mb-8 text-center ${orbitron.className} tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600`}
-      >
-        Cross-Chain Bridge
-      </h1>
+  const handleConfirmBridge = async () => {
+    // Simulate bridge transaction
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    setAmount("")
+  }
 
+  const handleCancelBridge = () => {
+    // Handle cancel
+  }
+
+  // Calculate fee (0.5% of amount)
+  const fee = amount ? (Number.parseFloat(amount) * 0.005).toFixed(4) : "0.0000"
+
+  return (
+    <div className="mt-8">
       <Card className="border-amber-200/20 bg-black/60 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Bridge Assets</CardTitle>
@@ -53,13 +75,7 @@ export function BridgeInterface() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">From</label>
                   <NetworkSelector
-                    networks={[
-                      { id: "ethereum", name: "Ethereum", icon: "/ethereum-crystal.png" },
-                      { id: "solana", name: "Solana", icon: "/images/solana-logo.png" },
-                      { id: "binance", name: "Binance Smart Chain", icon: "/binance-logo.png" },
-                      { id: "polygon", name: "Polygon", icon: "/polygon-logo.png" },
-                      { id: "avalanche", name: "Avalanche", icon: "/avalanche-logo.png" },
-                    ]}
+                    networks={networks}
                     selectedNetwork={sourceNetwork}
                     onNetworkChange={setSourceNetwork}
                     excludeNetwork={targetNetwork}
@@ -80,13 +96,7 @@ export function BridgeInterface() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">To</label>
                   <NetworkSelector
-                    networks={[
-                      { id: "ethereum", name: "Ethereum", icon: "/ethereum-crystal.png" },
-                      { id: "solana", name: "Solana", icon: "/images/solana-logo.png" },
-                      { id: "binance", name: "Binance Smart Chain", icon: "/binance-logo.png" },
-                      { id: "polygon", name: "Polygon", icon: "/polygon-logo.png" },
-                      { id: "avalanche", name: "Avalanche", icon: "/avalanche-logo.png" },
-                    ]}
+                    networks={networks}
                     selectedNetwork={targetNetwork}
                     onNetworkChange={setTargetNetwork}
                     excludeNetwork={sourceNetwork}
@@ -95,18 +105,7 @@ export function BridgeInterface() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Token</label>
-                  <TokenSelector
-                    tokens={[
-                      { id: "GOLD", name: "Goldium", symbol: "GOLD", icon: "/gold-logo.png" },
-                      { id: "ETH", name: "Ethereum", symbol: "ETH", icon: "/ethereum-crystal.png" },
-                      { id: "SOL", name: "Solana", symbol: "SOL", icon: "/images/solana-logo.png" },
-                      { id: "BNB", name: "Binance Coin", symbol: "BNB", icon: "/binance-logo.png" },
-                      { id: "USDT", name: "Tether", symbol: "USDT", icon: "/abstract-tether.png" },
-                      { id: "USDC", name: "USD Coin", symbol: "USDC", icon: "/usdc-digital-currency.png" },
-                    ]}
-                    selectedToken={selectedToken}
-                    onTokenChange={setSelectedToken}
-                  />
+                  <TokenSelector tokens={tokens} selectedToken={selectedToken} onTokenChange={setSelectedToken} />
                 </div>
 
                 <BridgeTransaction
@@ -115,16 +114,10 @@ export function BridgeInterface() {
                   sourceToken={selectedToken}
                   destinationToken={selectedToken}
                   amount={amount}
-                  fee={(Number.parseFloat(amount || "0") * 0.005).toFixed(4)}
+                  fee={fee}
                   isProcessing={false}
-                  onConfirm={async () => {
-                    // Simulate confirmation
-                    await new Promise((resolve) => setTimeout(resolve, 2000))
-                    setAmount("")
-                  }}
-                  onCancel={() => {
-                    // Handle cancel
-                  }}
+                  onConfirm={handleConfirmBridge}
+                  onCancel={handleCancelBridge}
                 />
               </div>
               {!isConnected && <WalletConnectOverlay />}
@@ -140,5 +133,4 @@ export function BridgeInterface() {
   )
 }
 
-// Add default export to fix the error
 export default BridgeInterface

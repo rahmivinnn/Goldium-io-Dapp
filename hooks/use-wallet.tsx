@@ -1,109 +1,82 @@
 "use client"
 
-import type React from "react"
+import { useState, useEffect } from "react"
 
-import { createContext, useContext, useState, useEffect } from "react"
-import { useToast } from "@/hooks/use-toast"
+export function useWallet() {
+  const [isConnected, setIsConnected] = useState(false)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [balance, setBalance] = useState<string | null>(null)
 
-interface WalletContextType {
-  connected: boolean
-  connecting: boolean
-  address: string | null
-  balance: number
-  connect: () => Promise<void | boolean>
-  disconnect: () => void
-}
-
-const WalletContext = createContext<WalletContextType>({
-  connected: false,
-  connecting: false,
-  address: null,
-  balance: 0,
-  connect: async () => {},
-  disconnect: () => {},
-})
-
-export function WalletProvider({ children }: { children: React.ReactNode }) {
-  const [connected, setConnected] = useState(false)
-  const [connecting, setConnecting] = useState(false)
-  const [address, setAddress] = useState<string | null>(null)
-  const [balance, setBalance] = useState(0)
-  const { toast } = useToast()
-
-  // Check for existing connection on mount
   useEffect(() => {
-    const savedAddress = localStorage.getItem("walletAddress")
-    if (savedAddress) {
-      setAddress(savedAddress)
-      setConnected(true)
-      setBalance(Math.floor(Math.random() * 2000) + 500) // Simulate balance
+    // Check if wallet is already connected
+    const checkConnection = async () => {
+      try {
+        // This is a mock implementation
+        const connected = localStorage.getItem("wallet_connected") === "true"
+        if (connected) {
+          setIsConnected(true)
+          setWalletAddress(localStorage.getItem("wallet_address") || null)
+          setBalance(localStorage.getItem("wallet_balance") || null)
+        }
+      } catch (error) {
+        console.error("Error checking wallet connection:", error)
+      }
+    }
+
+    checkConnection()
+
+    // Listen for wallet connection events
+    const handleConnect = () => {
+      setIsConnected(true)
+      const mockAddress = "7Xf3bGGdT5zFQGAqJdUNJGBKMUaJeGXKA5FeHkj8kP"
+      const mockBalance = "100.5"
+      setWalletAddress(mockAddress)
+      setBalance(mockBalance)
+      localStorage.setItem("wallet_connected", "true")
+      localStorage.setItem("wallet_address", mockAddress)
+      localStorage.setItem("wallet_balance", mockBalance)
+    }
+
+    const handleDisconnect = () => {
+      setIsConnected(false)
+      setWalletAddress(null)
+      setBalance(null)
+      localStorage.removeItem("wallet_connected")
+      localStorage.removeItem("wallet_address")
+      localStorage.removeItem("wallet_balance")
+    }
+
+    window.addEventListener("wallet-connected", handleConnect)
+    window.addEventListener("wallet-disconnected", handleDisconnect)
+    window.addEventListener("connect-wallet-requested", () => {
+      // Simulate wallet connection
+      setTimeout(() => {
+        window.dispatchEvent(new Event("wallet-connected"))
+      }, 1000)
+    })
+
+    return () => {
+      window.removeEventListener("wallet-connected", handleConnect)
+      window.removeEventListener("wallet-disconnected", handleDisconnect)
+      window.removeEventListener("connect-wallet-requested", () => {})
     }
   }, [])
 
-  const connect = async () => {
-    try {
-      setConnecting(true)
-
-      // Simulate wallet connection delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Generate a random wallet address
-      const randomAddress = `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join(
-        "",
-      )}`
-
-      setAddress(randomAddress)
-      setConnected(true)
-      setBalance(Math.floor(Math.random() * 2000) + 500) // Simulate balance
-
-      // Save to localStorage for session persistence
-      localStorage.setItem("walletAddress", randomAddress)
-
-      toast({
-        title: "Wallet Connected",
-        description: `Connected to ${randomAddress.slice(0, 6)}...${randomAddress.slice(-4)}`,
-      })
-
-      return true
-    } catch (error) {
-      console.error("Wallet connection error:", error)
-      toast({
-        title: "Connection Failed",
-        description: "Failed to connect wallet. Please try again.",
-        variant: "destructive",
-      })
-      return false
-    } finally {
-      setConnecting(false)
-    }
+  const connect = () => {
+    window.dispatchEvent(new Event("connect-wallet-requested"))
   }
 
   const disconnect = () => {
-    setConnected(false)
-    setAddress(null)
-    setBalance(0)
-    localStorage.removeItem("walletAddress")
-
-    toast({
-      title: "Wallet Disconnected",
-      description: "Your wallet has been disconnected.",
-    })
+    window.dispatchEvent(new Event("wallet-disconnected"))
   }
 
-  return (
-    <WalletContext.Provider
-      value={{
-        connected,
-        connecting,
-        address,
-        balance,
-        connect,
-        disconnect,
-      }}
-    >
-      {children}
-    </WalletContext.Provider>
-  )
+  return {
+    isConnected,
+    walletAddress,
+    balance,
+    connect,
+    disconnect,
+  }
 }
 
-export const useWallet = () => useContext(WalletContext)
+export default useWallet
