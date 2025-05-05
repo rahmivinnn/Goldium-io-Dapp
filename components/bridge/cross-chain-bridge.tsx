@@ -15,20 +15,20 @@ import { useNetwork } from "@/contexts/network-context"
 
 // Define supported networks
 const networks = [
-  { id: "ethereum", name: "Ethereum", icon: "/ethereum-crystal.png", chainId: "1" },
-  { id: "solana", name: "Solana", icon: "/images/solana-logo.png", chainId: "SOL" },
+  { id: "ethereum", name: "Ethereum", icon: "/ethereum-logo.png", chainId: "1" },
+  { id: "solana", name: "Solana", icon: "/solana-logo.png", chainId: "SOL" },
   { id: "binance", name: "BNB Chain", icon: "/binance-logo.png", chainId: "56" },
-  { id: "avalanche", name: "Avalanche", icon: "/avalanche-logo.png", chainId: "43114" },
+  { id: "avalanche", name: "Avalanche", icon: "/avalanche-logo-abstract.png", chainId: "43114" },
 ]
 
 // Define supported tokens
 const tokens = [
-  { id: "gold", name: "GOLD", symbol: "GOLD", icon: "/gold-logo.png", decimals: 18 },
-  { id: "eth", name: "Ethereum", symbol: "ETH", icon: "/ethereum-crystal.png", decimals: 18 },
+  { id: "gold", name: "GOLD", symbol: "GOLD", icon: "/placeholder.svg?key=r5xnv", decimals: 18 },
+  { id: "eth", name: "Ethereum", symbol: "ETH", icon: "/ethereum-logo.png", decimals: 18 },
   { id: "bnb", name: "BNB", symbol: "BNB", icon: "/binance-logo.png", decimals: 18 },
-  { id: "avax", name: "Avalanche", symbol: "AVAX", icon: "/avalanche-logo.png", decimals: 18 },
-  { id: "sol", name: "Solana", symbol: "SOL", icon: "/images/solana-logo.png", decimals: 9 },
-  { id: "usdc", name: "USD Coin", symbol: "USDC", icon: "/usdc-digital-currency.png", decimals: 6 },
+  { id: "avax", name: "Avalanche", symbol: "AVAX", icon: "/avalanche-logo-abstract.png", decimals: 18 },
+  { id: "sol", name: "Solana", symbol: "SOL", icon: "/solana-logo.png", decimals: 9 },
+  { id: "usdc", name: "USD Coin", symbol: "USDC", icon: "/placeholder.svg?key=p56i9", decimals: 6 },
 ]
 
 export function CrossChainBridge() {

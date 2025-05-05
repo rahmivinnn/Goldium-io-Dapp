@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ExternalLink } from "lucide-react"
 import Image from "next/image"
-import { formatDistanceToNow } from "date-fns"
 
 interface Network {
   id: string
@@ -37,6 +36,24 @@ interface BridgeHistoryProps {
 }
 
 export function BridgeHistory({ transactions }: BridgeHistoryProps) {
+  // Function to format time difference
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60)
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`
+
+    const diffInHours = Math.floor(diffInMinutes / 60)
+    if (diffInHours < 24) return `${diffInHours} hours ago`
+
+    const diffInDays = Math.floor(diffInHours / 24)
+    return `${diffInDays} days ago`
+  }
+
   if (transactions.length === 0) {
     return (
       <div className="text-center py-8">
@@ -67,9 +84,7 @@ export function BridgeHistory({ transactions }: BridgeHistoryProps) {
               >
                 {tx.status === "completed" ? "Completed" : tx.status === "pending" ? "Pending" : "Failed"}
               </Badge>
-              <span className="text-xs text-gray-400">
-                {formatDistanceToNow(new Date(tx.timestamp), { addSuffix: true })}
-              </span>
+              <span className="text-xs text-gray-400">{formatTimeAgo(tx.timestamp)}</span>
             </div>
             <Button
               variant="ghost"
@@ -85,7 +100,7 @@ export function BridgeHistory({ transactions }: BridgeHistoryProps) {
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
                 <Image
-                  src={tx.sourceNetwork.icon || "/placeholder.svg"}
+                  src={tx.sourceNetwork.icon || "/placeholder.svg?height=24&width=24&query=network"}
                   alt={tx.sourceNetwork.name}
                   width={24}
                   height={24}
@@ -99,7 +114,12 @@ export function BridgeHistory({ transactions }: BridgeHistoryProps) {
 
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
-                <Image src={tx.token.icon || "/placeholder.svg"} alt={tx.token.symbol} width={20} height={20} />
+                <Image
+                  src={tx.token.icon || "/placeholder.svg?height=20&width=20&query=token"}
+                  alt={tx.token.symbol}
+                  width={20}
+                  height={20}
+                />
               </div>
               <span className="text-sm font-medium">
                 {tx.amount} {tx.token.symbol}
@@ -109,7 +129,7 @@ export function BridgeHistory({ transactions }: BridgeHistoryProps) {
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
                 <Image
-                  src={tx.destinationNetwork.icon || "/placeholder.svg"}
+                  src={tx.destinationNetwork.icon || "/placeholder.svg?height=24&width=24&query=network"}
                   alt={tx.destinationNetwork.name}
                   width={24}
                   height={24}

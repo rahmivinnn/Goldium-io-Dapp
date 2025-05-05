@@ -36,7 +36,7 @@ export function NetworkSelector({ networks, selectedNetwork, onNetworkChange, ot
           <div className="flex items-center">
             <div className="w-6 h-6 mr-2 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
               <Image
-                src={selectedNetwork.icon || "/placeholder.svg"}
+                src={selectedNetwork.icon || "/placeholder.svg?height=24&width=24&query=network"}
                 alt={selectedNetwork.name}
                 width={24}
                 height={24}
@@ -74,7 +74,12 @@ export function NetworkSelector({ networks, selectedNetwork, onNetworkChange, ot
                   >
                     <div className="flex items-center">
                       <div className="w-6 h-6 mr-2 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
-                        <Image src={network.icon || "/placeholder.svg"} alt={network.name} width={24} height={24} />
+                        <Image
+                          src={network.icon || "/placeholder.svg?height=24&width=24&query=network"}
+                          alt={network.name}
+                          width={24}
+                          height={24}
+                        />
                       </div>
                       <span>{network.name}</span>
                     </div>

@@ -35,7 +35,12 @@ export function TokenSelector({ tokens, selectedToken, onTokenChange }: TokenSel
         >
           <div className="flex items-center">
             <div className="w-6 h-6 mr-2 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
-              <Image src={selectedToken.icon || "/placeholder.svg"} alt={selectedToken.name} width={24} height={24} />
+              <Image
+                src={selectedToken.icon || "/placeholder.svg?height=24&width=24&query=token"}
+                alt={selectedToken.name}
+                width={24}
+                height={24}
+              />
             </div>
             <span>{selectedToken.symbol}</span>
           </div>
@@ -62,7 +67,12 @@ export function TokenSelector({ tokens, selectedToken, onTokenChange }: TokenSel
                 >
                   <div className="flex items-center">
                     <div className="w-6 h-6 mr-2 rounded-full overflow-hidden bg-black/50 flex items-center justify-center">
-                      <Image src={token.icon || "/placeholder.svg"} alt={token.name} width={24} height={24} />
+                      <Image
+                        src={token.icon || "/placeholder.svg?height=24&width=24&query=token"}
+                        alt={token.name}
+                        width={24}
+                        height={24}
+                      />
                     </div>
                     <div className="flex flex-col">
                       <span>{token.symbol}</span>
