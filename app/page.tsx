@@ -3,27 +3,37 @@
 import { Button } from "@/components/ui/button"
 import { Copy, ExternalLink, Check, QrCode } from "lucide-react"
 import { useState, useEffect } from "react"
-import FloatingParticles from "@/components/floating-particles"
 import Link from "next/link"
-import { AutoWalletPopup } from "@/components/auto-wallet-popup"
+import { WalletConnectPopup } from "@/components/wallet-connect-popup"
 import { useNetwork } from "@/contexts/network-context"
 import { QRCode } from "@/components/qr-code"
+import TwitterEmbed from "@/components/twitter-embed"
+import { Orbitron } from "next/font/google"
+
+const orbitron = Orbitron({ subsets: ["latin"] })
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showGoldQR, setShowGoldQR] = useState(false)
-  const [showManaQR, setShowManaQR] = useState(false)
+  const [visibleText, setVisibleText] = useState(0)
+  const [showPopup, setShowPopup] = useState(true)
 
   // Safe default values that won't cause errors during SSR
   const contractAddress = "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump"
-  const manaContractAddress = "MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey"
 
   // Only access context after component is mounted
   const { goldTokenAddress } = useNetwork()
 
   useEffect(() => {
     setMounted(true)
+
+    // Subtle text animation
+    const interval = setInterval(() => {
+      setVisibleText((prev) => (prev < 100 ? prev + 1 : prev))
+    }, 30)
+
+    return () => clearInterval(interval)
   }, [])
 
   const copyToClipboard = (address: string) => {
@@ -34,34 +44,109 @@ export default function Home() {
     }
   }
 
+  // Subtle floating particles
+  const particles = Array(15)
+    .fill(0)
+    .map((_, i) => ({
+      id: i,
+      size: Math.random() * 3 + 1,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      opacity: Math.random() * 0.3 + 0.1,
+      speed: Math.random() * 0.5 + 0.2,
+    }))
+
   return (
     <>
-      {mounted && <AutoWalletPopup />}
+      {showPopup && <WalletConnectPopup onClose={() => setShowPopup(false)} />}
       <main className="flex min-h-screen flex-col items-center justify-between relative overflow-hidden">
-        <FloatingParticles />
+        {/* Subtle background particles */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {particles.map((particle) => (
+            <div
+              key={particle.id}
+              className="absolute rounded-full bg-yellow-500"
+              style={{
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
+                opacity: particle.opacity,
+                animation: `float ${10 / particle.speed}s infinite ease-in-out alternate`,
+              }}
+            />
+          ))}
+        </div>
 
         {/* Hero Section */}
         <div className="w-full min-h-screen flex flex-col items-center justify-center px-4 relative z-10 pt-24">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 mb-6 leading-tight font-['Orbitron',sans-serif] tracking-wider mt-16">
+          <div className="mt-20 mb-8 opacity-70">
+            <div className="w-16 h-16 mx-auto">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-full h-full text-yellow-500"
+              >
+                <path
+                  d="M12 4L4 8L12 12L20 8L12 4Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4 12L12 16L20 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4 16L12 20L20 16"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <h1
+            className={`text-4xl md:text-6xl lg:text-7xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 mb-6 leading-tight tracking-wider ${orbitron.className}`}
+            style={{
+              clipPath: `inset(0 ${100 - visibleText}% 0 0)`,
+              transition: "clip-path 0.5s ease-out",
+            }}
+          >
             EXPERIENCE THE FUTURE OF
             <br />
             DECENTRALIZED FINANCE
           </h1>
 
-          <p className="text-white text-center max-w-3xl mb-12 text-lg">
+          <p
+            className="text-white text-center max-w-3xl mb-12 text-lg opacity-0 animate-fade-in"
+            style={{ animationDelay: "1s", animationFillMode: "forwards" }}
+          >
             Join Goldium.io for NFT trading, staking, and seamless crypto payments
             <br />
             powered by GOLD token.
           </p>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-12 w-full max-w-md">
-            <Button className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-md w-full">
+          <div
+            className="flex flex-col md:flex-row gap-4 mb-12 w-full max-w-md opacity-0 animate-fade-in"
+            style={{ animationDelay: "1.5s", animationFillMode: "forwards" }}
+          >
+            <Button
+              className={`bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-md w-full ${orbitron.className}`}
+            >
               Get Started
             </Button>
 
             <Button
               variant="outline"
-              className="border-yellow-500/50 text-white hover:bg-yellow-500/10 font-medium py-3 px-6 rounded-md flex items-center justify-center gap-2 w-full"
+              className={`border-yellow-500/50 text-white hover:bg-yellow-500/10 font-medium py-3 px-6 rounded-md flex items-center justify-center gap-2 w-full ${orbitron.className}`}
               onClick={() => copyToClipboard(contractAddress)}
             >
               {contractAddress.substring(0, 8)}...{contractAddress.substring(contractAddress.length - 4)}
@@ -69,7 +154,10 @@ export default function Home() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-center mb-8">
+          <div
+            className="flex items-center justify-center mb-8 opacity-0 animate-fade-in"
+            style={{ animationDelay: "2s", animationFillMode: "forwards" }}
+          >
             <div className="flex">
               {[...Array(5)].map((_, i) => (
                 <svg key={i} className="w-6 h-6 text-yellow-500 fill-current" viewBox="0 0 24 24">
@@ -79,17 +167,25 @@ export default function Home() {
             </div>
           </div>
 
-          <p className="text-gray-400 text-sm uppercase tracking-wider">RATED 5 STARS BY USERS</p>
+          <p
+            className="text-gray-400 text-sm uppercase tracking-wider opacity-0 animate-fade-in"
+            style={{ animationDelay: "2.2s", animationFillMode: "forwards" }}
+          >
+            RATED 5 STARS BY USERS
+          </p>
 
-          {/* Token Contract Cards */}
-          <div className="mt-12 w-full max-w-2xl space-y-4">
+          {/* Token Contract Card */}
+          <div
+            className="mt-12 w-full max-w-2xl opacity-0 animate-fade-in"
+            style={{ animationDelay: "2.5s", animationFillMode: "forwards" }}
+          >
             {/* GOLD Token Card */}
             <div className="bg-black/50 backdrop-blur-sm border border-yellow-500/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center">
                   <span className="font-bold text-black">G</span>
                 </div>
-                <h3 className="text-yellow-500 font-bold">GOLD Token Contract Address</h3>
+                <h3 className={`text-yellow-500 font-bold ${orbitron.className}`}>GOLD Token Contract Address</h3>
               </div>
 
               {!showGoldQR ? (
@@ -130,66 +226,8 @@ export default function Home() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-4 border-yellow-500/50 text-yellow-500"
+                    className={`mt-4 border-yellow-500/50 text-yellow-500 ${orbitron.className}`}
                     onClick={() => setShowGoldQR(false)}
-                  >
-                    Show Address
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* MANA Token Card */}
-            <div className="bg-black/50 backdrop-blur-sm border border-blue-500/30 rounded-lg p-4">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="font-bold text-black">M</span>
-                </div>
-                <h3 className="text-blue-500 font-bold">MANA Token Contract Address</h3>
-              </div>
-
-              {!showManaQR ? (
-                <div className="flex items-center justify-between bg-black/70 rounded-md p-3 border border-blue-500/20">
-                  <code className="text-blue-500 font-mono text-sm sm:text-base overflow-x-auto scrollbar-hide">
-                    {manaContractAddress}
-                  </code>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-blue-500 hover:bg-blue-500/10"
-                      onClick={() => copyToClipboard(manaContractAddress)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-blue-500 hover:bg-blue-500/10"
-                      onClick={() =>
-                        window.open(`https://explorer.solana.com/address/${manaContractAddress}`, "_blank")
-                      }
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-blue-500 hover:bg-blue-500/10"
-                      onClick={() => setShowManaQR(true)}
-                    >
-                      <QrCode className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center p-4">
-                  {mounted && <QRCode value={manaContractAddress} tokenName="MANA" color="#3B82F6" />}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-4 border-blue-500/50 text-blue-500"
-                    onClick={() => setShowManaQR(false)}
                   >
                     Show Address
                   </Button>
@@ -199,13 +237,88 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Key Features Section */}
+        <div className="w-full py-16 bg-black/30 backdrop-blur-sm relative z-10">
+          <div className="container mx-auto px-4">
+            <h2
+              className={`text-2xl md:text-3xl font-bold text-center text-yellow-500 mb-12 ${orbitron.className} tracking-wider`}
+            >
+              KEY FEATURES
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "NFT MARKETPLACE",
+                  description: "Trade unique digital assets with real utility in the Goldium ecosystem",
+                  icon: (
+                    <svg className="w-8 h-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "DEFI ECOSYSTEM",
+                  description: "Stake, swap, and earn yields with our comprehensive DeFi tools",
+                  icon: (
+                    <svg className="w-8 h-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "GAMING PLATFORM",
+                  description: "Play exciting games and earn GOLD tokens as rewards",
+                  icon: (
+                    <svg className="w-8 h-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                      />
+                    </svg>
+                  ),
+                },
+              ].map((feature, index) => (
+                <div
+                  key={index}
+                  className="bg-black/40 backdrop-blur-sm border border-yellow-500/20 rounded-lg p-6 hover:border-yellow-500/50 transition-all duration-300 opacity-0 animate-fade-in"
+                  style={{ animationDelay: `${2.8 + index * 0.2}s`, animationFillMode: "forwards" }}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-4">{feature.icon}</div>
+                    <h3 className={`text-xl font-bold mb-2 text-yellow-500 ${orbitron.className}`}>{feature.title}</h3>
+                    <p className="text-gray-400">{feature.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Follow Updates Section */}
         <div className="w-full py-16 bg-black/50 backdrop-blur-sm relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-yellow-500 mb-8 font-['Orbitron',sans-serif] tracking-wider">
+          <h2
+            className={`text-3xl md:text-4xl font-bold text-center text-yellow-500 mb-8 ${orbitron.className} tracking-wider`}
+          >
             FOLLOW OUR LATEST UPDATES
           </h2>
 
-          <div className="flex justify-center space-x-6">
+          {/* Twitter Embed Component */}
+          <TwitterEmbed />
+
+          <div className="flex justify-center space-x-6 mt-8">
             <Link href="#" className="text-white hover:text-yellow-500 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
@@ -234,6 +347,22 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      <style jsx global>{`
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          100% { transform: translateY(-10px); }
+        }
+        
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.8s ease-out forwards;
+        }
+      `}</style>
     </>
   )
 }

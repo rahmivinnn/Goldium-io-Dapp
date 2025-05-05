@@ -42,7 +42,7 @@ export default function WalletPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 mt-32 gold-gradient">Wallet Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8 gold-gradient">Wallet Dashboard</h1>
 
       {!connected ? (
         <div className="flex flex-col items-center justify-center py-12 space-y-6">

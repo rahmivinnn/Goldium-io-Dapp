@@ -10,6 +10,7 @@ interface AutoWalletPopupProps {
 }
 
 export function AutoWalletPopup({ autoShow = true, delay = 1000 }: AutoWalletPopupProps) {
+  const [isVisible, setIsVisible] = useState(true)
   const [showPopup, setShowPopup] = useState(false)
   const { connected } = useSolanaWallet()
 

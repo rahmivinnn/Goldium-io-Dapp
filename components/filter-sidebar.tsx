@@ -1,27 +1,12 @@
 "use client"
-import { motion } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+
+import { useState } from "react"
 import { Slider } from "@/components/ui/slider"
-import { Search, Filter, ShoppingBag, Sword, Shield, Wand2, Crown, Gem } from "lucide-react"
-
-const CATEGORIES = [
-  { id: "all", name: "All Items", icon: ShoppingBag },
-  { id: "weapons", name: "Weapons", icon: Sword },
-  { id: "armor", name: "Armor", icon: Shield },
-  { id: "spells", name: "Spells", icon: Wand2 },
-  { id: "artifacts", name: "Artifacts", icon: Crown },
-  { id: "gems", name: "Gems", icon: Gem },
-]
-
-const RARITY_COLORS = {
-  common: "bg-gray-500",
-  uncommon: "bg-green-500",
-  rare: "bg-blue-500",
-  epic: "bg-purple-500",
-  legendary: "bg-gold-500 text-black",
-}
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
+import { Search, Filter, X } from "lucide-react"
 
 interface FilterSidebarProps {
   searchQuery: string
@@ -44,17 +29,29 @@ export default function FilterSidebar({
   selectedRarities,
   setSelectedRarities,
 }: FilterSidebarProps) {
-  const toggleRarity = (rarity: string) => {
-    setSelectedRarities((prev) => ({
-      ...prev,
-      [rarity]: !prev[rarity],
-    }))
-  }
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+
+  const categories = [
+    { id: "all", name: "All Categories" },
+    { id: "weapons", name: "Weapons" },
+    { id: "armor", name: "Armor" },
+    { id: "spells", name: "Spells" },
+    { id: "artifacts", name: "Artifacts" },
+    { id: "gems", name: "Gems" },
+  ]
+
+  const rarities = [
+    { id: "common", name: "Common" },
+    { id: "uncommon", name: "Uncommon" },
+    { id: "rare", name: "Rare" },
+    { id: "epic", name: "Epic" },
+    { id: "legendary", name: "Legendary" },
+  ]
 
   const resetFilters = () => {
     setSearchQuery("")
     setSelectedCategory("all")
-    setPriceRange([0, 2000])
+    setPriceRange([0, 2500])
     setSelectedRarities({
       common: true,
       uncommon: true,
@@ -65,134 +62,106 @@ export default function FilterSidebar({
   }
 
   return (
-    <motion.div
-      className="lg:col-span-1"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="border-gold-500/30 bg-black sticky top-4">
-        <CardContent className="pt-6">
-          <motion.h2
-            className="text-xl font-bold mb-4 flex items-center font-serif"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Filter className="mr-2 h-5 w-5 text-gold-500" />
-            Filters
-          </motion.h2>
+    <>
+      {/* Mobile Filter Button */}
+      <div className="md:hidden mb-4">
+        <Button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          variant="outline"
+          className="w-full flex items-center justify-center"
+        >
+          {isFilterOpen ? <X className="mr-2 h-4 w-4" /> : <Filter className="mr-2 h-4 w-4" />}
+          {isFilterOpen ? "Close Filters" : "Show Filters"}
+        </Button>
+      </div>
 
-          <motion.div className="mb-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-            <label className="block text-sm font-medium mb-2">Search</label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search NFTs..."
-                className="pl-10 bg-black border-gold-500/50 focus:border-gold-500"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </motion.div>
+      {/* Filter Sidebar Content */}
+      <div
+        className={`space-y-6 bg-black/60 backdrop-blur-sm p-4 rounded-lg border border-amber-200/20 mt-8 md:mt-0 ${
+          isFilterOpen ? "block" : "hidden md:block"
+        }`}
+      >
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Search</h3>
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search NFTs..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 bg-black/50 border-amber-200/30"
+            />
+          </div>
+        </div>
 
-          <motion.div className="mb-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
-            <label className="block text-sm font-medium mb-2">Category</label>
-            <div className="space-y-2">
-              {CATEGORIES.map((category, index) => (
-                <motion.div
-                  key={category.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                >
-                  <Button
-                    variant={selectedCategory === category.id ? "default" : "outline"}
-                    className={`w-full justify-start ${
-                      selectedCategory === category.id
-                        ? "bg-gold-500 text-black"
-                        : "border-gold-500/50 text-white hover:bg-gold-500/10"
-                    }`}
-                    onClick={() => setSelectedCategory(category.id)}
-                  >
-                    <category.icon className="mr-2 h-4 w-4" />
-                    {category.name}
-                  </Button>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div className="mb-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>
-            <label className="block text-sm font-medium mb-2">Price Range (GOLD)</label>
-            <div className="px-2">
-              <Slider
-                defaultValue={[0, 2000]}
-                max={2000}
-                step={50}
-                value={priceRange}
-                onValueChange={setPriceRange}
-                className="my-6"
-              />
-              <div className="flex justify-between">
-                <span>{priceRange[0]} GOLD</span>
-                <span>{priceRange[1]} GOLD</span>
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Categories</h3>
+          <div className="space-y-2">
+            {categories.map((category) => (
+              <div key={category.id} className="flex items-center">
+                <input
+                  type="radio"
+                  id={`category-${category.id}`}
+                  name="category"
+                  checked={selectedCategory === category.id}
+                  onChange={() => setSelectedCategory(category.id)}
+                  className="mr-2 accent-amber-500"
+                />
+                <Label htmlFor={`category-${category.id}`} className="cursor-pointer">
+                  {category.name}
+                </Label>
               </div>
-            </div>
-          </motion.div>
+            ))}
+          </div>
+        </div>
 
-          <motion.div className="mb-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }}>
-            <label className="block text-sm font-medium mb-2">Rarity</label>
-            <div className="space-y-2">
-              {Object.entries(selectedRarities).map(([rarity, isSelected], index) => (
-                <motion.div
-                  key={rarity}
-                  className="flex items-center cursor-pointer"
-                  onClick={() => toggleRarity(rarity)}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 1.0 + index * 0.1 }}
-                  whileHover={{ x: 5 }}
-                >
-                  <div className={`w-4 h-4 mr-2 rounded ${isSelected ? RARITY_COLORS[rarity] : "bg-gray-700"}`}>
-                    {isSelected && (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="w-4 h-4"
-                      >
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    )}
-                  </div>
-                  <span className="capitalize">{rarity}</span>
-                </motion.div>
-              ))}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Price Range</h3>
+          <div className="px-2">
+            <Slider
+              defaultValue={priceRange}
+              min={0}
+              max={2500}
+              step={50}
+              value={priceRange}
+              onValueChange={setPriceRange}
+              className="my-6"
+            />
+            <div className="flex items-center justify-between">
+              <span>{priceRange[0]} GOLD</span>
+              <span>{priceRange[1]} GOLD</span>
             </div>
-          </motion.div>
+          </div>
+        </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            <Button
-              variant="outline"
-              className="w-full border-gold-500 text-gold-500 hover:bg-gold-500/10"
-              onClick={resetFilters}
-            >
-              Reset Filters
-            </Button>
-          </motion.div>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Rarity</h3>
+          <div className="space-y-2">
+            {rarities.map((rarity) => (
+              <div key={rarity.id} className="flex items-center">
+                <Checkbox
+                  id={`rarity-${rarity.id}`}
+                  checked={selectedRarities[rarity.id]}
+                  onCheckedChange={(checked) =>
+                    setSelectedRarities({
+                      ...selectedRarities,
+                      [rarity.id]: !!checked,
+                    })
+                  }
+                  className="mr-2 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <Label htmlFor={`rarity-${rarity.id}`} className="cursor-pointer">
+                  {rarity.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <Button onClick={resetFilters} variant="outline" className="w-full">
+          Reset Filters
+        </Button>
+      </div>
+    </>
   )
 }

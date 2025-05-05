@@ -1,5 +1,9 @@
 import type { Metadata } from "next"
 import Game3DWorld from "@/components/games/adventure-game/game-3d-world"
+import FloatingParticles from "@/components/floating-particles"
+import { Orbitron } from "next/font/google"
+
+const orbitron = Orbitron({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Goldium 3D Adventure Game",
@@ -8,9 +12,16 @@ export const metadata: Metadata = {
 
 export default function AdventureGamePage() {
   return (
-    <main className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-center mb-8 mt-32 text-yellow-400">Goldium 3D Adventure</h1>
-      <Game3DWorld />
-    </main>
+    <div className="min-h-screen pt-20 relative">
+      <FloatingParticles count={30} speed={0.5} />
+      <main className="container mx-auto px-4 py-8 mt-8">
+        <h1
+          className={`text-4xl md:text-5xl font-bold mb-10 text-center ${orbitron.className} tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600`}
+        >
+          Goldium 3D Adventure
+        </h1>
+        <Game3DWorld />
+      </main>
+    </div>
   )
 }

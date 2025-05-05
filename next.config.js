@@ -16,16 +16,6 @@ const nextConfig = {
     if (isServer) {
       config.externals = [...(config.externals || []), "pino-pretty", "lokijs", "encoding"]
     }
-
-    // Ignore canvas-confetti in the browser build
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        canvas: false,
-        'canvas-confetti': false
-      };
-    }
-
     return config
   },
   // Skip specific pages during static generation
@@ -37,7 +27,20 @@ const nextConfig = {
     optimizeServerReact: false,
     serverMinification: false,
     serverSourceMaps: false,
-  }
+  },
+  // Completely disable static generation for specific paths
+  generateStaticParams: async () => {
+    return []
+  },
+  // Exclude specific pages from static generation
+  unstable_excludeFiles: [
+    "app/staking/**/*",
+    "app/staking-client/**/*",
+    "components/defi/staking-interface.tsx",
+    "components/defi/staking-contract.tsx",
+    "components/connect-wallet-button.tsx",
+    "components/wallet-identity-card.tsx",
+  ],
 }
 
 module.exports = nextConfig

@@ -10,6 +10,10 @@ import { RefreshCcw } from "lucide-react"
 import { TransactionItem } from "@/components/transactions/transaction-item"
 import { TransactionFilters } from "@/components/transactions/transaction-filters"
 import { useToast } from "@/hooks/use-toast"
+import FloatingParticles from "@/components/floating-particles"
+import { Orbitron } from "next/font/google"
+
+const orbitron = Orbitron({ subsets: ["latin"] })
 
 export default function TransactionsPage() {
   const { connected, walletAddress, publicKey } = useSolanaWallet()
@@ -89,56 +93,64 @@ export default function TransactionsPage() {
   })
 
   return (
-    <div className="container max-w-4xl py-8">
-      <div className="flex items-center justify-between mb-6 mt-32">
-        <h1 className="text-3xl font-bold">Transaction History</h1>
-        <div className="flex items-center gap-2">
-          <TransactionFilters value={filter} onChange={setFilter} />
-          <Button variant="outline" size="icon" onClick={() => fetchTransactions()} disabled={loading || !connected}>
-            <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-        </div>
-      </div>
+    <div className="min-h-screen pt-20 relative">
+      <FloatingParticles count={30} speed={0.5} />
+      <div className="container max-w-4xl py-8 mt-8 text-center">
+        <h1
+          className={`text-4xl md:text-5xl font-bold mb-10 ${orbitron.className} tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600`}
+        >
+          Transaction History
+        </h1>
 
-      {!connected ? (
-        <div className="bg-secondary/30 rounded-lg p-8 text-center">
-          <h2 className="text-xl font-semibold mb-2">Connect Your Wallet</h2>
-          <p className="text-muted-foreground mb-4">Connect your wallet to view your transaction history.</p>
+        <div className="flex items-center justify-center mb-6">
+          <div className="flex items-center gap-2">
+            <TransactionFilters value={filter} onChange={setFilter} />
+            <Button variant="outline" size="icon" onClick={() => fetchTransactions()} disabled={loading || !connected}>
+              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
         </div>
-      ) : loading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="bg-card rounded-lg p-4">
-              <Skeleton className="h-6 w-1/3 mb-2" />
-              <Skeleton className="h-4 w-1/2 mb-2" />
-              <Skeleton className="h-4 w-1/4" />
-            </div>
-          ))}
-        </div>
-      ) : filteredTransactions.length === 0 ? (
-        <div className="bg-secondary/30 rounded-lg p-8 text-center">
-          <h2 className="text-xl font-semibold mb-2">No Transactions Found</h2>
-          <p className="text-muted-foreground mb-4">
-            {filter === "all" ? "You don't have any transactions yet." : `You don't have any ${filter} transactions.`}
-          </p>
-        </div>
-      ) : (
-        <>
+
+        {!connected ? (
+          <div className="bg-secondary/30 rounded-lg p-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">Connect Your Wallet</h2>
+            <p className="text-muted-foreground mb-4">Connect your wallet to view your transaction history.</p>
+          </div>
+        ) : loading ? (
           <div className="space-y-4">
-            {filteredTransactions.map((tx) => (
-              <TransactionItem key={tx.signature} transaction={tx} network={network} />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-lg p-4">
+                <Skeleton className="h-6 w-1/3 mx-auto mb-2" />
+                <Skeleton className="h-4 w-1/2 mx-auto mb-2" />
+                <Skeleton className="h-4 w-1/4 mx-auto" />
+              </div>
             ))}
           </div>
-
-          {hasMore && (
-            <div className="mt-6 text-center">
-              <Button onClick={loadMoreTransactions} disabled={loadingMore} variant="outline">
-                {loadingMore ? "Loading..." : "Load More"}
-              </Button>
+        ) : filteredTransactions.length === 0 ? (
+          <div className="bg-secondary/30 rounded-lg p-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">No Transactions Found</h2>
+            <p className="text-muted-foreground mb-4">
+              {filter === "all" ? "You don't have any transactions yet." : `You don't have any ${filter} transactions.`}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {filteredTransactions.map((tx) => (
+                <TransactionItem key={tx.signature} transaction={tx} network={network} />
+              ))}
             </div>
-          )}
-        </>
-      )}
+
+            {hasMore && (
+              <div className="mt-6 text-center">
+                <Button onClick={loadMoreTransactions} disabled={loadingMore} variant="outline">
+                  {loadingMore ? "Loading..." : "Load More"}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }

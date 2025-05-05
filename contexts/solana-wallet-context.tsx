@@ -137,13 +137,20 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
   // Fetch balances
   const fetchBalances = async (conn: Connection, walletAddress: string) => {
     try {
+      console.log("Fetching SOL balance for address:", walletAddress)
       const solBal = await getSOLBalance(conn, walletAddress)
+      console.log("SOL balance fetched:", solBal)
       setSolBalance(solBal)
 
+      console.log("Fetching GOLD balance for address:", walletAddress)
       const goldBal = await getGOLDBalance(conn, walletAddress, network)
+      console.log("GOLD balance fetched:", goldBal)
       setGoldBalance(goldBal)
     } catch (error) {
       console.error("Error fetching balances:", error)
+      // Ensure we set balances to 0 on error
+      setSolBalance(0)
+      setGoldBalance(0)
     }
   }
 
@@ -279,26 +286,22 @@ export const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) =>
     }
   }
 
-  return (
-    <SolanaWalletContext.Provider
-      value={{
-        connected,
-        connecting,
-        address,
-        publicKey,
-        solBalance,
-        goldBalance,
-        connection,
-        connect,
-        disconnect,
-        refreshBalance,
-        sendTransaction,
-        isPhantomInstalled,
-      }}
-    >
-      {children}
-    </SolanaWalletContext.Provider>
-  )
+  const value = {
+    connected,
+    connecting,
+    address,
+    publicKey,
+    solBalance,
+    goldBalance,
+    connection,
+    connect,
+    disconnect,
+    refreshBalance,
+    sendTransaction,
+    isPhantomInstalled,
+  }
+
+  return <SolanaWalletContext.Provider value={value}>{children}</SolanaWalletContext.Provider>
 }
 
 // Add this to make TypeScript happy with the window.solana property

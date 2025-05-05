@@ -108,10 +108,10 @@ export default function AdvancedDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 mt-32">
+    <div className="container mx-auto px-4 py-8 font-orbitron">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gold-500">Advanced Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gold-500 font-orbitron tracking-wider">Advanced Dashboard</h1>
           <p className="text-gray-400">Complete overview of your GOLD ecosystem activities</p>
         </div>
         <div className="flex gap-2 mt-4 md:mt-0">
@@ -130,7 +130,7 @@ export default function AdvancedDashboard() {
       {/* Portfolio Summary */}
       <Card className="border-gold-500 bg-black mb-8">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center">
+          <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">
             <Wallet className="mr-2 h-5 w-5 text-gold-500" />
             Portfolio Summary
           </CardTitle>
@@ -216,7 +216,9 @@ export default function AdvancedDashboard() {
             <div className="lg:col-span-2">
               <Card className="border-gold-500 bg-black h-full">
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">
+                    Recent Activity
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {loading ? (
@@ -271,7 +273,7 @@ export default function AdvancedDashboard() {
 
                 <Card className="border-gold-500 bg-black">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center">
+                    <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">
                       <Coins className="mr-2 h-5 w-5 text-gold-500" />
                       Staking Overview
                     </CardTitle>
@@ -307,7 +309,7 @@ export default function AdvancedDashboard() {
 
                 <Card className="border-gold-500 bg-black">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center">
+                    <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">
                       <Clock className="mr-2 h-5 w-5 text-gold-500" />
                       Next Event
                     </CardTitle>
@@ -317,7 +319,7 @@ export default function AdvancedDashboard() {
                       <Skeleton className="h-16 w-full bg-gold-500/10" />
                     ) : (
                       <div>
-                        <h3 className="font-bold mb-1">Mystery Box Drop</h3>
+                        <h3 className="text-xl font-bold mb-1 font-orbitron tracking-wider">Mystery Box Drop</h3>
                         <p className="text-sm text-gray-400 mb-3">Limited edition items with 2x GOLD rewards</p>
                         <div className="countdown-timer mb-4">
                           <div className="countdown-item">
@@ -357,12 +359,14 @@ export default function AdvancedDashboard() {
         <TabsContent value="staking" className="mt-0">
           <Card className="border-gold-500 bg-black">
             <CardHeader>
-              <CardTitle>Staking Dashboard</CardTitle>
+              <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">
+                Staking Dashboard
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Active Stakes</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Active Stakes</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Flexible</span>
@@ -384,7 +388,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Rewards</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Rewards</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Pending Rewards</span>
@@ -408,7 +412,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Staking Options</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Staking Options</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Flexible</span>
@@ -438,7 +442,7 @@ export default function AdvancedDashboard() {
               </div>
 
               <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Staking History</h3>
+                <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Staking History</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -490,12 +494,12 @@ export default function AdvancedDashboard() {
         <TabsContent value="nfts" className="mt-0">
           <Card className="border-gold-500 bg-black">
             <CardHeader>
-              <CardTitle>NFT Collection</CardTitle>
+              <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">NFT Collection</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Collection Stats</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Collection Stats</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Total NFTs</span>
@@ -513,7 +517,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Rarity Breakdown</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Rarity Breakdown</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Common</span>
@@ -539,7 +543,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Recent Activity</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Recent Activity</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Purchased</span>
@@ -557,7 +561,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Marketplace</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Marketplace</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Floor Price</span>
@@ -573,7 +577,7 @@ export default function AdvancedDashboard() {
               </div>
 
               <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Your NFT Collection</h3>
+                <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Your NFT Collection</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {[...Array(12)].map((_, i) => (
                     <div
@@ -607,7 +611,7 @@ export default function AdvancedDashboard() {
         <TabsContent value="games" className="mt-0">
           <Card className="border-gold-500 bg-black">
             <CardHeader>
-              <CardTitle>Gaming Dashboard</CardTitle>
+              <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">Gaming Dashboard</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -615,7 +619,7 @@ export default function AdvancedDashboard() {
                   <div className="flex items-center justify-center mb-4">
                     <Trophy className="h-10 w-10 text-gold-500" />
                   </div>
-                  <h3 className="text-lg font-bold text-center mb-1">Your Rank</h3>
+                  <h3 className="text-lg font-bold text-center mb-1 font-orbitron tracking-wider">Your Rank</h3>
                   <div className="text-center text-2xl font-bold text-gold-500 mb-2">#42</div>
                   <p className="text-center text-sm text-gray-400">Top 15% of players</p>
                 </div>
@@ -624,7 +628,7 @@ export default function AdvancedDashboard() {
                   <div className="flex items-center justify-center mb-4">
                     <Coins className="h-10 w-10 text-gold-500" />
                   </div>
-                  <h3 className="text-lg font-bold text-center mb-1">Total Winnings</h3>
+                  <h3 className="text-lg font-bold text-center mb-1 font-orbitron tracking-wider">Total Winnings</h3>
                   <div className="text-center text-2xl font-bold text-gold-500 mb-2">1,250 GOLD</div>
                   <p className="text-center text-sm text-gray-400">Across all games</p>
                 </div>
@@ -633,7 +637,7 @@ export default function AdvancedDashboard() {
                   <div className="flex items-center justify-center mb-4">
                     <Sword className="h-10 w-10 text-gold-500" />
                   </div>
-                  <h3 className="text-lg font-bold text-center mb-1">Win Rate</h3>
+                  <h3 className="text-lg font-bold text-center mb-1 font-orbitron tracking-wider">Win Rate</h3>
                   <div className="text-center text-2xl font-bold text-gold-500 mb-2">62%</div>
                   <p className="text-center text-sm text-gray-400">85 wins / 137 games</p>
                 </div>
@@ -642,14 +646,14 @@ export default function AdvancedDashboard() {
                   <div className="flex items-center justify-center mb-4">
                     <Users className="h-10 w-10 text-gold-500" />
                   </div>
-                  <h3 className="text-lg font-bold text-center mb-1">Online Players</h3>
+                  <h3 className="text-lg font-bold text-center mb-1 font-orbitron tracking-wider">Online Players</h3>
                   <div className="text-center text-2xl font-bold text-gold-500 mb-2">156</div>
                   <p className="text-center text-sm text-gray-400">24 in matchmaking</p>
                 </div>
               </div>
 
               <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Game History</h3>
+                <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Game History</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -696,10 +700,10 @@ export default function AdvancedDashboard() {
               </div>
 
               <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Available Games</h3>
+                <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Available Games</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="black-gold-card hover:gold-glow transition-all duration-300">
-                    <h3 className="text-xl font-bold mb-2">Card Battle</h3>
+                    <h3 className="text-xl font-bold mb-2 font-orbitron tracking-wider">Card Battle</h3>
                     <p className="text-gray-400 mb-4">Strategic card battle game with deck building</p>
                     <div className="flex justify-between mb-2">
                       <span className="text-gray-400">Entry Fee</span>
@@ -713,7 +717,7 @@ export default function AdvancedDashboard() {
                   </div>
 
                   <div className="black-gold-card hover:gold-glow transition-all duration-300">
-                    <h3 className="text-xl font-bold mb-2">Coin Flip</h3>
+                    <h3 className="text-xl font-bold mb-2 font-orbitron tracking-wider">Coin Flip</h3>
                     <p className="text-gray-400 mb-4">Simple yet exciting game of chance</p>
                     <div className="flex justify-between mb-2">
                       <span className="text-gray-400">Min Bet</span>
@@ -727,7 +731,7 @@ export default function AdvancedDashboard() {
                   </div>
 
                   <div className="black-gold-card hover:gold-glow transition-all duration-300">
-                    <h3 className="text-xl font-bold mb-2">Card Flip</h3>
+                    <h3 className="text-xl font-bold mb-2 font-orbitron tracking-wider">Card Flip</h3>
                     <p className="text-gray-400 mb-4">Test your memory by matching pairs of cards</p>
                     <div className="flex justify-between mb-2">
                       <span className="text-gray-400">Entry Fee</span>
@@ -748,12 +752,14 @@ export default function AdvancedDashboard() {
         <TabsContent value="analytics" className="mt-0">
           <Card className="border-gold-500 bg-black">
             <CardHeader>
-              <CardTitle>Analytics Dashboard</CardTitle>
+              <CardTitle className="text-lg flex items-center font-orbitron tracking-wider">
+                Analytics Dashboard
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Portfolio Distribution</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Portfolio Distribution</h3>
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center text-gray-400">[Portfolio Distribution Chart]</div>
                   </div>
@@ -778,7 +784,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">GOLD Price History</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">GOLD Price History</h3>
                   <div className="h-64 flex items-center justify-center">
                     <div className="text-center text-gray-400">[GOLD Price Chart]</div>
                   </div>
@@ -805,7 +811,7 @@ export default function AdvancedDashboard() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Staking Performance</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Staking Performance</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Total Staked</span>
@@ -827,7 +833,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">NFT Performance</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">NFT Performance</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Total Value</span>
@@ -849,7 +855,7 @@ export default function AdvancedDashboard() {
                 </div>
 
                 <div className="black-gold-card">
-                  <h3 className="text-xl font-bold mb-4">Gaming Performance</h3>
+                  <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Gaming Performance</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Games Played</span>
@@ -872,7 +878,7 @@ export default function AdvancedDashboard() {
               </div>
 
               <div className="mt-8">
-                <h3 className="text-xl font-bold mb-4">Transaction Analytics</h3>
+                <h3 className="text-xl font-bold mb-4 font-orbitron tracking-wider">Transaction Analytics</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>

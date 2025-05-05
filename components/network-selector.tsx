@@ -1,218 +1,90 @@
 "use client"
 
 import { useState } from "react"
+import { Check, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useToast } from "@/hooks/use-toast"
-import { ChevronDown } from "lucide-react"
+import Image from "next/image"
+import { useNetwork } from "@/contexts/network-context"
 
-// Network definitions
-const NETWORKS = [
+const networks = [
   {
     id: "ethereum",
     name: "Ethereum",
-    icon: "🔷",
-    color: "bg-blue-500",
-    textColor: "text-blue-500",
-    borderColor: "border-blue-500/50",
-    hoverColor: "hover:bg-blue-500/10",
-    explorerUrl: "https://etherscan.io",
+    icon: "/ethereum-crystal.png",
     chainId: "1",
-    currency: "ETH",
-    rpcUrl: "https://mainnet.infura.io/v3/your-api-key",
   },
   {
     id: "solana",
     name: "Solana",
-    icon: "🟣",
-    color: "bg-purple-500",
-    textColor: "text-purple-500",
-    borderColor: "border-purple-500/50",
-    hoverColor: "hover:bg-purple-500/10",
-    explorerUrl: "https://solscan.io",
-    chainId: "mainnet-beta",
-    currency: "SOL",
-    rpcUrl: "https://api.mainnet-beta.solana.com",
+    icon: "/images/solana-logo.png",
+    chainId: "SOL",
   },
   {
-    id: "bsc",
-    name: "BSC",
-    icon: "🟡",
-    color: "bg-yellow-500",
-    textColor: "text-yellow-500",
-    borderColor: "border-yellow-500/50",
-    hoverColor: "hover:bg-yellow-500/10",
-    explorerUrl: "https://bscscan.com",
+    id: "binance",
+    name: "Binance Smart Chain",
+    icon: "/binance-logo.png",
     chainId: "56",
-    currency: "BNB",
-    rpcUrl: "https://bsc-dataseed.binance.org",
   },
   {
-    id: "polygon",
-    name: "Polygon",
-    icon: "🟪",
-    color: "bg-indigo-500",
-    textColor: "text-indigo-500",
-    borderColor: "border-indigo-500/50",
-    hoverColor: "hover:bg-indigo-500/10",
-    explorerUrl: "https://polygonscan.com",
-    chainId: "137",
-    currency: "MATIC",
-    rpcUrl: "https://polygon-rpc.com",
-  },
-  {
-    id: "arbitrum",
-    name: "Arbitrum",
-    icon: "🔵",
-    color: "bg-blue-600",
-    textColor: "text-blue-600",
-    borderColor: "border-blue-600/50",
-    hoverColor: "hover:bg-blue-600/10",
-    explorerUrl: "https://arbiscan.io",
-    chainId: "42161",
-    currency: "ETH",
-    rpcUrl: "https://arb1.arbitrum.io/rpc",
+    id: "avalanche",
+    name: "Avalanche",
+    icon: "/avalanche-logo.png",
+    chainId: "43114",
   },
 ]
 
-interface NetworkSelectorProps {
-  onNetworkChange?: (networkId: string) => void
-  size?: "default" | "sm" | "lg"
-  variant?: "default" | "minimal" | "button"
-  initialNetwork?: string
-  className?: string
-}
+export default function NetworkSelector() {
+  const { network, setNetwork } = useNetwork()
+  const [isOpen, setIsOpen] = useState(false)
 
-export function NetworkSelector({
-  onNetworkChange,
-  size = "default",
-  variant = "default",
-  initialNetwork = "ethereum",
-  className = "",
-}: NetworkSelectorProps) {
-  const [selectedNetwork, setSelectedNetwork] = useState(NETWORKS.find((n) => n.id === initialNetwork) || NETWORKS[0])
-  const { toast } = useToast()
+  const currentNetwork = networks.find((n) => n.id === network) || networks[0]
 
-  const handleNetworkChange = (networkId: string) => {
-    const network = NETWORKS.find((n) => n.id === networkId)
-    if (!network) return
-
-    setSelectedNetwork(network)
-
-    toast({
-      title: "Network Changed",
-      description: `Switched to ${network.name} network`,
-    })
-
-    if (onNetworkChange) {
-      onNetworkChange(networkId)
-    }
-  }
-
-  // Minimal variant (icon + name only)
-  if (variant === "minimal") {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size={size} className={`flex items-center ${selectedNetwork.textColor} ${className}`}>
-            <span className="mr-1">{selectedNetwork.icon}</span>
-            <span className="mr-1">{selectedNetwork.name}</span>
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-black border-gold/30">
-          {NETWORKS.map((network) => (
-            <DropdownMenuItem
-              key={network.id}
-              className={`cursor-pointer ${network.id === selectedNetwork.id ? "bg-gold/10" : ""}`}
-              onClick={() => handleNetworkChange(network.id)}
-            >
-              <span className="mr-2">{network.icon}</span>
-              <span>{network.name}</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )
-  }
-
-  // Button variant (colored button)
-  if (variant === "button") {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size={size}
-            className={`border-${selectedNetwork.id === "ethereum" ? "blue" : selectedNetwork.id === "solana" ? "purple" : selectedNetwork.id === "bsc" ? "yellow" : "indigo"}-500/50 ${selectedNetwork.textColor} ${selectedNetwork.hoverColor} ${className}`}
-          >
-            <span className="mr-2">{selectedNetwork.icon}</span>
-            <span>{selectedNetwork.name}</span>
-            <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-black border-gold/30">
-          {NETWORKS.map((network) => (
-            <DropdownMenuItem
-              key={network.id}
-              className={`cursor-pointer ${network.id === selectedNetwork.id ? "bg-gold/10" : ""}`}
-              onClick={() => handleNetworkChange(network.id)}
-            >
-              <span className="mr-2">{network.icon}</span>
-              <span>{network.name}</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )
-  }
-
-  // Default variant (full featured)
   return (
-    <div className={`${className}`}>
-      <DropdownMenu>
+    <div className="mt-12 pt-4">
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            size={size}
-            className={`${selectedNetwork.borderColor} ${selectedNetwork.textColor} ${selectedNetwork.hoverColor}`}
+            className="flex items-center justify-between w-full border-amber-200/30 bg-black/50 hover:bg-black/70"
           >
             <div className="flex items-center">
-              <span className="mr-2">{selectedNetwork.icon}</span>
-              <span>{selectedNetwork.name}</span>
-              <div className={`ml-2 w-2 h-2 rounded-full ${selectedNetwork.color}`}></div>
-              <ChevronDown className="ml-2 h-4 w-4" />
+              <div className="w-6 h-6 relative mr-2">
+                <Image
+                  src={currentNetwork.icon || "/placeholder.svg"}
+                  alt={currentNetwork.name}
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <span>{currentNetwork.name}</span>
             </div>
+            <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="bg-black border-gold/30 w-[200px]">
-          {NETWORKS.map((network) => (
+        <DropdownMenuContent className="w-full bg-black/90 backdrop-blur-md border-amber-200/30">
+          {networks.map((item) => (
             <DropdownMenuItem
-              key={network.id}
-              className={`cursor-pointer ${network.id === selectedNetwork.id ? "bg-gold/10" : ""}`}
-              onClick={() => handleNetworkChange(network.id)}
+              key={item.id}
+              className={`flex items-center justify-between cursor-pointer ${
+                item.id === network ? "bg-amber-500/20" : ""
+              }`}
+              onClick={() => {
+                setNetwork(item.id)
+                setIsOpen(false)
+              }}
             >
-              <div className="flex items-center w-full">
-                <span className="mr-2">{network.icon}</span>
-                <span>{network.name}</span>
-                <div className={`ml-auto w-2 h-2 rounded-full ${network.color}`}></div>
+              <div className="flex items-center">
+                <div className="w-6 h-6 relative mr-2">
+                  <Image src={item.icon || "/placeholder.svg"} alt={item.name} fill className="object-contain" />
+                </div>
+                <span>{item.name}</span>
               </div>
+              {item.id === network && <Check className="h-4 w-4 text-amber-500" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <div className="mt-2 text-xs text-gray-400 flex items-center justify-between">
-        <span>Chain ID: {selectedNetwork.chainId}</span>
-        <a
-          href={selectedNetwork.explorerUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-gold hover:underline"
-        >
-          Explorer
-        </a>
-      </div>
     </div>
   )
 }

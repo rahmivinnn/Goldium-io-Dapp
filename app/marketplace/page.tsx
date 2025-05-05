@@ -1,14 +1,11 @@
 "use client"
 
 import { Suspense, useState, useEffect } from "react"
-import Link from "next/link"
 import NFTCard from "@/components/nft-card"
 import MarketplaceHeader from "@/components/marketplace-header"
 import FilterSidebar from "@/components/filter-sidebar"
 import { useToast } from "@/hooks/use-toast"
-import GoldBubbles from "@/components/gold-bubbles"
 import MarketplaceTabs from "@/components/marketplace-tabs"
-import { Button } from "@/components/ui/button"
 
 // Expanded Sample NFT data with more items
 const SAMPLE_NFTS = [
@@ -105,7 +102,7 @@ const SAMPLE_NFTS = [
   {
     id: "11",
     name: "Dragonscale Armor",
-    image: "/placeholder.svg?height=400&width=400&query=dragonscale+armor+fantasy+rpg",
+    image: "/placeholder.svg?key=wccgx",
     price: 1600,
     rarity: "legendary",
     category: "armor",
@@ -114,7 +111,7 @@ const SAMPLE_NFTS = [
   {
     id: "12",
     name: "Thunderbolt Spell",
-    image: "/placeholder.svg?height=400&width=400&query=thunderbolt+lightning+spell+magic",
+    image: "/placeholder.svg?key=wuta4",
     price: 480,
     rarity: "rare",
     category: "spells",
@@ -123,7 +120,7 @@ const SAMPLE_NFTS = [
   {
     id: "13",
     name: "Golden Chalice",
-    image: "/placeholder.svg?height=400&width=400&query=golden+chalice+artifact+fantasy",
+    image: "/placeholder.svg?key=emvt9",
     price: 1350,
     rarity: "legendary",
     category: "artifacts",
@@ -132,7 +129,7 @@ const SAMPLE_NFTS = [
   {
     id: "14",
     name: "Emerald of Life",
-    image: "/placeholder.svg?height=400&width=400&query=emerald+gem+fantasy+glowing",
+    image: "/placeholder.svg?key=ivw46",
     price: 720,
     rarity: "epic",
     category: "gems",
@@ -141,7 +138,7 @@ const SAMPLE_NFTS = [
   {
     id: "15",
     name: "Obsidian Dagger",
-    image: "/placeholder.svg?height=400&width=400&query=obsidian+dagger+fantasy+weapon",
+    image: "/placeholder.svg?key=238nq",
     price: 580,
     rarity: "rare",
     category: "weapons",
@@ -150,7 +147,7 @@ const SAMPLE_NFTS = [
   {
     id: "16",
     name: "Celestial Plate",
-    image: "/placeholder.svg?height=400&width=400&query=celestial+plate+armor+fantasy",
+    image: "/placeholder.svg?key=a5tzp",
     price: 1450,
     rarity: "legendary",
     category: "armor",
@@ -159,7 +156,7 @@ const SAMPLE_NFTS = [
   {
     id: "17",
     name: "Healing Potion",
-    image: "/placeholder.svg?height=400&width=400&query=healing+potion+spell+fantasy+rpg",
+    image: "/placeholder.svg?key=b4nik",
     price: 220,
     rarity: "common",
     category: "spells",
@@ -168,7 +165,7 @@ const SAMPLE_NFTS = [
   {
     id: "18",
     name: "Sapphire Pendant",
-    image: "/placeholder.svg?height=400&width=400&query=sapphire+pendant+fantasy+gem+jewelry",
+    image: "/placeholder.svg?key=gb9qj",
     price: 890,
     rarity: "epic",
     category: "gems",
@@ -177,7 +174,7 @@ const SAMPLE_NFTS = [
   {
     id: "19",
     name: "War Hammer",
-    image: "/placeholder.svg?height=400&width=400&query=fantasy+war+hammer+weapon",
+    image: "/placeholder.svg?key=hg7hf",
     price: 980,
     rarity: "rare",
     category: "weapons",
@@ -186,7 +183,7 @@ const SAMPLE_NFTS = [
   {
     id: "20",
     name: "Phoenix Feather",
-    image: "/placeholder.svg?height=400&width=400&query=phoenix+feather+magical+artifact+fantasy",
+    image: "/placeholder.svg?key=ht13s",
     price: 1750,
     rarity: "legendary",
     category: "artifacts",
@@ -428,26 +425,9 @@ export default function MarketplacePage() {
   }
 
   return (
-    <div className="min-h-screen pt-16 relative">
-      <GoldBubbles count={30} minSize={15} maxSize={50} />
-      <div className="container mx-auto px-4 pt-8">
-        <div className="flex justify-between items-center">
-          <MarketplaceHeader />
-          <div className="flex gap-3">
-            <Link href="/marketplace/premium">
-              <Button className="bg-gradient-to-r from-amber-600 to-yellow-400 text-black font-bold hover:from-amber-700 hover:to-yellow-500 transition-all duration-300 shadow-lg hover:shadow-amber-500/20">
-                Premium UI
-              </Button>
-            </Link>
-            <Link href="/marketplace/enhanced">
-              <Button className="bg-gradient-to-r from-amber-500 to-yellow-300 text-black font-bold hover:from-amber-600 hover:to-yellow-400 transition-all duration-300 shadow-lg hover:shadow-amber-500/20">
-                Enhanced UI
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+    <div className="pt-24 min-h-screen">
       <div className="container mx-auto px-4 py-8">
+        <MarketplaceHeader />
         <MarketplaceTabs />
         <div className="flex flex-col md:flex-row gap-6 mt-8">
           <aside className="w-full md:w-64 shrink-0">

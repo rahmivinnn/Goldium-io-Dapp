@@ -16,7 +16,7 @@ export function ConnectWalletButton({ showIdentityCard = true, className = "" }:
   const [mounted, setMounted] = useState(false)
   const [showIdentity, setShowIdentity] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
-  const { connected, connecting, connect, disconnect } = useSolanaWallet()
+  const { connected, connecting, connect, disconnect, address } = useSolanaWallet()
 
   useEffect(() => {
     setMounted(true)
@@ -41,6 +41,11 @@ export function ConnectWalletButton({ showIdentityCard = true, className = "" }:
     if (showIdentityCard) {
       setShowIdentity(!showIdentity)
     }
+  }
+
+  const shortenAddress = (addr: string) => {
+    if (!addr) return "Connected"
+    return `${addr.slice(0, 4)}...${addr.slice(-4)}`
   }
 
   const handlePopupClose = () => {
@@ -82,7 +87,7 @@ export function ConnectWalletButton({ showIdentityCard = true, className = "" }:
       >
         <div className="flex items-center gap-2">
           <PhantomLogo size={16} className="mr-1" />
-          {showIdentity ? "Hide Wallet" : "Connected"}
+          {connected ? shortenAddress(address || "") : "Connect Wallet"}
         </div>
       </Button>
 

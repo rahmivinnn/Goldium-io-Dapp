@@ -61,16 +61,16 @@ export function TransactionItem({ transaction, network }: TransactionItemProps) 
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex items-center gap-3 mb-2">
             {getTransactionIcon()}
-            <div>
+            <div className="text-center">
               <h3 className="font-medium">{transaction.description}</h3>
               <p className="text-sm text-muted-foreground">{formattedTime}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="text-right">
+          <div className="flex items-center gap-2 justify-center">
+            <div className="text-center">
               <p
                 className={`font-medium ${transaction.type === "send" ? "text-red-500" : transaction.type === "receive" ? "text-green-500" : ""}`}
               >
@@ -87,45 +87,45 @@ export function TransactionItem({ transaction, network }: TransactionItemProps) 
 
         {expanded && (
           <div className="mt-4 pt-4 border-t border-border">
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="text-muted-foreground">Status</div>
-              <div className={`${transaction.status === "confirmed" ? "text-green-500" : "text-red-500"}`}>
+            <div className="grid grid-cols-2 gap-2 text-sm max-w-md mx-auto">
+              <div className="text-muted-foreground text-center">Status</div>
+              <div className={`${transaction.status === "confirmed" ? "text-green-500" : "text-red-500"} text-center`}>
                 {transaction.status === "confirmed" ? "Confirmed" : "Failed"}
               </div>
 
-              <div className="text-muted-foreground">From</div>
-              <div>
+              <div className="text-muted-foreground text-center">From</div>
+              <div className="text-center">
                 <a
                   href={getAddressExplorerUrl(transaction.from, network)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline flex items-center gap-1"
+                  className="text-primary hover:underline flex items-center justify-center gap-1"
                 >
                   {formatAddress(transaction.from)}
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
 
-              <div className="text-muted-foreground">To</div>
-              <div>
+              <div className="text-muted-foreground text-center">To</div>
+              <div className="text-center">
                 <a
                   href={getAddressExplorerUrl(transaction.to, network)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline flex items-center gap-1"
+                  className="text-primary hover:underline flex items-center justify-center gap-1"
                 >
                   {formatAddress(transaction.to)}
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>
 
-              <div className="text-muted-foreground">Transaction</div>
-              <div>
+              <div className="text-muted-foreground text-center">Transaction</div>
+              <div className="text-center">
                 <a
                   href={getTransactionExplorerUrl(transaction.signature, network)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline flex items-center gap-1"
+                  className="text-primary hover:underline flex items-center justify-center gap-1"
                 >
                   {formatAddress(transaction.signature)}
                   <ExternalLink className="h-3 w-3" />
