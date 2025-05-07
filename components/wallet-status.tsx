@@ -33,7 +33,7 @@ export function WalletStatus() {
   // Handle refresh balance
   const handleRefreshBalance = async () => {
     if (isRefreshing) return
-    
+
     setIsRefreshing(true)
     await refreshBalance()
     setIsRefreshing(false)
@@ -42,15 +42,15 @@ export function WalletStatus() {
   // Handle copy address
   const handleCopyAddress = () => {
     if (!address) return
-    
+
     navigator.clipboard.writeText(address)
     setShowCopied(true)
-    
+
     toast({
       title: "Address Copied",
       description: "Wallet address copied to clipboard",
     })
-    
+
     setTimeout(() => setShowCopied(false), 2000)
   }
 
@@ -62,12 +62,12 @@ export function WalletStatus() {
   // Get wallet icon based on type
   const getWalletIcon = () => {
     if (!walletType) return null
-    
+
     return (
       <div className="w-4 h-4 mr-1">
-        <img 
-          src={`/images/${walletType}-icon.png`} 
-          alt={walletType} 
+        <img
+          src={`/images/${walletType}-icon.png`}
+          alt={walletType}
           className="w-full h-full rounded-full"
         />
       </div>
@@ -106,7 +106,7 @@ export function WalletStatus() {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Wallet</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          
+
           <div className="px-2 py-1.5">
             <div className="text-xs text-muted-foreground mb-1">SOL Balance</div>
             {isBalanceLoading ? (
@@ -115,7 +115,7 @@ export function WalletStatus() {
               <div className="font-medium">{formatNumber(solBalance || 0)} SOL</div>
             )}
           </div>
-          
+
           <div className="px-2 py-1.5">
             <div className="text-xs text-muted-foreground mb-1">GOLD Balance</div>
             {isBalanceLoading ? (
@@ -124,33 +124,35 @@ export function WalletStatus() {
               <div className="font-medium">{formatNumber(goldBalance || 0)} GOLD</div>
             )}
           </div>
-          
+
           <DropdownMenuSeparator />
-          
+
           <DropdownMenuItem onClick={handleCopyAddress}>
             <Copy className="mr-2 h-4 w-4" />
             <span>{showCopied ? "Copied!" : "Copy Address"}</span>
           </DropdownMenuItem>
-          
+
           <DropdownMenuItem onClick={handleRefreshBalance} disabled={isRefreshing}>
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
             <span>Refresh Balance</span>
           </DropdownMenuItem>
-          
-          <DropdownMenuItem asChild>
-            <Link 
-              href={`${networkConfig.explorerUrl}/address/${address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center"
-            >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              <span>View on Explorer</span>
-            </Link>
-          </DropdownMenuItem>
-          
+
+          {networkConfig && address && (
+            <DropdownMenuItem asChild>
+              <Link
+                href={`${networkConfig.explorerUrl}/address/${address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                <span>View on Explorer</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuSeparator />
-          
+
           <DropdownMenuItem onClick={handleDisconnect} className="text-red-500 focus:text-red-500">
             <LogOut className="mr-2 h-4 w-4" />
             <span>Disconnect</span>

@@ -51,13 +51,13 @@ export default function DashboardClient() {
       // For this demo, we'll use fixed prices
       const goldPrice = 0.1 // 1 GOLD = 0.1 SOL
       const solPrice = 100 // 1 SOL = $100 USD
-      
+
       const goldValueInSol = goldBalance * goldPrice
       const totalValueInSol = goldValueInSol + solBalance
       const totalValueInUsd = totalValueInSol * solPrice
-      
+
       setPortfolioValue(totalValueInUsd)
-      
+
       // Random portfolio change for demo
       setPortfolioChange(Math.random() > 0.5 ? 12.5 : -8.3)
     }
@@ -66,11 +66,11 @@ export default function DashboardClient() {
   // Handle refresh
   const handleRefresh = async () => {
     if (isRefreshing) return
-    
+
     setIsRefreshing(true)
     await refreshBalance()
     setIsRefreshing(false)
-    
+
     toast({
       title: "Balances Refreshed",
       description: "Your wallet balances have been updated",
@@ -80,7 +80,7 @@ export default function DashboardClient() {
   return (
     <div className="container mx-auto px-4 py-8">
       <NetworkDetector />
-      
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">
@@ -90,7 +90,7 @@ export default function DashboardClient() {
             Manage your GOLD tokens and view your transactions
           </p>
         </div>
-        
+
         <div className="mt-4 md:mt-0">
           {connected ? (
             <WalletStatus />
@@ -99,7 +99,7 @@ export default function DashboardClient() {
           )}
         </div>
       </div>
-      
+
       {connected ? (
         <>
           {/* Portfolio Summary */}
@@ -132,7 +132,7 @@ export default function DashboardClient() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">GOLD Balance</div>
                   {isBalanceLoading ? (
@@ -141,9 +141,9 @@ export default function DashboardClient() {
                     <div className="text-3xl font-bold text-yellow-500">{formatNumber(goldBalance || 0)} GOLD</div>
                   )}
                   <div className="text-sm flex items-center">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="h-7 px-2 text-xs text-yellow-500 hover:text-yellow-600 hover:bg-yellow-500/10"
                       onClick={handleRefresh}
                       disabled={isRefreshing}
@@ -153,7 +153,7 @@ export default function DashboardClient() {
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="text-sm text-muted-foreground">SOL Balance</div>
                   {isBalanceLoading ? (
@@ -162,21 +162,23 @@ export default function DashboardClient() {
                     <div className="text-3xl font-bold text-yellow-500">{formatNumber(solBalance || 0)} SOL</div>
                   )}
                   <div className="text-sm flex items-center">
-                    <Link
-                      href={`${networkConfig.explorerUrl}/address/${address}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-500 hover:text-blue-600 hover:underline flex items-center"
-                    >
-                      View on Explorer
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </Link>
+                    {networkConfig && address && (
+                      <Link
+                        href={`${networkConfig.explorerUrl}/address/${address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:text-blue-600 hover:underline flex items-center"
+                      >
+                        View on Explorer
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Main Dashboard Tabs */}
           <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
             <TabsList className="grid grid-cols-4 mb-6">
@@ -197,23 +199,23 @@ export default function DashboardClient() {
                 Faucet
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="overview" className="mt-0">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <TransactionHistory compact={false} maxItems={5} />
                 </div>
-                
+
                 <div>
                   <GoldTokenFaucet />
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="transfer" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <TokenTransfer />
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
@@ -229,27 +231,29 @@ export default function DashboardClient() {
                       <h3 className="text-sm font-medium text-muted-foreground">Token Address</h3>
                       <p className="text-sm break-all">{networkConfig.goldTokenAddress}</p>
                     </div>
-                    
+
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Network</h3>
                       <p className="text-sm">{network === "mainnet" ? "Solana Mainnet" : "Solana Testnet"}</p>
                     </div>
-                    
+
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Decimals</h3>
                       <p className="text-sm">9</p>
                     </div>
-                    
+
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Total Supply</h3>
                       <p className="text-sm">1,000,000,000 GOLD</p>
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
-                      onClick={() => window.open(`${networkConfig.explorerUrl}/address/${networkConfig.goldTokenAddress}`, "_blank")}
+                      onClick={() => networkConfig && networkConfig.goldTokenAddress &&
+                        window.open(`${networkConfig.explorerUrl}/address/${networkConfig.goldTokenAddress}`, "_blank")}
+                      disabled={!networkConfig || !networkConfig.goldTokenAddress}
                     >
                       View Token on Explorer
                       <ExternalLink className="h-4 w-4 ml-2" />
@@ -258,15 +262,15 @@ export default function DashboardClient() {
                 </Card>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="history" className="mt-0">
               <TransactionHistory compact={false} maxItems={10} />
             </TabsContent>
-            
+
             <TabsContent value="faucet" className="mt-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <GoldTokenFaucet />
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center">
@@ -282,7 +286,7 @@ export default function DashboardClient() {
                       The GOLD token faucet allows you to claim free GOLD tokens on the Solana testnet for testing purposes.
                       You can claim tokens once every 24 hours.
                     </p>
-                    
+
                     <div className="bg-yellow-500/10 p-4 rounded-md">
                       <h3 className="font-medium text-yellow-500 mb-2">Important Notes</h3>
                       <ul className="list-disc list-inside space-y-1 text-sm">

@@ -60,20 +60,20 @@ export default function SendClient() {
   return (
     <div className="container mx-auto px-4 py-8">
       <NetworkDetector />
-      
+
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600">
             SEND GOLD TOKENS
           </h1>
-          
+
           {!connected && (
             <div className="mt-4 md:mt-0">
               <WalletConnectModal />
             </div>
           )}
         </div>
-        
+
         {connected ? (
           <>
             <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full mb-8">
@@ -91,11 +91,11 @@ export default function SendClient() {
                   History
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="send" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <TokenTransfer />
-                  
+
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
@@ -119,7 +119,7 @@ export default function SendClient() {
                           <li>Transactions typically confirm within seconds</li>
                         </ul>
                       </div>
-                      
+
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-1">Network</h3>
                         <p className="text-sm flex items-center">
@@ -136,7 +136,7 @@ export default function SendClient() {
                           )}
                         </p>
                       </div>
-                      
+
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground mb-1">Your Balance</h3>
                         <div className="flex justify-between items-center">
@@ -158,10 +158,12 @@ export default function SendClient() {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full"
-                        onClick={() => window.open(`${networkConfig.explorerUrl}/address/${address}`, "_blank")}
+                        onClick={() => networkConfig && address &&
+                          window.open(`${networkConfig.explorerUrl}/address/${address}`, "_blank")}
+                        disabled={!networkConfig || !address}
                       >
                         View Wallet on Explorer
                         <ExternalLink className="h-4 w-4 ml-2" />
@@ -170,7 +172,7 @@ export default function SendClient() {
                   </Card>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="gift" className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <Card>
@@ -190,7 +192,7 @@ export default function SendClient() {
                       <p className="text-center mb-6 max-w-xs">
                         Surprise someone with GOLD tokens! Add a personal message to make your gift special.
                       </p>
-                      <GiftGoldModal 
+                      <GiftGoldModal
                         trigger={
                           <Button className="bg-gradient-to-r from-amber-500 to-yellow-300 text-black hover:from-amber-600 hover:to-yellow-400">
                             <Gift className="mr-2 h-4 w-4" />
@@ -208,7 +210,7 @@ export default function SendClient() {
                       />
                     </CardContent>
                   </Card>
-                  
+
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center">
@@ -231,7 +233,7 @@ export default function SendClient() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-start">
                         <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
                           <span className="text-yellow-500 font-bold">2</span>
@@ -243,7 +245,7 @@ export default function SendClient() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-start">
                         <div className="w-8 h-8 bg-yellow-500/20 rounded-full flex items-center justify-center mr-3 mt-0.5">
                           <span className="text-yellow-500 font-bold">3</span>
@@ -259,7 +261,7 @@ export default function SendClient() {
                   </Card>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="history" className="mt-0">
                 <TransactionHistory compact={false} maxItems={10} />
               </TabsContent>

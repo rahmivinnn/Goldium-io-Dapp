@@ -237,15 +237,17 @@ export function TransactionHistory({
                     </div>
                   </div>
                   <div className="text-right">
-                    <a
-                      href={`${networkConfig.explorerUrl}/tx/${tx.signature}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-gold flex items-center justify-end hover:underline"
-                    >
-                      <span>View</span>
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </a>
+                    {networkConfig && tx.signature && (
+                      <a
+                        href={`${networkConfig.explorerUrl}/tx/${tx.signature}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-gold flex items-center justify-end hover:underline"
+                      >
+                        <span>View</span>
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-gray-400">
@@ -352,14 +354,16 @@ export function TransactionHistory({
                     {getStatusBadge(tx.status)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <a
-                      href={`${networkConfig.explorerUrl}/tx/${tx.signature}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-blue-500 hover:text-blue-700"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
+                    {networkConfig && tx.signature && (
+                      <a
+                        href={`${networkConfig.explorerUrl}/tx/${tx.signature}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-blue-500 hover:text-blue-700"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
