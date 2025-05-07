@@ -35,11 +35,35 @@ export default function TwitterEmbed() {
     },
     {
       id: "3",
-      content: "CA: APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump",
+      content: "🔥 Our testnet is now LIVE! Try out the Goldium dApp and earn free GOLD tokens through our faucet. Build with us and shape the future of DeFi! #Solana #Web3 #Testnet",
       date: "2d ago",
       likes: 312,
       retweets: 103,
       replies: 47,
+    },
+    {
+      id: "4",
+      content: "📊 GOLD token is now available on testnet! Contract address: APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump #Solana #Goldium #Crypto",
+      date: "3d ago",
+      likes: 278,
+      retweets: 92,
+      replies: 38,
+    },
+    {
+      id: "5",
+      content: "🎮 Sneak peek at our upcoming play-to-earn game! Complete quests, battle other players, and earn GOLD tokens. Beta testing starts next month! #GameFi #P2E #Goldium",
+      date: "4d ago",
+      likes: 356,
+      retweets: 124,
+      replies: 67,
+    },
+    {
+      id: "6",
+      content: "🏆 Congratulations to our community members who participated in the GOLD token trading competition! Top traders have been rewarded with exclusive NFTs and bonus tokens! #Community #Rewards",
+      date: "5d ago",
+      likes: 203,
+      retweets: 76,
+      replies: 29,
     },
   ]
 

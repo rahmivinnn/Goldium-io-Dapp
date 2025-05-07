@@ -3,9 +3,9 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
 // Network configuration
-export type NetworkType = "mainnet" | "devnet"
+export type NetworkType = "mainnet" | "testnet"
 
-export const DEFAULT_NETWORK: NetworkType = "devnet"
+export const DEFAULT_NETWORK: NetworkType = "testnet"
 
 // Token metadata
 export const GOLD_TOKEN_METADATA = {
@@ -31,11 +31,11 @@ export const NETWORKS = {
     goldTokenAddress: "placeholder-address-to-be-fetched-from-server", // Will be fetched from server
     explorerUrl: "https://explorer.solana.com",
   },
-  devnet: {
-    name: "Devnet",
-    endpoint: process.env.NEXT_PUBLIC_SOLANA_RPC_DEVNET || "https://api.devnet.solana.com",
-    goldTokenAddress: "placeholder-address-to-be-fetched-from-server", // Will be fetched from server
-    explorerUrl: "https://explorer.solana.com/?cluster=devnet",
+  testnet: {
+    name: "Testnet",
+    endpoint: process.env.NEXT_PUBLIC_SOLANA_RPC_TESTNET || "https://api.testnet.solana.com",
+    goldTokenAddress: "APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump", // Default GOLD token address on testnet
+    explorerUrl: "https://explorer.solana.com/?cluster=testnet",
   },
 }
 
@@ -81,7 +81,7 @@ export const NetworkProvider = ({ children }: NetworkProviderProps) => {
     setIsClient(true)
     // Load network preference from localStorage if available
     const savedNetwork = localStorage.getItem("goldium_network")
-    if (savedNetwork && (savedNetwork === "mainnet" || savedNetwork === "devnet")) {
+    if (savedNetwork && (savedNetwork === "mainnet" || savedNetwork === "testnet")) {
       setNetwork(savedNetwork as NetworkType)
     }
 

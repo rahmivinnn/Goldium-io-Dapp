@@ -2,12 +2,13 @@ import { type Connection, PublicKey } from "@solana/web3.js"
 import { NETWORKS } from "@/contexts/network-context"
 
 export type TransactionType = "send" | "receive" | "swap" | "nft" | "stake" | "unstake" | "claim" | "all"
+export type TransactionStatus = "confirmed" | "failed" | "pending"
 
 export interface Transaction {
   signature: string
   blockTime: number
   type: TransactionType
-  status: "confirmed" | "failed" | "pending"
+  status: TransactionStatus
   amount?: number
   fee: number
   from: string
@@ -20,7 +21,7 @@ export interface Transaction {
 export async function getTransactionHistory(
   connection: Connection,
   walletAddress: string,
-  network: "mainnet" | "testnet" | "devnet",
+  network: "mainnet" | "testnet",
   limit = 10,
   before?: string,
   type?: TransactionType,
@@ -137,13 +138,19 @@ export async function getTransactionHistory(
 }
 
 // Function to get transaction explorer URL
-export function getTransactionExplorerUrl(signature: string, network: "mainnet" | "testnet" | "devnet"): string {
+export function getTransactionExplorerUrl(signature: string, network: "mainnet" | "testnet"): string {
   const baseUrl = NETWORKS[network].explorerUrl
   return `${baseUrl}/tx/${signature}`
 }
 
 // Function to get address explorer URL
-export function getAddressExplorerUrl(address: string, network: "mainnet" | "testnet" | "devnet"): string {
+export function getAddressExplorerUrl(address: string, network: "mainnet" | "testnet"): string {
   const baseUrl = NETWORKS[network].explorerUrl
   return `${baseUrl}/address/${address}`
+}
+
+// Function to get token explorer URL
+export function getTokenExplorerUrl(address: string, network: "mainnet" | "testnet"): string {
+  const baseUrl = NETWORKS[network].explorerUrl
+  return `${baseUrl}/token/${address}`
 }

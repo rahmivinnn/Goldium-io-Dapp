@@ -14,13 +14,17 @@ interface SolanaWalletContextType {
   goldBalance: number | null
   isBalanceLoading: boolean
   lastUpdated: number | null
-  connect: () => Promise<{ success: boolean; rejected?: boolean }>
+  connect: (walletType?: WalletType) => Promise<{ success: boolean; rejected?: boolean }>
   disconnect: () => Promise<void>
   refreshBalance: () => Promise<void>
   isPhantomInstalled: boolean
   isSolflareInstalled: boolean
-  walletType: "phantom" | "solflare" | null
+  isMetaMaskInstalled: boolean
+  walletType: WalletType | null
 }
+
+// Wallet types
+export type WalletType = "phantom" | "solflare" | "metamask"
 
 // Create the context with default values
 const SolanaWalletContext = createContext<SolanaWalletContextType>({
@@ -36,6 +40,7 @@ const SolanaWalletContext = createContext<SolanaWalletContextType>({
   refreshBalance: async () => {},
   isPhantomInstalled: false,
   isSolflareInstalled: false,
+  isMetaMaskInstalled: false,
   walletType: null,
 })
 
@@ -54,7 +59,8 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
   const [connection, setConnection] = useState<Connection | null>(null)
   const [isPhantomInstalled, setIsPhantomInstalled] = useState(false)
   const [isSolflareInstalled, setIsSolflareInstalled] = useState(false)
-  const [walletType, setWalletType] = useState<"phantom" | "solflare" | null>(null)
+  const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false)
+  const [walletType, setWalletType] = useState<WalletType | null>(null)
   const { toast } = useToast()
   const { endpoint, network } = useNetwork()
 
@@ -67,9 +73,17 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
     const checkWalletsInstalled = () => {
       const phantom = window?.solana?.isPhantom
       const solflare = window?.solflare?.isSolflare
+      const metamask = window?.ethereum?.isMetaMask
+
       setIsPhantomInstalled(!!phantom)
       setIsSolflareInstalled(!!solflare)
-      return { phantom: !!phantom, solflare: !!solflare }
+      setIsMetaMaskInstalled(!!metamask)
+
+      return {
+        phantom: !!phantom,
+        solflare: !!solflare,
+        metamask: !!metamask
+      }
     }
 
     // Check if we have a stored connection
@@ -78,7 +92,7 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
       const storedAddress = localStorage.getItem("goldium_wallet_address")
 
       if (storedAddress && storedWalletType) {
-        const { phantom, solflare } = checkWalletsInstalled()
+        const { phantom, solflare, metamask } = checkWalletsInstalled()
 
         try {
           // Try to reconnect with the stored wallet
@@ -101,6 +115,43 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
                 setWalletType("solflare")
                 await refreshBalanceForAddress(publicKey, conn)
               }
+            }
+          } else if (storedWalletType === "metamask" && metamask && window.ethereum) {
+            // For MetaMask with Solana Snap
+            try {
+              // Check if Solana snap is installed
+              const isSolanaSnapInstalled = await window.ethereum.request({
+                method: 'wallet_getSnaps',
+              }).then((snaps: any) => {
+                return Object.keys(snaps).some(snapId =>
+                  snapId.startsWith('npm:@solana/wallet-standard-snap')
+                );
+              }).catch(() => false);
+
+              if (isSolanaSnapInstalled) {
+                // Get accounts from Solana snap
+                const accounts = await window.ethereum.request({
+                  method: 'wallet_invokeSnap',
+                  params: {
+                    snapId: 'npm:@solana/wallet-standard-snap',
+                    request: {
+                      method: 'getAccounts',
+                    },
+                  },
+                });
+
+                if (accounts && accounts.length > 0) {
+                  const publicKey = accounts[0].address;
+                  if (publicKey) {
+                    setAddress(publicKey)
+                    setConnected(true)
+                    setWalletType("metamask")
+                    await refreshBalanceForAddress(publicKey, conn)
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error connecting to MetaMask Solana Snap:", error);
             }
           }
         } catch (error) {
@@ -164,6 +215,52 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
           }
         })
       }
+
+      // MetaMask listeners
+      if (window.ethereum) {
+        window.ethereum.on("accountsChanged", async (accounts: string[]) => {
+          if (accounts.length > 0) {
+            // Check if Solana snap is connected
+            try {
+              const isSolanaSnapInstalled = await window.ethereum.request({
+                method: 'wallet_getSnaps',
+              }).then((snaps: any) => {
+                return Object.keys(snaps).some(snapId =>
+                  snapId.startsWith('npm:@solana/wallet-standard-snap')
+                );
+              }).catch(() => false);
+
+              if (isSolanaSnapInstalled) {
+                // Get Solana accounts
+                const solanaAccounts = await window.ethereum.request({
+                  method: 'wallet_invokeSnap',
+                  params: {
+                    snapId: 'npm:@solana/wallet-standard-snap',
+                    request: {
+                      method: 'getAccounts',
+                    },
+                  },
+                });
+
+                if (solanaAccounts && solanaAccounts.length > 0) {
+                  const publicKey = solanaAccounts[0].address;
+                  console.log("MetaMask Solana account changed:", publicKey);
+                  handleWalletConnected(publicKey, "metamask");
+                }
+              }
+            } catch (error) {
+              console.error("Error with MetaMask Solana Snap:", error);
+            }
+          } else {
+            handleWalletDisconnected();
+          }
+        });
+
+        window.ethereum.on("disconnect", () => {
+          console.log("MetaMask disconnected");
+          handleWalletDisconnected();
+        });
+      }
     }
 
     // Setup listeners after a short delay to ensure window.solana/window.solflare is available
@@ -177,11 +274,15 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
       if (window.solflare) {
         window.solflare.removeAllListeners()
       }
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', () => {});
+        window.ethereum.removeListener('disconnect', () => {});
+      }
     }
   }, [endpoint])
 
   // Handle wallet connected
-  const handleWalletConnected = async (publicKeyString: string, type: "phantom" | "solflare") => {
+  const handleWalletConnected = async (publicKeyString: string, type: WalletType) => {
     setAddress(publicKeyString)
     setConnected(true)
     setConnecting(false)
@@ -219,7 +320,7 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
   }
 
   // Connect wallet
-  const connect = async (walletType: "phantom" | "solflare" = "phantom") => {
+  const connect = async (walletType: WalletType = "phantom") => {
     try {
       setConnecting(true)
 
@@ -261,6 +362,84 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
         // Connection is handled by the event listeners
         console.log("Wallet connected via connect method:", publicKey)
         return { success: true }
+      } else if (walletType === "metamask") {
+        // Check if MetaMask is installed
+        if (!window.ethereum || !window.ethereum.isMetaMask) {
+          toast({
+            title: "MetaMask Not Installed",
+            description: "Please install MetaMask wallet extension",
+            variant: "destructive",
+          })
+          setConnecting(false)
+          return { success: false }
+        }
+
+        try {
+          // First connect to MetaMask
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+          // Check if Solana snap is installed
+          const snaps = await window.ethereum.request({
+            method: 'wallet_getSnaps',
+          });
+
+          const solanaSnapId = Object.keys(snaps).find(snapId =>
+            snapId.startsWith('npm:@solana/wallet-standard-snap')
+          );
+
+          if (!solanaSnapId) {
+            // Solana snap not installed, prompt to install
+            toast({
+              title: "Solana Snap Not Installed",
+              description: "Installing Solana Snap for MetaMask...",
+            });
+
+            // Connect to Solana snap
+            await window.ethereum.request({
+              method: 'wallet_requestSnaps',
+              params: {
+                'npm:@solana/wallet-standard-snap': {},
+              },
+            });
+          }
+
+          // Get Solana accounts
+          const accounts = await window.ethereum.request({
+            method: 'wallet_invokeSnap',
+            params: {
+              snapId: 'npm:@solana/wallet-standard-snap',
+              request: {
+                method: 'getAccounts',
+              },
+            },
+          });
+
+          if (accounts && accounts.length > 0) {
+            const publicKey = accounts[0].address;
+
+            // Connection will be handled by event listeners
+            console.log("MetaMask Solana account connected:", publicKey);
+            handleWalletConnected(publicKey, "metamask");
+            return { success: true };
+          } else {
+            toast({
+              title: "No Solana Accounts",
+              description: "No Solana accounts found in MetaMask",
+              variant: "destructive",
+            });
+            setConnecting(false);
+            return { success: false };
+          }
+        } catch (error) {
+          console.error("Error connecting to MetaMask Solana Snap:", error);
+          toast({
+            title: "Connection Failed",
+            description: "Failed to connect to MetaMask Solana Snap",
+            variant: "destructive",
+          });
+          setConnecting(false);
+          return { success: false };
+        }
       }
 
       setConnecting(false)
@@ -278,7 +457,13 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
       if (!isUserRejection) {
         toast({
           title: "Connection Failed",
-          description: `Failed to connect to ${walletType === "phantom" ? "Phantom" : "Solflare"} wallet`,
+          description: `Failed to connect to ${
+            walletType === "phantom"
+              ? "Phantom"
+              : walletType === "solflare"
+                ? "Solflare"
+                : "MetaMask"
+          } wallet`,
           variant: "destructive",
         })
       }
@@ -295,6 +480,10 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
         await window.solana.disconnect()
       } else if (walletType === "solflare" && window.solflare && window.solflare.isSolflare) {
         await window.solflare.disconnect()
+      } else if (walletType === "metamask" && window.ethereum && window.ethereum.isMetaMask) {
+        // For MetaMask, we don't need to explicitly disconnect
+        // Just clear the local state
+        handleWalletDisconnected()
       }
 
       // Disconnection is handled by the event listeners

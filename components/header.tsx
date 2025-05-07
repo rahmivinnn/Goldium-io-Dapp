@@ -7,7 +7,9 @@ import { ConnectWalletButton } from "@/components/connect-wallet-button"
 import { WalletConnectButton } from "@/components/wallet-connect-button"
 import { useSolanaWallet } from "@/contexts/solana-wallet-context"
 import { NetworkSelector } from "@/components/network-selector"
+import { SoundToggle } from "@/components/sound-toggle"
 import { ChevronDown, Menu, X, Wallet } from "lucide-react"
+import { preloadCommonSounds } from "@/services/sound-effects-service"
 
 export default function Header() {
   const [mounted, setMounted] = useState(false)
@@ -21,6 +23,9 @@ export default function Header() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
     }
+
+    // Preload common sound effects
+    preloadCommonSounds()
 
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
@@ -114,9 +119,10 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* Network and Connect Wallet */}
+          {/* Network, Sound Toggle, and Connect Wallet */}
           <div className="hidden md:flex items-center space-x-3">
             <NetworkSelector />
+            <SoundToggle className="text-white hover:text-yellow-500" />
             {connected ? <ConnectWalletButton /> : <WalletConnectButton />}
           </div>
 
@@ -227,6 +233,11 @@ export default function Header() {
             {/* Network Status in Mobile Menu */}
             <div className="py-2 flex justify-center">
               <NetworkSelector />
+            </div>
+
+            {/* Sound Toggle in Mobile Menu */}
+            <div className="py-2 flex justify-center">
+              <SoundToggle className="text-white hover:text-yellow-500" />
             </div>
 
             <div className="py-2 flex justify-center">

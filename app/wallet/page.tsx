@@ -8,8 +8,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WalletConnectButton } from "@/components/wallet-connect-button"
 import { NetworkSelector } from "@/components/network-selector"
-import { Copy, ExternalLink, RefreshCw, Loader2 } from "lucide-react"
+import { GiftGoldModal } from "@/components/gift-gold-modal"
+import { Copy, ExternalLink, RefreshCw, Loader2, Gift } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { playWalletSound } from "@/services/sound-effects-service"
 import Link from "next/link"
 
 export default function WalletPage() {
@@ -21,7 +23,12 @@ export default function WalletPage() {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+
+    // Play wallet connected sound if wallet is connected
+    if (connected) {
+      playWalletSound(true)
+    }
+  }, [connected])
 
   const handleCopyAddress = () => {
     if (!address) return
@@ -365,6 +372,15 @@ export default function WalletPage() {
                     <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-black">
                       <Link href="/faucet">Faucet</Link>
                     </Button>
+                    <GiftGoldModal
+                      trigger={
+                        <Button className="bg-yellow-500 hover:bg-yellow-600 text-black flex items-center gap-2">
+                          <Gift className="h-4 w-4" />
+                          <span>Gift GOLD</span>
+                        </Button>
+                      }
+                      onSuccess={refreshBalance}
+                    />
                     <Button asChild className="bg-yellow-500 hover:bg-yellow-600 text-black">
                       <Link href="/transactions">Transactions</Link>
                     </Button>

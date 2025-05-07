@@ -137,11 +137,13 @@ export default function Home() {
             className="flex flex-col md:flex-row gap-4 mb-12 w-full max-w-md opacity-0 animate-fade-in"
             style={{ animationDelay: "1.5s", animationFillMode: "forwards" }}
           >
-            <Button
-              className={`bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-md w-full ${orbitron.className}`}
-            >
-              Get Started
-            </Button>
+            <Link href="/dashboard" className="w-full">
+              <Button
+                className={`bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-6 rounded-md w-full ${orbitron.className}`}
+              >
+                Open Dashboard
+              </Button>
+            </Link>
 
             <Button
               variant="outline"
@@ -352,12 +354,12 @@ export default function Home() {
           0% { transform: translateY(0px); }
           100% { transform: translateY(-10px); }
         }
-        
+
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .animate-fade-in {
           animation: fade-in 0.8s ease-out forwards;
         }
