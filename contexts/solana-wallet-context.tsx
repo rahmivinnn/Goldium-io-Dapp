@@ -190,6 +190,37 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
             handleWalletDisconnected()
           }
         })
+
+        // Add network change detection for Phantom
+        if (window.solana.isPhantom) {
+          try {
+            // Check network periodically
+            const checkPhantomNetwork = async () => {
+              try {
+                if (window.solana && window.solana.isConnected) {
+                  const resp = await window.solana.request({ method: "getGenesisHash" })
+
+                  // Testnet genesis hash
+                  if (resp === "4uhcVJyU9pJkvQyS88uRDiswHXSCkY3zQawwpjk2NsNY") {
+                    console.log("Phantom is connected to testnet")
+                  }
+                  // Mainnet genesis hash
+                  else if (resp === "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d") {
+                    console.log("Phantom is connected to mainnet")
+                  }
+                }
+              } catch (error) {
+                console.error("Error checking Phantom network:", error)
+              }
+            }
+
+            // Check immediately and then every 30 seconds
+            checkPhantomNetwork()
+            setInterval(checkPhantomNetwork, 30000)
+          } catch (error) {
+            console.error("Error setting up Phantom network detection:", error)
+          }
+        }
       }
 
       // Solflare listeners
@@ -337,12 +368,26 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
         }
 
         // Request connection - this will trigger the Phantom popup
-        const response = await window.solana.connect()
-        const publicKey = response.publicKey.toString()
+        try {
+          const response = await window.solana.connect({ onlyIfTrusted: false })
+          const publicKey = response.publicKey.toString()
 
-        // Connection is handled by the event listeners
-        console.log("Wallet connected via connect method:", publicKey)
-        return { success: true }
+          // Connection is handled by the event listeners
+          console.log("Wallet connected via connect method:", publicKey)
+          return { success: true }
+        } catch (error) {
+          console.error("Error connecting to Phantom:", error)
+          // If there's an error, try the legacy method
+          try {
+            const response = await window.solana.connect()
+            const publicKey = response.publicKey.toString()
+            console.log("Wallet connected via legacy method:", publicKey)
+            return { success: true }
+          } catch (legacyError) {
+            console.error("Error connecting with legacy method:", legacyError)
+            throw legacyError
+          }
+        }
       } else if (walletType === "solflare") {
         // Check if Solflare is installed
         if (!window.solflare || !window.solflare.isSolflare) {

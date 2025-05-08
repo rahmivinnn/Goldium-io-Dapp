@@ -148,7 +148,7 @@ export default function FaucetPage() {
 
   // Check if user can claim
   const canClaim = () => {
-    if (network !== "devnet") return false
+    if (network !== "testnet") return false
     if (!lastClaimTime) return true
 
     const now = Date.now()
@@ -176,10 +176,10 @@ export default function FaucetPage() {
       return
     }
 
-    if (network !== "devnet") {
+    if (network !== "testnet") {
       toast({
         title: "Network Error",
-        description: "Faucet is only available on Devnet",
+        description: "Faucet is only available on Testnet",
         variant: "destructive",
       })
       return
@@ -294,13 +294,13 @@ export default function FaucetPage() {
           GOLD Token Faucet
         </h1>
 
-        {network !== "devnet" && (
+        {network !== "testnet" && (
           <div className="mb-8 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 flex items-start">
             <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="font-semibold text-yellow-500">Network Warning</h3>
               <p className="text-gray-300">
-                The faucet is only available on Devnet. Please switch to Devnet to claim GOLD tokens.
+                The faucet is only available on Testnet. Please switch to Testnet to claim GOLD tokens.
               </p>
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function FaucetPage() {
           <Card className="bg-black/50 border border-yellow-500/30 text-white">
             <CardHeader>
               <CardTitle className="text-yellow-500">Claim GOLD Tokens</CardTitle>
-              <CardDescription className="text-gray-300">Get free GOLD tokens on Devnet for testing</CardDescription>
+              <CardDescription className="text-gray-300">Get free GOLD tokens on Testnet for testing</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {isLoading ? (
@@ -340,7 +340,7 @@ export default function FaucetPage() {
 
                   <div className="bg-black/30 rounded-lg p-4 border border-yellow-500/20">
                     <p className="text-sm text-gray-300">
-                      You can claim 1 GOLD token every 5 minutes on Devnet for testing purposes.
+                      You can claim 1 GOLD token every 5 minutes on Testnet for testing purposes.
                     </p>
                   </div>
                 </>
@@ -349,7 +349,7 @@ export default function FaucetPage() {
             <CardFooter>
               <Button
                 onClick={handleClaim}
-                disabled={isLoading || network !== "devnet" || !canClaim() || isClaiming}
+                disabled={isLoading || network !== "testnet" || !canClaim() || isClaiming}
                 className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
               >
                 {isClaiming ? (
@@ -384,7 +384,7 @@ export default function FaucetPage() {
               </div>
               <div>
                 <p className="text-sm text-gray-400">Network</p>
-                <p className="text-lg font-medium">Solana {network === "mainnet" ? "Mainnet" : "Devnet"}</p>
+                <p className="text-lg font-medium">Solana {network === "mainnet" ? "Mainnet" : "Testnet"}</p>
               </div>
             </CardContent>
           </Card>
@@ -397,9 +397,9 @@ export default function FaucetPage() {
           <CardContent>
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold mb-2">Testing on Devnet</h3>
+                <h3 className="text-lg font-semibold mb-2">Testing on Testnet</h3>
                 <p className="text-gray-300">
-                  GOLD tokens claimed from this faucet can be used for testing the Goldium.io platform on Devnet. You
+                  GOLD tokens claimed from this faucet can be used for testing the Goldium.io platform on Testnet. You
                   can stake them, send them to other wallets, or use them in the Goldium games.
                 </p>
               </div>

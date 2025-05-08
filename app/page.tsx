@@ -308,6 +308,134 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Testnet Features Section */}
+        <div className="w-full py-16 bg-black/40 backdrop-blur-sm relative z-10">
+          <div className="container mx-auto px-4">
+            <h2
+              className={`text-2xl md:text-3xl font-bold text-center text-yellow-500 mb-12 ${orbitron.className} tracking-wider`}
+            >
+              TESTNET FEATURES
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[
+                {
+                  title: "Testnet Faucet",
+                  description: "Get free GOLD tokens for testing on Solana Testnet",
+                  icon: "💧"
+                },
+                {
+                  title: "Token Swapping",
+                  description: "Test token swaps between GOLD and SOL on Testnet",
+                  icon: "🔄"
+                },
+                {
+                  title: "Testnet Staking",
+                  description: "Stake your GOLD tokens and earn rewards on Testnet",
+                  icon: "📈"
+                },
+                {
+                  title: "NFT Minting",
+                  description: "Mint test NFTs without spending real SOL",
+                  icon: "🖼️"
+                },
+                {
+                  title: "Cross-Chain Bridge",
+                  description: "Test bridging assets between different testnets",
+                  icon: "🌉"
+                },
+                {
+                  title: "Testnet Governance",
+                  description: "Participate in DAO voting with test tokens",
+                  icon: "🗳️"
+                },
+                {
+                  title: "Transaction Explorer",
+                  description: "View all your testnet transactions in one place",
+                  icon: "🔍"
+                },
+                {
+                  title: "Smart Contract Testing",
+                  description: "Deploy and interact with smart contracts on testnet",
+                  icon: "📝"
+                },
+                {
+                  title: "Testnet Wallet",
+                  description: "Secure wallet designed for testnet transactions",
+                  icon: "👛"
+                },
+                {
+                  title: "Automated Airdrops",
+                  description: "Scheduled airdrops of test tokens to active users",
+                  icon: "🪂"
+                },
+                {
+                  title: "Test Liquidity Pools",
+                  description: "Provide liquidity and earn rewards on testnet",
+                  icon: "💰"
+                },
+                {
+                  title: "Testnet Lending",
+                  description: "Borrow and lend assets on Solana Testnet",
+                  icon: "🏦"
+                },
+                {
+                  title: "Yield Farming Simulator",
+                  description: "Test yield farming strategies without risk",
+                  icon: "🌾"
+                },
+                {
+                  title: "NFT Marketplace",
+                  description: "Buy and sell NFTs using testnet tokens",
+                  icon: "🛒"
+                },
+                {
+                  title: "Transaction Batching",
+                  description: "Combine multiple testnet transactions for efficiency",
+                  icon: "📦"
+                },
+                {
+                  title: "Testnet Analytics",
+                  description: "Track performance metrics of your testnet activities",
+                  icon: "📊"
+                },
+                {
+                  title: "Testnet Multisig",
+                  description: "Test multisignature wallet functionality",
+                  icon: "🔐"
+                },
+                {
+                  title: "Program Deployment",
+                  description: "Deploy your Solana programs to testnet",
+                  icon: "🚀"
+                },
+                {
+                  title: "Error Simulation",
+                  description: "Simulate various error conditions safely",
+                  icon: "⚠️"
+                },
+                {
+                  title: "Testnet API",
+                  description: "Access testnet data through our developer API",
+                  icon: "🔌"
+                },
+              ].map((feature, index) => (
+                <div
+                  key={index}
+                  className="bg-black/40 backdrop-blur-sm border border-yellow-500/20 rounded-lg p-4 hover:border-yellow-500/50 transition-all duration-300 opacity-0 animate-fade-in"
+                  style={{ animationDelay: `${3.0 + index * 0.1}s`, animationFillMode: "forwards" }}
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="mb-2 text-3xl">{feature.icon}</div>
+                    <h3 className={`text-md font-bold mb-1 text-yellow-500 ${orbitron.className}`}>{feature.title}</h3>
+                    <p className="text-gray-400 text-sm">{feature.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Follow Updates Section */}
         <div className="w-full py-16 bg-black/50 backdrop-blur-sm relative z-10">
           <h2

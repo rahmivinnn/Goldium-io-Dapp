@@ -4,7 +4,7 @@ import { useState, useEffect, createContext, useContext, type ReactNode } from "
 import { useLocalStorage } from "./use-local-storage"
 
 // Network types
-export type NetworkType = "mainnet" | "devnet"
+export type NetworkType = "mainnet" | "testnet"
 
 // Network configuration
 export interface NetworkConfig {
@@ -14,12 +14,12 @@ export interface NetworkConfig {
 }
 
 // Default network
-const DEFAULT_NETWORK: NetworkType = "devnet"
+const DEFAULT_NETWORK: NetworkType = "testnet"
 
 // Network endpoints
 const NETWORK_ENDPOINTS = {
   mainnet: "https://api.mainnet-beta.solana.com",
-  devnet: "https://api.devnet.solana.com",
+  testnet: "https://api.testnet.solana.com",
 }
 
 // Create context

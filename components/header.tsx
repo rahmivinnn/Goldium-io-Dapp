@@ -111,9 +111,6 @@ export default function Header() {
             <Link href="/transactions" className="text-white hover:text-yellow-500 transition-colors">
               Transactions
             </Link>
-            <Link href="/game" className="text-white hover:text-yellow-500 transition-colors">
-              3D Game
-            </Link>
             <Link href="/wallet" className="text-white hover:text-yellow-500 transition-colors flex items-center">
               <Wallet className="h-4 w-4 mr-1" /> Wallet
             </Link>
@@ -213,13 +210,6 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Transactions
-              </Link>
-              <Link
-                href="/game"
-                className="text-white hover:text-yellow-500 transition-colors py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                3D Game
               </Link>
               <Link
                 href="/wallet"

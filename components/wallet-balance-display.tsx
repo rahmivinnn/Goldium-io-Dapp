@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { PhantomLogo } from "@/components/phantom-logo"
 
 // You can make these configurable through environment variables or props
-const SOLANA_RPC = clusterApiUrl("mainnet-beta")
+const SOLANA_RPC = clusterApiUrl("testnet")
 const GOLD_MINT = new PublicKey("APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")
 const GOLD_DECIMALS = 9 // Assuming 9 decimals for GOLD token
 

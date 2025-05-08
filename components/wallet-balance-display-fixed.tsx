@@ -9,7 +9,7 @@ import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 
 // You can make these configurable through environment variables or props
-const SOLANA_RPC = clusterApiUrl("mainnet-beta")
+const SOLANA_RPC = clusterApiUrl("testnet")
 const GOLD_MINT = new PublicKey("APkBg8kzMBpVKxvgrw67vkd5KuGWqSu2GVb19eK4pump")
 
 interface WalletBalanceDisplayProps {

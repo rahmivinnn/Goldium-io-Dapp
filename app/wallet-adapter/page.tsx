@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic"
 
 export default function WalletAdapterPage() {
   // You can also provide the endpoint through an environment variable
-  const endpoint = useMemo(() => clusterApiUrl(WalletAdapterNetwork.Mainnet), [])
+  const endpoint = useMemo(() => clusterApiUrl(WalletAdapterNetwork.Testnet), [])
 
   // Initialize wallet adapters
   const wallets = useMemo(() => [new PhantomWalletAdapter()], [])
